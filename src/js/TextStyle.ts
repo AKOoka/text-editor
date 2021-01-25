@@ -1,16 +1,18 @@
 class TextStyle {
   private readonly _type: string
-  startOffset: number
-  endOffset: number
+  private readonly _offset: number
 
   get type (): string {
     return this._type
   }
 
-  constructor (type: string, startOffset: number = 0, endOffset: number = 0) {
+  get offset (): number {
+    return this._offset
+  }
+
+  constructor (type: string, offset: number) {
     this._type = type
-    this.startOffset = startOffset
-    this.endOffset = endOffset
+    this._offset = offset
   }
 }
 

@@ -18,7 +18,7 @@ class TextArea {
     this._textAreaWrapper.classList.add('text-area')
   }
 
-  addTextStyle (): void {
+  addTextStyle (styleType: string): void {
     const selection: Selection | null = document.getSelection()
     const specialChar: string = '#'
 
@@ -49,38 +49,86 @@ class TextArea {
                                  specialChar +
                                  endContainer.textContent.slice(endOffset)
 
-      const textStyle = new TextStyle('bold')
+      // const textStyle = new TextStyle('bold')
 
-      this._textAreaWrapper.textContent.replace(specialChar, (_, offset) => {
-        textStyle.startOffset = offset
+      // this._textAreaWrapper.textContent.replace(specialChar, (_, offset) => {
+      //   textStyle.offset = offset
+      //   return ''
+      // })
+      // this._textAreaWrapper.textContent.replace(specialChar, (_, offset) => {
+      //   textStyle.offset = offset as number + 1
+      //   return ''
+      // })
+
+      this._textAreaWrapper.textContent = this._textAreaWrapper.textContent.replace(specialChar, (_, offset: number): string => {
+        this._textStyles.push(new TextStyle(styleType, offset))
         return ''
       })
-      this._textAreaWrapper.textContent.replace(specialChar, (_, offset) => {
-        textStyle.endOffset = offset as number + 1
+      this._textAreaWrapper.textContent = this._textAreaWrapper.textContent.replace(specialChar, (_, offset: number): string => {
+        this._textStyles.push(new TextStyle(styleType, offset + 1))
         return ''
       })
+      // this._textStyles.push(textStyle)
 
       // sort by start before push ?
+      // can also add if TextStyle is opening or closing tag
       // make a stack where there are just offset and type ?
       // make separate textStyles stack for line ?
 
-      this._textStyles.push(textStyle)
+      this._generateText()
     }
   }
 
-  generateText (): string {
+  private _generateText (): void {
     const { textContent } = this._textAreaWrapper
 
     if (textContent === null) {
       throw new Error('there is no textContent in this._textAreaWrapper')
     }
 
+    this._textStyles.sort((a: TextStyle, b: TextStyle): number => {
+      return a.offset - b.offset
+    })
+
+    const stack: TextStyle[] = []
     let output: string = ''
-    output += textContent.slice(0, this._textStyles[0].startOffset)
 
-    // for (const style of this._textStyles) {}
+    output += textContent.slice(0, this._textStyles[0].offset) + `<span class="${this._textStyles[0].type}">`
+    stack.push(this._textStyles[0])
 
-    return output
+    for (let i = 1; i < this._textStyles.length; i++) {
+      const style = this._textStyles[i]
+      const s: TextStyle = stack[stack.length - 1]
+
+      output += textContent.slice(s.offset, style.offset)
+
+      if (s.type === style.type) {
+        stack.pop()
+        output += `</span class="${style.type}">`
+      } else if (stack.some((el: TextStyle): boolean => el.type === style.type)) {
+        let l = stack.length - 1
+
+        for (l; l >= 0; l--) {
+          const ts: TextStyle = stack[l]
+          output += `</span class="${ts.type}">`
+          if (ts.type === style.type) {
+            stack.splice(l, 1)
+            break
+          }
+        }
+
+        for (l; l < stack.length; l++) {
+          const ts: TextStyle = stack[l]
+          output += `<span class="${ts.type}">`
+        }
+      } else {
+        stack.push(style)
+        output += `<span class="${style.type}">`
+      }
+    }
+
+    output += textContent.slice(this._textStyles[this._textStyles.length - 1].offset)
+    this._textAreaWrapper.innerHTML = output
   }
 }
 

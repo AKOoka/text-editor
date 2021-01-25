@@ -1,10 +1,10 @@
-.app-wrapper {
+.text-editor {
   width: 800px;
   height: 600px;
   border: red solid 2px;
 }
 
-.ui-wrapper {
+.ui {
   background-color: aquamarine;
   height: 10%;
 }
@@ -13,4 +13,16 @@
   background-color: black;
   color: white;
   height: 90%;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.italic {
+  font-style: italic;
+}
+
+.through {
+  text-decoration: line-through;
 }

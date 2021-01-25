@@ -8,11 +8,13 @@ class TextEditor {
 
   constructor () {
     this._textEditorWrapper = document.createElement('div')
-    this._ui = new UI()
     this._textArea = new TextArea()
+    this._ui = new UI(this._textArea)
 
-    this._textEditorWrapper.classList.add('app-wrapper')
+    this._textEditorWrapper.classList.add('text-editor')
     this._textEditorWrapper.append(this._ui.uiWrapper, this._textArea.textAreaWrapper)
+
+    this._ui.generateButtons()
   }
 
   appendTo (rootSelector: string): void {

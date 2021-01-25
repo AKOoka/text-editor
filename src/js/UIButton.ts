@@ -9,7 +9,7 @@ class UIButton {
     this._button = document.createElement('button')
     this._button.textContent = textContent
     this._button.classList.add(className)
-    this._button.click = clickCallback
+    this._button.onclick = clickCallback
   }
 }
 
