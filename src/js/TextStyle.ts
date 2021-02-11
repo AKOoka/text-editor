@@ -1,18 +1,26 @@
-class TextStyle {
+import { ITextStyle } from './ITextStyle'
+
+class TextStyle implements ITextStyle {
+  private readonly _start: number
+  private readonly _end: number
   private readonly _type: string
-  private readonly _offset: number
 
-  get type (): string {
-    return this._type
-  }
-
-  get offset (): number {
-    return this._offset
-  }
-
-  constructor (type: string, offset: number) {
+  constructor (start: number, end: number, type: string) {
+    this._start = start
+    this._end = end
     this._type = type
-    this._offset = offset
+  }
+
+  getStartPos (): number {
+    return this._start
+  }
+
+  getEndPos (): number {
+    return this._end
+  }
+
+  getType (): string {
+    return this._type
   }
 }
 
