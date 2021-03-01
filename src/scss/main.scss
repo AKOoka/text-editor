@@ -15,14 +15,34 @@
   height: 90%;
 }
 
-.bold {
+.bold-text {
   font-weight: bold;
 }
 
-.italic {
+.italic-text {
   font-style: italic;
 }
 
-.through {
-  text-decoration: line-through;
+.underline-text {
+  text-decoration: underline;
+}
+
+.text-line {
+  position: relative;
+}
+
+.text-cursor {
+  position: absolute;
+  width: 2px;
+  height: 100%;
+  top: 0;
+  background-color: green;
+}
+
+.selection {
+  background-color: blue;
+  opacity: 0.5;
+  height: 100%;
+  position: absolute;
+  top: 0;
 }
