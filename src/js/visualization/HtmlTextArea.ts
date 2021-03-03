@@ -12,8 +12,9 @@ class HtmlTextArea implements ITextRepresentationSubscriber<HtmlTextRepresentati
   private _textLines: HTMLElement[]
   private _htmlSelections: HTMLElement[]
 
-  constructor (context: HTMLElement) {
-    this._context = context
+  constructor () {
+    this._context = document.createElement('div')
+    this._context.classList.add('text-area')
     this._textLines = []
     this._htmlTextCursor = document.createElement('div')
     this._htmlTextCursor.classList.add('text-cursor')
@@ -28,35 +29,23 @@ class HtmlTextArea implements ITextRepresentationSubscriber<HtmlTextRepresentati
     this._ctx2d.font = initFont.fontSize + ' ' + initFont.fontFamily
   }
 
-  // private _makeTextLine (children: HTMLElement[]): HTMLElement {
-  //   const textLine = document.createElement('div')
-  //   textLine.append(...children)
-  //   return textLine
-  // }
-
   private _removeTextLine (linePosition: number): void {
     this._textLines[linePosition].remove()
     this._textLines.splice(linePosition, 1)
   }
 
   private _addTextLine (linePosition: number, line: HTMLElement): void {
-    // const newLine = this._makeTextLine(line)
-    // this._context.insertBefore(newLine, this._textLines[linePosition + 1])
     this._context.insertBefore(line, this._textLines[linePosition + 1])
     this._textLines = this._textLines
       .slice(0, linePosition)
       .concat(line, this._textLines.slice(linePosition))
-    // .concat(newLine, this._textLines.slice(linePosition))
   }
 
   private _changeTextLine (linePosition: number, line: HTMLElement): void {
-    // const newLine = this._makeTextLine(line)
-    // this._textLines[linePosition].replaceWith(newLine)
     this._textLines[linePosition].replaceWith(line)
     this._textLines = this._textLines
       .slice(0, linePosition)
       .concat(line, this._textLines.slice(linePosition + 1))
-    // .concat(newLine, this._textLines.slice(linePosition + 1))
   }
 
   private _createSelection (position: number, width: number): HTMLElement {
@@ -65,6 +54,10 @@ class HtmlTextArea implements ITextRepresentationSubscriber<HtmlTextRepresentati
     selection.style.left = `${position}px`
     selection.style.width = `${width}px`
     return selection
+  }
+
+  getContext (): HTMLElement {
+    return this._context
   }
 
   updateTextCursorPosition (position: number, linePosition: number, selections: IRange[]): void {
