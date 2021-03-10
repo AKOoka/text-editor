@@ -1,6 +1,6 @@
-import { ICommand } from './ICommand'
-import { ITextEditor } from '../core/ITextEditor'
-import { IRange } from '../common/IRange'
+import { ICommand } from '../ICommand'
+import { ITextEditor } from '../../core/ITextEditor'
+import { IRange } from '../../common/IRange'
 
 class AddSelectionCommand implements ICommand {
   private readonly _range: IRange

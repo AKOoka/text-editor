@@ -1,6 +1,6 @@
-import { ICommand } from './ICommand'
-import { ITextEditor } from '../core/ITextEditor'
-import { TextStyleType } from '../common/TextStyleType'
+import { ICommand } from '../ICommand'
+import { ITextEditor } from '../../core/ITextEditor'
+import { TextStyleType } from '../../common/TextStyleType'
 
 class AddTextStyleCommand implements ICommand {
   private readonly _style: TextStyleType
@@ -21,7 +21,7 @@ class AddTextStyleCommand implements ICommand {
   }
 
   undo (context: ITextEditor): void {
-    context.removeTextStyle(this._style)
+    context.deleteTextStyle(this._style)
     context.updateTextRepresentation()
   }
 }

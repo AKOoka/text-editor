@@ -1,6 +1,6 @@
 import { INode } from './INode'
 import { TextStyleType } from '../common/TextStyleType'
-import { NodeText } from './NodeText'
+// import { NodeText } from './NodeText'
 
 class NodeStyleContainer implements INode<HTMLElement> {
   private _childNodes: Array<INode<HTMLElement>>
@@ -35,7 +35,8 @@ class NodeStyleContainer implements INode<HTMLElement> {
       startOffset += child.getSize()
     }
 
-    this._childNodes.push(new NodeText(text))
+    // this._childNodes.push(new NodeText(text))
+    throw new Error("can't add text to node style container")
   }
 
   removeText (offset: number, start: number, end: number = start + this.getSize()): boolean {
@@ -43,6 +44,8 @@ class NodeStyleContainer implements INode<HTMLElement> {
     let startOffset: number = offset
 
     for (const child of this._childNodes) {
+      const curChildSize = child.getSize()
+
       if (this._nodeInRange(start, end, startOffset, child.getSize())) {
         const emptyChild: boolean = child.removeText(startOffset, start, end)
         if (!emptyChild) {
@@ -50,7 +53,7 @@ class NodeStyleContainer implements INode<HTMLElement> {
         }
       }
 
-      startOffset += child.getSize()
+      startOffset += curChildSize
     }
 
     this._childNodes = newChildNodes

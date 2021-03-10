@@ -1,5 +1,5 @@
-import { ICommand } from './ICommand'
-import { ITextEditor } from '../core/ITextEditor'
+import { ICommand } from '../ICommand'
+import { ITextEditor } from '../../core/ITextEditor'
 
 class AddTextCommand implements ICommand {
   private readonly _text: string
@@ -23,7 +23,7 @@ class AddTextCommand implements ICommand {
 
   undo (context: ITextEditor): void {
     context.horMoveTextCursor(-this._text.length)
-    context.removeTextOnTextCursor(this._text.length)
+    context.deleteTextOnTextCursor(this._text.length)
     context.updateTextRepresentation()
     context.updateTextCursor()
   }

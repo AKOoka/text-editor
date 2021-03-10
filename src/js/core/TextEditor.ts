@@ -16,7 +16,7 @@ class TextEditor implements ITextEditor {
     this._textRepresentation.addTextInLine(text, this._textCursor.getLinePosition(), this._textCursor.getPosition())
   }
 
-  removeTextOnTextCursor (offset: number): void {
+  deleteTextOnTextCursor (offset: number): void {
     this._textRepresentation.deleteTextInLine(
       this._textCursor.getLinePosition(),
       offset > 0 ? this._textCursor.getPosition() : this._textCursor.getPosition() + offset,
@@ -24,7 +24,7 @@ class TextEditor implements ITextEditor {
     )
   }
 
-  removeTextOnSelection (): void {
+  deleteTextOnSelection (): void {
     this._textRepresentation.deleteTextInRanges(this._textCursor.getSelections())
   }
 
@@ -43,7 +43,7 @@ class TextEditor implements ITextEditor {
     this._textRepresentation.addTextStylesInRanges(textStyleType, this._textCursor.getSelections())
   }
 
-  removeTextStyle (textStyleType: string): void {
+  deleteTextStyle (textStyleType: string): void {
     const textCursorPositions: IRange[] = [
       {
         start: this._textCursor.getPosition(),
@@ -81,7 +81,7 @@ class TextEditor implements ITextEditor {
     this._textRepresentation.createNewLines(this._textCursor.getPosition(), count)
   }
 
-  removeTextLines (count: number = 1): void {
+  deleteTextLines (count: number = 1): void {
     this._textRepresentation.deleteLines(this._textCursor.getPosition(), count)
   }
 

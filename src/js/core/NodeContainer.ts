@@ -4,6 +4,7 @@ import { TextStyleType } from '../common/TextStyleType'
 import { NodeStyleContainer } from './NodeStyleContainer'
 
 // maybe make abstract classes for Node(StyleContainer/Container) and Node(Text/TextStyle)
+// add functionality to merge similar adjacent nodes
 class NodeContainer implements INode<HTMLElement> {
   private _childNodes: Array<INode<HTMLElement>>
 

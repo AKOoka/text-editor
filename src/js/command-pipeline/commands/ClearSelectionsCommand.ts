@@ -1,5 +1,5 @@
-import { ICommand } from './ICommand'
-import { ITextEditor } from '../core/ITextEditor'
+import { ICommand } from '../ICommand'
+import { ITextEditor } from '../../core/ITextEditor'
 
 class ClearSelectionsCommand implements ICommand {
   private readonly _toBeSaved: boolean
