@@ -15,9 +15,9 @@ test('add text', () => {
 })
 
 test('add text in middle', () => {
-  nodeText.addText(' ipsun ', 0, 2)
+  nodeText.addText(' ipsum ', 0, 2)
 
-  expect(nodeText._text).toBe('lo ipsun rem')
+  expect(nodeText._text).toBe('lo ipsum rem')
 })
 
 test('delete text from middle', () => {

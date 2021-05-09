@@ -18,7 +18,7 @@ function instanceOfChildNodes (types) {
 }
 
 beforeEach(() => {
-  // be better if i eliminate dependecy of NodeText instance
+  // be better if i eliminate dependency of NodeText instance
   nodeStyleContainer = new NodeStyleContainer(defaultStyle, [new NodeText(defaultText)])
 })
 
@@ -30,21 +30,21 @@ test('add text to middle', () => {
 })
 
 test('add text to start', () => {
-  nodeStyleContainer.addText('ipsun', 0, 0)
+  nodeStyleContainer.addText('ipsum', 0, 0)
 
-  childNodesMatchTo([{ _text: 'ipsun' + defaultText }])
+  childNodesMatchTo([{ _text: 'ipsum' + defaultText }])
   instanceOfChildNodes([NodeText])
 })
 
 test('add text to end', () => {
-  nodeStyleContainer.addText('ipsun', 0, nodeStyleContainer.getSize())
+  nodeStyleContainer.addText('ipsum', 0, nodeStyleContainer.getSize())
 
-  childNodesMatchTo([{ _text: defaultText + 'ipsun' }])
+  childNodesMatchTo([{ _text: defaultText + 'ipsum' }])
   instanceOfChildNodes([NodeText])
 })
 
 test('add text to second child node', () => {
-  nodeStyleContainer._childNodes.push(new NodeText('ipsun'))
+  nodeStyleContainer._childNodes.push(new NodeText('ipsum'))
   nodeStyleContainer.addText(' foo ', 0, defaultText.length + 2)
 
   childNodesMatchTo([{ _text: defaultText }, { _text: 'ip foo sun' }])
@@ -66,8 +66,8 @@ test('delete all text', () => {
 })
 
 test('delete middle node', () => {
-  nodeStyleContainer._childNodes.push(new NodeText('ipsun'), new NodeText('foo'))
-  const result = nodeStyleContainer.removeText(0, defaultText.length, defaultText.length + 'ipsun'.length)
+  nodeStyleContainer._childNodes.push(new NodeText('ipsum'), new NodeText('foo'))
+  const result = nodeStyleContainer.removeText(0, defaultText.length, defaultText.length + 'ipsum'.length)
 
   childNodesMatchTo([{ _text: defaultText }, { _text: 'foo' }])
   instanceOfChildNodes([NodeText, NodeText])
@@ -75,7 +75,7 @@ test('delete middle node', () => {
 })
 
 test('add text style to two nodes', () => {
-  nodeStyleContainer._childNodes.push(new NodeText('ipsun'), new NodeText('foo'))
+  nodeStyleContainer._childNodes.push(new NodeText('ipsum'), new NodeText('foo'))
   nodeStyleContainer.addTextStyle('italic', 0, 2, 2 + defaultText.length)
 
   childNodesMatchTo([
