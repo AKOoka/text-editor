@@ -1,5 +1,5 @@
-import { ICommandDispatcher } from '../command-pipeline/ICommandDispatcher'
-import { IIoDeviceEventHandler } from './IIoDeviceEventHandler'
+import { ICommandDispatcher } from '../../command-pipeline/ICommandDispatcher'
+import { IIoDeviceEventHandler } from '../IIoDeviceEventHandler'
 
 abstract class BaseKeyHandler implements IIoDeviceEventHandler {
   protected _commandDispatcher: ICommandDispatcher

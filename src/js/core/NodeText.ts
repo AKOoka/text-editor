@@ -1,27 +1,9 @@
 import { TextStyleType } from '../common/TextStyleType'
 import { INode } from './INode'
 import { NodeTextStyle } from './NodeTextStyle'
+import { BaseNode } from './BaseNode'
 
-class NodeText implements INode<HTMLElement> {
-  private _text: string
-
-  constructor (text: string) {
-    this._text = text
-  }
-
-  getSize (): number {
-    return this._text.length
-  }
-
-  addText (text: string, offset: number, position: number): void {
-    this._text = this._text.slice(0, position - offset) + text + this._text.slice(position - offset)
-  }
-
-  removeText (offset: number, start: number, end: number = start + this.getSize()): boolean {
-    this._text = this._text.slice(0, start - offset) + this._text.slice(end - offset)
-    return this._text.length === 0
-  }
-
+class NodeText extends BaseNode {
   addTextStyle (textStyleType: TextStyleType, offset: number, start: number, end: number = start + this.getSize()): Array<INode<HTMLElement>> {
     const startPosition: number = start - offset
     const endPosition: number = end - offset
@@ -43,6 +25,7 @@ class NodeText implements INode<HTMLElement> {
       this._text = this._text.slice(endPosition)
       return [textStyleNode, this]
     }
+
     throw new Error("can't add text style to text node")
   }
 

@@ -1,22 +1,25 @@
 import { ITextEditor } from '../../core/ITextEditor'
-import { ICommand } from '../ICommand'
+import { BaseCommand } from './BaseCommand'
 
-class DeleteTextCommand implements ICommand {
-  private readonly _toBeSaved: boolean
-  private readonly _offset: number
+class DeleteTextCommand extends BaseCommand {
+  private readonly _deleteOffset: number
+  private readonly _deleteMove: number
 
-  constructor (toBeSaved: boolean, offset: number) {
-    this._toBeSaved = toBeSaved
-    this._offset = offset
-  }
-
-  toBeSaved (): boolean {
-    return this._toBeSaved
+  constructor (toBeSaved: boolean, deleteOffset: number, deleteMove: number) {
+    super(toBeSaved)
+    this._deleteOffset = deleteOffset
+    this._deleteMove = deleteMove
   }
 
   do (context: ITextEditor): void {
-    context.deleteTextOnTextCursor(this._offset)
+    const lineDeleted: boolean = context.deleteTextOnTextCursor(this._deleteOffset)
     context.deleteTextOnSelection()
+    if (lineDeleted) {
+      context.verticalMoveTextCursor(-1)
+      context.horizontalMoveTextCursor(Infinity)
+    } else {
+      context.horizontalMoveTextCursor(this._deleteMove)
+    }
     context.updateTextRepresentation()
     context.updateTextCursor()
   }

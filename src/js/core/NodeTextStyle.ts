@@ -2,27 +2,14 @@ import { INode } from './INode'
 import { TextStyleType } from '../common/TextStyleType'
 import { NodeStyleContainer } from './NodeStyleContainer'
 import { NodeText } from './NodeText'
+import { BaseNode } from './BaseNode'
 
-class NodeTextStyle implements INode<HTMLElement> {
-  private _text: string
+class NodeTextStyle extends BaseNode {
   private readonly _textStyleType: TextStyleType
 
   constructor (text: string, textStyleType: TextStyleType) {
+    super(text)
     this._textStyleType = textStyleType
-    this._text = text
-  }
-
-  getSize (): number {
-    return this._text.length
-  }
-
-  addText (text: string, offset: number, position: number): void {
-    this._text = this._text.slice(0, position - offset) + text + this._text.slice(position - offset)
-  }
-
-  removeText (offset: number, start: number, end: number = start + this.getSize()): boolean {
-    this._text = this._text.slice(0, start - offset) + this._text.slice(end - offset)
-    return this._text.length === 0
   }
 
   addTextStyle (textStyleType: TextStyleType, offset: number, start: number, end: number = start + this.getSize()): Array<INode<HTMLElement>> {

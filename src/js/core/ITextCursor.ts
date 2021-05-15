@@ -2,12 +2,13 @@ import { IRange } from '../common/IRange'
 import { ITextCursorSubscriber } from '../common/ITextCursorSubscriber'
 
 export interface ITextCursor {
-  getPosition: () => number
-  getLinePosition: () => number
+  getHorizontalPosition: () => number
+  setHorizontalPosition: (position: number) => void
+  getVerticalPosition: () => number
+  setVerticalPosition: (linePosition: number) => void
   getSelections: () => IRange[]
   addSelection: (selection: IRange) => void
   clearSelections: () => void
-  setPos: (position: number, linePosition: number) => void
   subscribe: (subscriber: ITextCursorSubscriber) => void
   updateSubscribers: () => void
 }

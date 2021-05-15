@@ -1,16 +1,19 @@
 import { IRange } from '../common/IRange'
+import { TextStyleType } from '../common/TextStyleType'
 
 export interface ITextEditor {
   addText: (text: string) => void
-  deleteTextOnTextCursor: (offset: number) => void
+  deleteTextOnTextCursor: (offset: number) => boolean
   deleteTextOnSelection: () => void
   addTextStyle: (textStyleType: string) => void
   addSelection: (selection: IRange) => void
   clearSelections: () => void
-  deleteTextStyle: (textStyleType: string) => void
-  setTextCursorPos: (position: number, linePosition: number) => void
-  horMoveTextCursor: (offset: number) => void
-  verMoveTextCursor: (offset: number) => void
+  removeConcreteTextStyle: (textStyleType: TextStyleType) => void
+  removeAllTextStyles: () => void
+  setVerticalPositionTextCursor: (position: number) => void
+  setHorizontalPositionTextCursor: (position: number) => void
+  horizontalMoveTextCursor: (offset: number) => void
+  verticalMoveTextCursor: (offset: number) => void
   createNewTextLines: (count?: number) => void
   deleteTextLines: (count?: number) => void
   updateTextRepresentation: () => void

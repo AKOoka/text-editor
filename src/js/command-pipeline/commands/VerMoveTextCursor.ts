@@ -1,26 +1,21 @@
 import { ITextEditor } from '../../core/ITextEditor'
-import { ICommand } from '../ICommand'
+import { BaseCommand } from './BaseCommand'
 
-class VerMoveTextCursor implements ICommand {
-  private readonly _toBeSaved: boolean
+class VerMoveTextCursor extends BaseCommand {
   private readonly _offset: number
 
   constructor (toBeSaved: boolean, offset: number) {
-    this._toBeSaved = toBeSaved
+    super(toBeSaved)
     this._offset = offset
   }
 
-  toBeSaved (): boolean {
-    return this._toBeSaved
-  }
-
   do (context: ITextEditor): void {
-    context.verMoveTextCursor(this._offset)
+    context.verticalMoveTextCursor(this._offset)
     context.updateTextCursor()
   }
 
   undo (context: ITextEditor): void {
-    context.verMoveTextCursor(-this._offset)
+    context.verticalMoveTextCursor(-this._offset)
     context.updateTextCursor()
   }
 }

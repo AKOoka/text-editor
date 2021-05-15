@@ -1,6 +1,6 @@
-import { ICommand } from './ICommand'
+import { BaseCommand } from './commands/BaseCommand'
 
 export interface ICommandDispatcher {
-  doCommand: (command: ICommand) => void
-  undoCommand: (command: ICommand) => void
+  doCommand: (command: BaseCommand) => void
+  undoCommand: (command: BaseCommand) => void
 }

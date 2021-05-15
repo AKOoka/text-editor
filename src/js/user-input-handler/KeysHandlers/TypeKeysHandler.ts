@@ -1,4 +1,4 @@
-import { AddTextCommand } from '../command-pipeline/commands/AddTextCommand'
+import { AddTextCommand } from '../../command-pipeline/commands/AddTextCommand'
 import { BaseKeyHandler } from './BaseKeyHandler'
 
 class TypeKeysHandler extends BaseKeyHandler {

@@ -1,17 +1,7 @@
-import { ICommand } from '../ICommand'
 import { ITextEditor } from '../../core/ITextEditor'
+import { BaseCommand } from './BaseCommand'
 
-class ClearSelectionsCommand implements ICommand {
-  private readonly _toBeSaved: boolean
-
-  constructor (toBeSaved: boolean) {
-    this._toBeSaved = toBeSaved
-  }
-
-  toBeSaved (): boolean {
-    return this._toBeSaved
-  }
-
+class ClearSelectionsCommand extends BaseCommand {
   do (context: ITextEditor): void {
     context.clearSelections()
     context.updateTextCursor()

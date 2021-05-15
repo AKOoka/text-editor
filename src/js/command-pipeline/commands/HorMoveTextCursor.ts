@@ -1,26 +1,21 @@
 import { ITextEditor } from '../../core/ITextEditor'
-import { ICommand } from '../ICommand'
+import { BaseCommand } from './BaseCommand'
 
-class HorMoveTextCursor implements ICommand {
-  private readonly _toBeSaved: boolean
+class HorMoveTextCursor extends BaseCommand {
   private readonly _offset: number
 
   constructor (toBeSaved: boolean, offset: number) {
-    this._toBeSaved = toBeSaved
+    super(toBeSaved)
     this._offset = offset
   }
 
-  toBeSaved (): boolean {
-    return this._toBeSaved
-  }
-
   do (context: ITextEditor): void {
-    context.horMoveTextCursor(this._offset)
+    context.horizontalMoveTextCursor(this._offset)
     context.updateTextCursor()
   }
 
   undo (context: ITextEditor): void {
-    context.horMoveTextCursor(-this._offset)
+    context.horizontalMoveTextCursor(-this._offset)
     context.updateTextCursor()
   }
 }

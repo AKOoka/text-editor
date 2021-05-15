@@ -14,7 +14,7 @@ interface IRenderedLineChange {
 }
 
 class HtmlTextRepresentationChanges {
-  private readonly _lineChanges: LineChanges
+  private _lineChanges: LineChanges
   private _renderedLines: IRenderedLineChange[]
 
   constructor () {
@@ -34,9 +34,7 @@ class HtmlTextRepresentationChanges {
   }
 
   addChange (lineOffset: number, linePosition: number, lineChangeType: TextRepresentationChangeType, line?: INode<HTMLElement>): void {
-    // if (this._lineChanges.has(linePosition)) {
-    //   return
-    // }
+    // remake this logic because i already have offsets of changes and i can make final position in it
     this._lineChanges.set(linePosition, { line, lineOffset, lineChangeType })
   }
 
@@ -46,6 +44,11 @@ class HtmlTextRepresentationChanges {
 
   getLine (index: number): IRenderedLineChange {
     return this._renderedLines[index]
+  }
+
+  clear (): void {
+    this._lineChanges = new Map()
+    this._renderedLines = []
   }
 }
 

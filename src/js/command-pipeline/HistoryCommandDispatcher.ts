@@ -1,9 +1,9 @@
-import { ICommand } from './ICommand'
 import { ICommandDispatcher } from './ICommandDispatcher'
+import { BaseCommand } from './commands/BaseCommand'
 
 class HistoryCommandDispatcher implements ICommandDispatcher {
   private readonly _commandDispatcher: ICommandDispatcher
-  private readonly _commandHistory: ICommand[]
+  private readonly _commandHistory: BaseCommand[]
   private _historyPointerOffset: number
 
   constructor (commandDispatcher: ICommandDispatcher) {
@@ -14,7 +14,7 @@ class HistoryCommandDispatcher implements ICommandDispatcher {
 
   // saveCommand (command: ICommand): void {}
 
-  doCommand (command: ICommand): void {
+  doCommand (command: BaseCommand): void {
     this._commandDispatcher.doCommand(command)
 
     if (command.toBeSaved()) {

@@ -1,27 +1,13 @@
 import { INode } from './INode'
 import { TextStyleType } from '../common/TextStyleType'
-// import { NodeText } from './NodeText'
+import { BaseNodeContainer } from './BaseNodeContainer'
 
-class NodeStyleContainer implements INode<HTMLElement> {
-  private _childNodes: Array<INode<HTMLElement>>
+class NodeStyleContainer extends BaseNodeContainer {
   private readonly _textStyleType: TextStyleType
 
   constructor (textStyleType: TextStyleType, childNodes: Array<INode<HTMLElement>>) {
-    this._childNodes = childNodes
+    super(childNodes)
     this._textStyleType = textStyleType
-  }
-
-  getSize (): number {
-    let size: number = 0
-    for (const child of this._childNodes) {
-      size += child.getSize()
-    }
-    return size
-  }
-
-  private _nodeInRange (start: number, end: number, nodeOffset: number, nodeSize: number): boolean {
-    return (start >= nodeOffset && start <= nodeOffset + nodeSize) ||
-           (end >= nodeOffset && end <= nodeOffset + nodeSize)
   }
 
   addText (text: string, offset: number, position: number): void {
@@ -39,28 +25,6 @@ class NodeStyleContainer implements INode<HTMLElement> {
     throw new Error("can't add text to node style container")
   }
 
-  removeText (offset: number, start: number, end: number = start + this.getSize()): boolean {
-    const newChildNodes: Array<INode<HTMLElement>> = []
-    let startOffset: number = offset
-
-    for (const child of this._childNodes) {
-      const curChildSize = child.getSize()
-
-      if (this._nodeInRange(start, end, startOffset, child.getSize())) {
-        const emptyChild: boolean = child.removeText(startOffset, start, end)
-        if (!emptyChild) {
-          newChildNodes.push(child)
-        }
-      }
-
-      startOffset += curChildSize
-    }
-
-    this._childNodes = newChildNodes
-
-    return this.getSize() === 0
-  }
-
   addTextStyle (textStyleType: TextStyleType, offset: number, start: number, end: number = start + this.getSize()): Array<INode<HTMLElement>> {
     if (textStyleType === this._textStyleType) {
       return [this]
@@ -70,15 +34,17 @@ class NodeStyleContainer implements INode<HTMLElement> {
 
     let newChildNodes: Array<INode<HTMLElement>> = []
     let startOffset: number = offset
+    let childNodeSize = 0
 
     for (const child of this._childNodes) {
+      childNodeSize = child.getSize()
       if (this._nodeInRange(start, end, startOffset, child.getSize())) {
         newChildNodes = newChildNodes.concat(child.addTextStyle(textStyleType, startOffset, start, end))
       } else {
         newChildNodes.push(child)
       }
 
-      startOffset += child.getSize()
+      startOffset += childNodeSize
     }
 
     this._childNodes = newChildNodes

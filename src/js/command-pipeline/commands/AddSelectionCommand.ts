@@ -1,18 +1,13 @@
-import { ICommand } from '../ICommand'
 import { ITextEditor } from '../../core/ITextEditor'
 import { IRange } from '../../common/IRange'
+import { BaseCommand } from './BaseCommand'
 
-class AddSelectionCommand implements ICommand {
+class AddSelectionCommand extends BaseCommand {
   private readonly _range: IRange
-  private readonly _toBeSaved: boolean
 
   constructor (range: IRange, toBeSaved: boolean) {
+    super(toBeSaved)
     this._range = range
-    this._toBeSaved = toBeSaved
-  }
-
-  toBeSaved (): boolean {
-    return this._toBeSaved
   }
 
   do (context: ITextEditor): void {

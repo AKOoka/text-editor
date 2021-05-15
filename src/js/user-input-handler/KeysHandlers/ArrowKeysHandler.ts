@@ -1,5 +1,5 @@
-import { HorMoveTextCursor } from '../command-pipeline/commands/HorMoveTextCursor'
-import { VerMoveTextCursor } from '../command-pipeline/commands/VerMoveTextCursor'
+import { HorMoveTextCursor } from '../../command-pipeline/commands/HorMoveTextCursor'
+import { VerMoveTextCursor } from '../../command-pipeline/commands/VerMoveTextCursor'
 import { BaseKeyHandler } from './BaseKeyHandler'
 
 class ArrowKeysHandler extends BaseKeyHandler {

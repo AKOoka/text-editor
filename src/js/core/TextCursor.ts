@@ -3,24 +3,34 @@ import { ITextCursorSubscriber } from '../common/ITextCursorSubscriber'
 import { IRange } from '../common/IRange'
 
 class TextCursor implements ITextCursor {
-  private _position: number
-  private _linePosition: number
+  private _horizontalPosition: number
+  private _verticalPosition: number
   private _selections: IRange[]
   private readonly _subscribers: ITextCursorSubscriber[]
 
   constructor () {
-    this._position = 0
-    this._linePosition = 0
+    this._horizontalPosition = 0
+    this._verticalPosition = 0
     this._selections = []
     this._subscribers = []
   }
 
-  getPosition (): number {
-    return this._position
+  getHorizontalPosition (): number {
+    return this._horizontalPosition
   }
 
-  getLinePosition (): number {
-    return this._linePosition
+  setHorizontalPosition (position: number): void {
+    this._horizontalPosition = position
+    console.log(`h: ${this._horizontalPosition}`)
+  }
+
+  getVerticalPosition (): number {
+    return this._verticalPosition
+  }
+
+  setVerticalPosition (position: number): void {
+    this._verticalPosition = position
+    console.log(`v: ${this._verticalPosition}`)
   }
 
   getSelections (): IRange[] {
@@ -35,14 +45,9 @@ class TextCursor implements ITextCursor {
     this._selections = []
   }
 
-  setPos (position: number, linePosition: number): void {
-    this._position = position
-    this._linePosition = linePosition
-  }
-
   updateSubscribers (): void {
     for (const sub of this._subscribers) {
-      sub.updateTextCursorPosition(this._position, this._linePosition, this._selections)
+      sub.updateTextCursorPosition(this._horizontalPosition, this._verticalPosition, this._selections)
     }
   }
 

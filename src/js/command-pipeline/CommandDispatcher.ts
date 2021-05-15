@@ -1,6 +1,6 @@
-import { ICommand } from './ICommand'
 import { ICommandDispatcher } from './ICommandDispatcher'
 import { ITextEditor } from '../core/ITextEditor'
+import { BaseCommand } from './commands/BaseCommand'
 
 class CommandDispatcher implements ICommandDispatcher {
   private readonly _context: ITextEditor
@@ -9,11 +9,11 @@ class CommandDispatcher implements ICommandDispatcher {
     this._context = context
   }
 
-  doCommand (command: ICommand): void {
+  doCommand (command: BaseCommand): void {
     command.do(this._context)
   }
 
-  undoCommand (command: ICommand): void {
+  undoCommand (command: BaseCommand): void {
     command.undo(this._context)
   }
 }

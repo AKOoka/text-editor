@@ -25,8 +25,10 @@ class HtmlTextArea implements ITextRepresentationSubscriber<HtmlTextRepresentati
       throw new Error("couldn't create canvas context 2d")
     }
     this._ctx2d = canvasContext
-    const initFont = window.getComputedStyle(this._context)
-    this._ctx2d.font = initFont.fontSize + ' ' + initFont.fontFamily
+    window.onload = () => { // it fixes the problem with styles don't loaded when window.getComputedStyle tries to get them
+      const initFont = window.getComputedStyle(this._context)
+      this._ctx2d.font = `${initFont.getPropertyValue('font-size')} ${initFont.getPropertyValue('font-family')}`
+    }
   }
 
   private _removeTextLine (linePosition: number): void {
@@ -61,33 +63,38 @@ class HtmlTextArea implements ITextRepresentationSubscriber<HtmlTextRepresentati
   }
 
   updateTextCursorPosition (position: number, linePosition: number, selections: IRange[]): void {
+    const textLine = this._textLines[linePosition]
     this._htmlTextCursor.remove()
-    this._textLines[linePosition].append(this._htmlTextCursor)
+    textLine.append(this._htmlTextCursor)
     for (const sel of this._htmlSelections) {
       sel.remove()
     }
     this._htmlSelections = []
 
-    this._htmlTextCursor.style.left = `${position}px`
+    this._htmlTextCursor.style.left = `${this._ctx2d.measureText(textLine.innerText.slice(0, position)).width}px`
     for (const { start, end, startLinePosition, endLinePosition } of selections) {
       if (startLinePosition === endLinePosition) {
-        const newSelection = this._createSelection(start, end - start)
+        const line = this._textLines[startLinePosition]
+        const newSelection = this._createSelection(start, this._ctx2d.measureText(line.innerText.slice(start, end)).width)
         this._htmlSelections.push(newSelection)
-        this._textLines[startLinePosition].append(newSelection)
+        line.append(newSelection)
         continue
       }
 
-      const startSelection = this._createSelection(start, 10) // need to define end point
+      const startLine = this._textLines[startLinePosition]
+      const startSelection = this._createSelection(start, this._ctx2d.measureText(startLine.innerText.slice(start)).width)
       this._htmlSelections.push(startSelection)
-      this._textLines[startLinePosition].append(startSelection)
+      startLine.append(startSelection)
       for (let i = startLinePosition + 1; i < endLinePosition; i++) {
-        const middleSelection = this._createSelection(0, 10)
+        const curLine = this._textLines[i]
+        const middleSelection = this._createSelection(0, this._ctx2d.measureText(curLine.innerText).width)
         this._htmlSelections.push(startSelection)
-        this._textLines[i].append(middleSelection)
+        curLine.append(middleSelection)
       }
-      const endSelection = this._createSelection(0, end)
+      const endLine = this._textLines[endLinePosition]
+      const endSelection = this._createSelection(this._ctx2d.measureText(endLine.innerText.slice(0, end)).width, end)
       this._htmlSelections.push(endSelection)
-      this._textLines[endLinePosition].append(endSelection)
+      endLine.append(endSelection)
     }
   }
 

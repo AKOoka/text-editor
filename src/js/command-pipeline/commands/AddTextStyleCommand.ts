@@ -1,18 +1,13 @@
-import { ICommand } from '../ICommand'
 import { ITextEditor } from '../../core/ITextEditor'
 import { TextStyleType } from '../../common/TextStyleType'
+import { BaseCommand } from './BaseCommand'
 
-class AddTextStyleCommand implements ICommand {
+class AddTextStyleCommand extends BaseCommand {
   private readonly _style: TextStyleType
-  private readonly _toBeSaved: boolean
 
   constructor (style: TextStyleType, toBeSaved: boolean) {
+    super(toBeSaved)
     this._style = style
-    this._toBeSaved = toBeSaved
-  }
-
-  toBeSaved (): boolean {
-    return this._toBeSaved
   }
 
   do (context: ITextEditor): void {

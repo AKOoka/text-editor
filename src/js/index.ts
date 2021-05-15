@@ -14,11 +14,10 @@ import { HtmlUi } from './user-input-handler/HtmlUi'
 import { AddTextStyleCommand } from './command-pipeline/commands/AddTextStyleCommand'
 import { AddSelectionCommand } from './command-pipeline/commands/AddSelectionCommand'
 import { ClearSelectionsCommand } from './command-pipeline/commands/ClearSelectionsCommand'
-import { TypeKeysHandler } from './user-input-handler/TypeKeysHandler'
-import { DeleteKeysHandler } from './user-input-handler/DeleteKeysHandler'
-import { ArrowKeysHandler } from './user-input-handler/ArrowKeysHandler'
-import { NodeStyleContainer } from './core/NodeStyleContainer'
-import { NodeText } from './core/NodeText'
+import { TypeKeysHandler } from './user-input-handler/KeysHandlers/TypeKeysHandler'
+import { DeleteKeysHandler } from './user-input-handler/KeysHandlers/DeleteKeysHandler'
+import { ArrowKeysHandler } from './user-input-handler/KeysHandlers/ArrowKeysHandler'
+import { AddLineKeysHandler } from './user-input-handler/KeysHandlers/AddLineKeysHandler'
 
 const textCursor: ITextCursor = new TextCursor()
 const textRepresentation: ITextRepresentation = new TextRepresentation()
@@ -61,12 +60,9 @@ textRepresentation.updateSubscribers()
 ioDevice.addKeysHandler(new TypeKeysHandler())
 ioDevice.addKeysHandler(new DeleteKeysHandler())
 ioDevice.addKeysHandler(new ArrowKeysHandler())
+ioDevice.addKeysHandler(new AddLineKeysHandler())
 ioDevice.setHandlersOnKeyDown()
 
 document.getElementById('text-editor')?.append(htmlUi.getContext(), htmlTextArea.getContext())
-
-const nsc = new NodeStyleContainer('bold', [new NodeText('lorem'), new NodeText('ipsun'), new NodeText('foo')])
-// nsc.removeText(0, 'lorem'.length, 'lorem'.length + 'ipsun'.length)
-nsc.addTextStyle('italic', 0, 2, 2 + 'lorem'.length)
 
 export { textCursor, textRepresentation, textEditor }
