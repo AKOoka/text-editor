@@ -11,12 +11,12 @@ class AddSelectionCommand extends BaseCommand {
   }
 
   do (context: ITextEditor): void {
-    context.addSelection(this._range)
+    context.addSelections([this._range])
     context.updateTextCursor()
   }
 
   undo (context: ITextEditor): void {
-    context.addSelection(this._range)
+    context.addSelections([this._range])
     context.updateTextCursor()
   }
 }

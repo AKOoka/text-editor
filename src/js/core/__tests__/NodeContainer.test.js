@@ -64,7 +64,10 @@ test('delete all text', () => {
 })
 
 test('delete middle node', () => {
-  nodeContainer._childNodes.push(new NodeText('ipsum'), new NodeText('foo'))
+  // nodeContainer._childNodes.push(new NodeText('ipsum'), new NodeText('foo'))
+  nodeContainer = new NodeLineContainer([
+    new NodeText(defaultText), new NodeText('ipsum'), new NodeText('foo')
+  ])
   const result = nodeContainer.removeText(0, defaultText.length, defaultText.length + 'ipsum'.length)
 
   childNodesMatchTo([{ _text: defaultText }, { _text: 'foo' }])

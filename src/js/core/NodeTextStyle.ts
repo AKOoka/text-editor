@@ -12,6 +12,10 @@ class NodeTextStyle extends BaseNode {
     this._textStyleType = textStyleType
   }
 
+  getStyleType (): TextStyleType | null {
+    return this._textStyleType
+  }
+
   addTextStyle (textStyleType: TextStyleType, offset: number, start: number, end: number = start + this.getSize()): Array<INode<HTMLElement>> {
     const startPosition: number = start - offset
     const endPosition: number = end - offset

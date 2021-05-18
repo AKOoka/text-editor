@@ -6,8 +6,8 @@ export interface ITextEditor {
   deleteTextOnTextCursor: (offset: number) => boolean
   deleteTextOnSelection: () => void
   addTextStyle: (textStyleType: string) => void
-  addSelection: (selection: IRange) => void
-  clearSelections: () => void
+  addSelections: (selections: IRange[]) => void
+  clearSelections: () => IRange[]
   removeConcreteTextStyle: (textStyleType: TextStyleType) => void
   removeAllTextStyles: () => void
   setVerticalPositionTextCursor: (position: number) => void

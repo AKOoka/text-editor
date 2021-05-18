@@ -5,8 +5,18 @@ import { NodeStyleContainer } from './NodeStyleContainer'
 import { BaseNodeContainer } from './BaseNodeContainer'
 
 class NodeLineContainer extends BaseNodeContainer {
+  getStyleType (): TextStyleType | null {
+    return null
+  }
+
+  mergeWithNode (): Array<INode<HTMLElement>> {
+    throw new Error("Node Line Container can't be joined to another node because it must always be single on the top of hierarchy")
+  }
+
+  // for addText when it is only for textCursor i need to go from end to start and computing startOffset = size - child.size
   addText (text: string, offset: number, position: number): void {
     let startOffset: number = offset
+    this._size += text.length
 
     for (const child of this._childNodes) {
       if (this._nodeInRange(position, position, startOffset, child.getSize())) {
@@ -27,21 +37,22 @@ class NodeLineContainer extends BaseNodeContainer {
 
     let newChildNodes: Array<INode<HTMLElement>> = []
     let startOffset: number = offset
-    let childNodeSize: number = 0
 
-    for (const child of this._childNodes) {
-      childNodeSize = child.getSize()
+    for (const childNode of this._childNodes) {
+      const childNodeSize: number = childNode.getSize()
 
-      if (this._nodeInRange(start, end, startOffset, child.getSize())) {
-        newChildNodes = newChildNodes.concat(child.addTextStyle(textStyleType, startOffset, start, end))
+      if (this._nodeInRange(start, end, startOffset, childNode.getSize())) {
+        newChildNodes = newChildNodes.concat(childNode.addTextStyle(textStyleType, startOffset, start, end))
       } else {
-        newChildNodes.push(child)
+        newChildNodes.push(childNode)
       }
 
       startOffset += childNodeSize
     }
 
-    this._childNodes = newChildNodes
+    // this._childNodes = newChildNodes
+    this._childNodes = this.mergeNodes(newChildNodes)
+
     return [this]
   }
 
@@ -49,17 +60,20 @@ class NodeLineContainer extends BaseNodeContainer {
     let newChildNodes: Array<INode<HTMLElement>> = []
     let startOffset: number = offset
 
-    for (const child of this._childNodes) {
-      if (this._nodeInRange(start, end, startOffset, child.getSize())) {
-        newChildNodes = newChildNodes.concat(child.removeAllTextStyles(startOffset, start, end))
+    for (const childNode of this._childNodes) {
+      const childNodeSize: number = childNode.getSize()
+
+      if (this._nodeInRange(start, end, startOffset, childNode.getSize())) {
+        newChildNodes = newChildNodes.concat(childNode.removeAllTextStyles(startOffset, start, end))
       } else {
-        newChildNodes.push(child)
+        newChildNodes.push(childNode)
       }
 
-      startOffset += child.getSize()
+      startOffset += childNodeSize
     }
 
-    this._childNodes = newChildNodes
+    // this._childNodes = newChildNodes
+    this._childNodes = this.mergeNodes(newChildNodes)
     return [this]
   }
 
@@ -67,17 +81,20 @@ class NodeLineContainer extends BaseNodeContainer {
     let newChildNodes: Array<INode<HTMLElement>> = []
     let startOffset = offset
 
-    for (const child of this._childNodes) {
-      if (this._nodeInRange(start, end, startOffset, child.getSize())) {
-        newChildNodes = newChildNodes.concat(child.removeConcreteTextStyle(textStyleType, startOffset, start, end))
+    for (const childNode of this._childNodes) {
+      const childNodeSize: number = childNode.getSize()
+
+      if (this._nodeInRange(start, end, startOffset, childNode.getSize())) {
+        newChildNodes = newChildNodes.concat(childNode.removeConcreteTextStyle(textStyleType, startOffset, start, end))
       } else {
-        newChildNodes.push(child)
+        newChildNodes.push(childNode)
       }
 
-      startOffset += child.getSize()
+      startOffset += childNodeSize
     }
 
-    this._childNodes = newChildNodes
+    // this._childNodes = newChildNodes
+    this._childNodes = this.mergeNodes(newChildNodes)
     return [this]
   }
 
@@ -87,9 +104,9 @@ class NodeLineContainer extends BaseNodeContainer {
     if (this._nodeInRange(start, end, startOffset, this.getSize())) {
       let textStyles: TextStyleType[] = []
 
-      for (const node of this._childNodes) {
-        textStyles = textStyles.concat(node.textStylesInRange(startOffset, start, end))
-        startOffset += node.getSize()
+      for (const childNode of this._childNodes) {
+        textStyles = textStyles.concat(childNode.textStylesInRange(startOffset, start, end))
+        startOffset += childNode.getSize()
       }
 
       return textStyles
@@ -102,8 +119,8 @@ class NodeLineContainer extends BaseNodeContainer {
     const container: HTMLElement = document.createElement('div')
     container.classList.add('text-line')
 
-    for (const child of this._childNodes) {
-      container.append(child.render())
+    for (const childNode of this._childNodes) {
+      container.append(childNode.render())
     }
 
     return container

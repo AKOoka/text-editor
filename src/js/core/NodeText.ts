@@ -4,6 +4,10 @@ import { NodeTextStyle } from './NodeTextStyle'
 import { BaseNode } from './BaseNode'
 
 class NodeText extends BaseNode {
+  getStyleType (): TextStyleType | null {
+    return null
+  }
+
   addTextStyle (textStyleType: TextStyleType, offset: number, start: number, end: number = start + this.getSize()): Array<INode<HTMLElement>> {
     const startPosition: number = start - offset
     const endPosition: number = end - offset

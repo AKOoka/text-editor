@@ -12,8 +12,6 @@ class HistoryCommandDispatcher implements ICommandDispatcher {
     this._historyPointerOffset = 0
   }
 
-  // saveCommand (command: ICommand): void {}
-
   doCommand (command: BaseCommand): void {
     this._commandDispatcher.doCommand(command)
 

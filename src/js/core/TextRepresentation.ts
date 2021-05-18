@@ -2,7 +2,6 @@ import { ITextRepresentation } from './ITextRepresentation'
 import { IRange } from '../common/IRange'
 import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
 import { INode } from './INode'
-import { NodeText } from './NodeText'
 import { TextStyleType } from '../common/TextStyleType'
 import { HtmlTextRepresentationChanges } from './HtmlTextRepresentationChanges'
 import { ILineTextOffset } from './ILineTextOffset'
@@ -82,7 +81,7 @@ class TextRepresentation implements ITextRepresentation {
     const newLines = []
     const insertPosition: number = linePosition + linePositionOffset + 1
     for (let i = 0; i < count; i++) {
-      newLines.push(new NodeLineContainer([new NodeText('')]))
+      newLines.push(new NodeLineContainer([]))
     }
     this._textLines = this._textLines
       .slice(0, insertPosition)
@@ -112,6 +111,7 @@ class TextRepresentation implements ITextRepresentation {
     this._changes.addChange(lineOffset, linePosition, TextRepresentationChangeType.Change, line)
   }
 
+  // need to think how to make forward delete when text cursor is in the end of text line
   deleteTextInLine (linePosition: number, start: number, end?: number): boolean {
     const linePositionOffset: number = this._getLinePositionOffset(linePosition)
     const linePos = linePosition + linePositionOffset

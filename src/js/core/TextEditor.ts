@@ -2,7 +2,7 @@ import { ITextEditor } from './ITextEditor'
 import { ITextRepresentation } from './ITextRepresentation'
 import { ITextCursor } from './ITextCursor'
 import { IRange } from '../common/IRange'
-import {TextStyleType} from "../common/TextStyleType";
+import { TextStyleType } from '../common/TextStyleType'
 
 class TextEditor implements ITextEditor {
   private readonly _textCursor: ITextCursor
@@ -27,7 +27,10 @@ class TextEditor implements ITextEditor {
     } else {
       return this._textRepresentation.deleteTextInLine(
         this._textCursor.getVerticalPosition(),
-        this._textCursor.getHorizontalPosition() + offset,
+        this._getValidHorizontalPosition(
+          this._textCursor.getVerticalPosition(),
+          this._textCursor.getHorizontalPosition() + offset
+        ),
         this._textCursor.getHorizontalPosition()
       )
     }
@@ -37,22 +40,12 @@ class TextEditor implements ITextEditor {
     this._textRepresentation.deleteTextInRanges(this._textCursor.getSelections())
   }
 
-  getTextStylesOnCursor (): void {}
-
   addTextStyle (textStyleType: TextStyleType): void {
-    // const textCursorPositions: IRange[] = [
-    //   {
-    //     start: this._textCursor.getPosition(),
-    //     end: this._textCursor.getPosition(),
-    //     startLinePosition: this._textCursor.getLinePosition(),
-    //     endLinePosition: this._textCursor.getLinePosition()
-    //   }
-    // ].concat(this._textCursor.getSelections())
-    // this._textRepresentation.addTextStylesInRanges(textStyleType, textCursorPositions)
     this._textRepresentation.addTextStylesInRanges(textStyleType, this._textCursor.getSelections())
   }
 
   removeConcreteTextStyle (textStyleType: TextStyleType): void {
+    // add parameters for methods like removeConcreteTextStyleInRanges() where it will take textCursor separate from selections
     this._textRepresentation.removeConcreteTextStyleInRanges(
       textStyleType,
       [{
@@ -122,20 +115,24 @@ class TextEditor implements ITextEditor {
     )
   }
 
-  addSelection (selection: IRange): void {
-    const validStartVerticalPosition: number = this._getValidVerticalPosition(selection.startLinePosition)
-    const validEndVerticalPosition: number = this._getValidVerticalPosition(selection.endLinePosition)
+  addSelections (selections: IRange[]): void {
+    for (const selection of selections) {
+      const validStartVerticalPosition: number = this._getValidVerticalPosition(selection.startLinePosition)
+      const validEndVerticalPosition: number = this._getValidVerticalPosition(selection.endLinePosition)
 
-    this._textCursor.addSelection({
-      start: this._getValidHorizontalPosition(validStartVerticalPosition, selection.start),
-      end: this._getValidHorizontalPosition(validEndVerticalPosition, selection.end),
-      startLinePosition: validStartVerticalPosition,
-      endLinePosition: validEndVerticalPosition
-    })
+      this._textCursor.addSelection({
+        start: this._getValidHorizontalPosition(validStartVerticalPosition, selection.start),
+        end: this._getValidHorizontalPosition(validEndVerticalPosition, selection.end),
+        startLinePosition: validStartVerticalPosition,
+        endLinePosition: validEndVerticalPosition
+      })
+    }
   }
 
-  clearSelections (): void {
+  clearSelections (): IRange[] {
+    const selections = this._textCursor.getSelections()
     this._textCursor.clearSelections()
+    return selections
   }
 
   createNewTextLines (count: number = 1): void {

@@ -2,6 +2,7 @@
 import { NodeStyleContainer } from '../NodeStyleContainer'
 import { NodeText } from '../NodeText'
 import { NodeTextStyle } from '../NodeTextStyle'
+import {NodeLineContainer} from "../NodeLineContainer";
 
 const defaultStyle = 'underline'
 const defaultText = 'lorem'
@@ -65,7 +66,10 @@ test('delete all text', () => {
 })
 
 test('delete middle node', () => {
-  nodeStyleContainer._childNodes.push(new NodeText('ipsum'), new NodeText('foo'))
+  // nodeStyleContainer._childNodes.push(new NodeText('ipsum'), new NodeText('foo'))
+  nodeStyleContainer = new NodeLineContainer([
+    new NodeText(defaultText), new NodeText('ipsum'), new NodeText('foo')
+  ])
   const result = nodeStyleContainer.removeText(0, defaultText.length, defaultText.length + 'ipsum'.length)
 
   childNodesMatchTo([{ _text: defaultText }, { _text: 'foo' }])

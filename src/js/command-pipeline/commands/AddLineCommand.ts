@@ -12,7 +12,7 @@ class AddLineCommand extends BaseCommand {
   do (context: ITextEditor): void {
     context.createNewTextLines(this._count)
     context.verticalMoveTextCursor(this._count)
-    context.setHorizontalPositionTextCursor(0) // need to save position of cursor before change
+    context.setHorizontalPositionTextCursor(0)
     context.updateTextRepresentation()
     context.updateTextCursor()
   }

@@ -3,46 +3,80 @@ import { TextStyleType } from '../common/TextStyleType'
 
 abstract class BaseNodeContainer implements INode<HTMLElement> {
   protected _childNodes: Array<INode<HTMLElement>>
+  protected _size: number
 
   constructor (childNodes: Array<INode<HTMLElement>>) {
     this._childNodes = childNodes
+    this._size = 0
+
+    for (const child of this._childNodes) {
+      this._size += child.getSize()
+    }
+  }
+
+  protected _nodeInPosition (position: number, nodeOffset: number, nodeSize: number): boolean {
+    return (position >= nodeOffset && position <= nodeOffset + nodeSize)
   }
 
   protected _nodeInRange (start: number, end: number, nodeOffset: number, nodeSize: number): boolean {
-    return (start >= nodeOffset && start <= nodeOffset + nodeSize) ||
-           (end >= nodeOffset && end <= nodeOffset + nodeSize)
+    const rightEdge: number = nodeOffset + nodeSize
+
+    return (((start >= nodeOffset && start <= rightEdge) && !(start === rightEdge && end >= rightEdge)) ||
+           ((end >= nodeOffset && end <= rightEdge) && !(end === nodeOffset && start <= nodeOffset)))
+  }
+
+  protected mergeNodes (nodes: Array<INode<HTMLElement>>): Array<INode<HTMLElement>> {
+    let mergedNodes: Array<INode<HTMLElement>> = []
+
+    for (let i = 0; i < nodes.length - 1; i++) {
+      mergedNodes = mergedNodes.concat(nodes[i].mergeWithNode(nodes[i + 1], true))
+    }
+
+    return mergedNodes
+  }
+
+  getChildNodes (): Array<INode<HTMLElement>> {
+    return this._childNodes
   }
 
   getSize (): number {
-    let size: number = 0
-    for (const child of this._childNodes) {
-      size += child.getSize()
-    }
-    return size
+    // let size: number = 0
+    // for (const child of this._childNodes) {
+    //   size += child.getSize()
+    // }
+    // return size
+    return this._size
   }
 
   removeText (offset: number, start: number, end: number = start + this.getSize()): boolean {
     const newChildNodes: Array<INode<HTMLElement>> = []
     let startOffset: number = offset
 
-    for (const child of this._childNodes) {
-      const curChildSize = child.getSize()
+    for (const childNode of this._childNodes) {
+      const curChildSize = childNode.getSize()
 
       if (this._nodeInRange(start, end, startOffset, curChildSize)) {
-        const emptyChild: boolean = child.removeText(startOffset, start, end)
+        const childSizeBefore: number = childNode.getSize()
+        const emptyChild: boolean = childNode.removeText(startOffset, start, end)
+        this._size += childNode.getSize() - childSizeBefore
         if (!emptyChild) {
-          newChildNodes.push(child)
+          newChildNodes.push(childNode)
         }
+      } else {
+        newChildNodes.push(childNode)
       }
 
       startOffset += curChildSize
     }
 
-    this._childNodes = newChildNodes
+    // this._childNodes = newChildNodes
+    this._childNodes = this.mergeNodes(newChildNodes)
 
-    return this.getSize() === 0
+    return this._size === 0
   }
 
+  abstract mergeWithNode (node: INode<HTMLElement>, joinAfter: boolean): Array<INode<HTMLElement>>
+  abstract getStyleType (): TextStyleType | null
   abstract addText (text: string, offset: number, position: number): void
   abstract addTextStyle (textStyleType: TextStyleType, offset: number, start: number, end?: number): Array<INode<HTMLElement>>
   abstract removeAllTextStyles (offset: number, start: number, end?: number): Array<INode<HTMLElement>>
