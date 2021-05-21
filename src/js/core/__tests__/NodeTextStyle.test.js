@@ -10,7 +10,7 @@ beforeEach(() => {
 })
 
 test('add text style from start to end', () => {
-  const result = nodeTextStyle.addTextStyle('underline', 0, 0)
+  const result = nodeTextStyle.addTextStyle(0, 0, 'lorem'.length, 'underline')
 
   expect(result).toMatchObject([
     {
@@ -23,7 +23,7 @@ test('add text style from start to end', () => {
 })
 
 test('add text style from start to middle', () => {
-  const result = nodeTextStyle.addTextStyle('underline', 0, 0, 3)
+  const result = nodeTextStyle.addTextStyle(0, 0, 3, 'underline')
 
   expect(result).toMatchObject([
     {
@@ -38,7 +38,7 @@ test('add text style from start to middle', () => {
 })
 
 test('add text style from middle to end', () => {
-  const result = nodeTextStyle.addTextStyle('underline', 0, 3)
+  const result = nodeTextStyle.addTextStyle(0, 3, 'lorem'.length, 'underline')
 
   expect(result).toMatchObject([
     { _textStyleType: 'bold', _text: 'lor' },
@@ -53,7 +53,7 @@ test('add text style from middle to end', () => {
 })
 
 test('add text style in middle', () => {
-  const result = nodeTextStyle.addTextStyle('underline', 0, 1, 3)
+  const result = nodeTextStyle.addTextStyle(0, 1, 3, 'underline')
 
   expect(result).toMatchObject([
     { _textStyleType: 'bold', _text: 'l' },
@@ -70,7 +70,7 @@ test('add text style in middle', () => {
 })
 
 test('remove style from start to end', () => {
-  const result = nodeTextStyle.removeAllTextStyles(0, 0)
+  const result = nodeTextStyle.removeAllTextStyles(0, 0, 'lorem'.length)
 
   expect(result).toMatchObject([
     { _text: 'lorem' }

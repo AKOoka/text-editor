@@ -6,10 +6,10 @@ export interface INode<RenderOutput> {
   getStyleType: () => TextStyleType | null
   mergeWithNode: (node: INode<HTMLElement>, joinAfter: boolean) => Array<INode<HTMLElement>>
   addText: (text: string, offset: number, position: number) => void
-  removeText: (offset: number, start: number, end?: number) => boolean
-  addTextStyle: (textStyleType: TextStyleType, offset: number, start: number, end?: number) => Array<INode<HTMLElement>>
-  removeAllTextStyles: (offset: number, start: number, end?: number) => Array<INode<HTMLElement>>
-  removeConcreteTextStyle: (textStyleType: TextStyleType, offset: number, start: number, end?: number) => Array<INode<HTMLElement>>
-  textStylesInRange: (offset: number, start: number, end?: number) => TextStyleType[]
+  removeText: (offset: number, start: number, end: number) => boolean
+  addTextStyle: (offset: number, start: number, end: number, textStyleType: TextStyleType) => Array<INode<HTMLElement>>
+  removeAllTextStyles: (offset: number, start: number, end: number) => Array<INode<HTMLElement>>
+  removeConcreteTextStyle: (offset: number, start: number, end: number, textStyleType: TextStyleType) => Array<INode<HTMLElement>>
+  textStylesInRange: (offset: number, start: number, end: number) => TextStyleType[]
   render: () => RenderOutput
 }

@@ -9,12 +9,9 @@ abstract class BaseNode implements INode<HTMLElement> {
     this._text = text
   }
 
-  mergeWithNode (node: INode<HTMLElement>, joinAfter: boolean): Array<INode<HTMLElement>> {
+  mergeWithNode (node: INode<HTMLElement>): Array<INode<HTMLElement>> {
     if (node.getStyleType() !== this.getStyleType()) {
-      if (joinAfter) {
-        return [this, node]
-      }
-      return [node, this]
+      return [this, node]
     }
 
     if (node instanceof BaseNodeContainer) {
@@ -37,16 +34,16 @@ abstract class BaseNode implements INode<HTMLElement> {
     this._text = this._text.slice(0, position - offset) + text + this._text.slice(position - offset)
   }
 
-  removeText (offset: number, start: number, end: number = start + this.getSize()): boolean {
+  removeText (offset: number, start: number, end: number): boolean {
     this._text = this._text.slice(0, start - offset) + this._text.slice(end - offset)
     return this._text.length === 0
   }
 
   abstract getStyleType (): TextStyleType | null
-  abstract addTextStyle (textStyleType: TextStyleType, offset: number, start: number, end?: number): Array<INode<HTMLElement>>
-  abstract removeAllTextStyles (offset: number, start: number, end?: number): Array<INode<HTMLElement>>
-  abstract removeConcreteTextStyle (textStyleType: TextStyleType, offset: number, start: number, end?: number): Array<INode<HTMLElement>>
-  abstract textStylesInRange (offset: number, start: number, end?: number): TextStyleType[]
+  abstract addTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): Array<INode<HTMLElement>>
+  abstract removeAllTextStyles (offset: number, start: number, end: number): Array<INode<HTMLElement>>
+  abstract removeConcreteTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): Array<INode<HTMLElement>>
+  abstract textStylesInRange (offset: number, start: number, end: number): TextStyleType[]
   abstract render (): HTMLElement
 }
 

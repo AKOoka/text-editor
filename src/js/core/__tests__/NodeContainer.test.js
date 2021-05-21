@@ -57,7 +57,7 @@ test('delete text', () => {
 })
 
 test('delete all text', () => {
-  const result = nodeContainer.removeText(0, 0)
+  const result = nodeContainer.removeText(0, 0, defaultText.length)
 
   childNodesMatchTo([])
   expect(result).toBeTruthy()
@@ -70,21 +70,19 @@ test('delete middle node', () => {
   ])
   const result = nodeContainer.removeText(0, defaultText.length, defaultText.length + 'ipsum'.length)
 
-  childNodesMatchTo([{ _text: defaultText }, { _text: 'foo' }])
-  instanceOfChildNodes([NodeText, NodeText])
+  childNodesMatchTo([{ _text: defaultText + 'foo' }])
+  instanceOfChildNodes([NodeText])
   expect(result).toBeFalsy()
 })
 
 test('add text style to two nodes', () => {
   nodeContainer._childNodes.push(new NodeText('ipsum'), new NodeText('foo'))
-  nodeContainer.addTextStyle('italic', 0, 2, 2 + defaultText.length)
+  nodeContainer.addTextStyle(0, 2, 2 + defaultText.length, 'italic')
 
   childNodesMatchTo([
     { _text: 'lo' },
-    { _text: 'rem', _textStyleType: 'italic' },
-    { _text: 'ip', _textStyleType: 'italic' },
-    { _text: 'sum' },
-    { _text: 'foo' }
+    { _text: 'remip', _textStyleType: 'italic' },
+    { _text: 'sumfoo' }
   ])
-  instanceOfChildNodes([NodeText, NodeTextStyle, NodeTextStyle, NodeText, NodeText])
+  instanceOfChildNodes([NodeText, NodeTextStyle, NodeText])
 })

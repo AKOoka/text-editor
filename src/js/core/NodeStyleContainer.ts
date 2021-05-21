@@ -3,11 +3,12 @@ import { TextStyleType } from '../common/TextStyleType'
 import { BaseNodeContainer } from './BaseNodeContainer'
 import { NodeText } from './NodeText'
 import { BaseNode } from './BaseNode'
+import { ChildNodeInRangeCase } from './ChildNodeInRangeCase'
 
 class NodeStyleContainer extends BaseNodeContainer {
   private readonly _textStyleType: TextStyleType
 
-  constructor (textStyleType: TextStyleType, childNodes: Array<INode<HTMLElement>>) {
+  constructor (childNodes: Array<INode<HTMLElement>>, textStyleType: TextStyleType) {
     super(childNodes)
     this._textStyleType = textStyleType
   }
@@ -53,55 +54,33 @@ class NodeStyleContainer extends BaseNodeContainer {
       startOffset += childNode.getSize()
     }
 
-    // this._childNodes.push(new NodeText(text))
     throw new Error("can't add text to node style container")
   }
 
-  addTextStyle (textStyleType: TextStyleType, offset: number, start: number, end: number = start + this.getSize()): Array<INode<HTMLElement>> {
+  addTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): Array<INode<HTMLElement>> {
     if (textStyleType === this._textStyleType) {
       return [this]
     } else if (start <= offset && end >= offset + this.getSize()) {
-      return [new NodeStyleContainer(textStyleType, [this])]
+      return [new NodeStyleContainer([this], textStyleType)]
     }
 
-    let newChildNodes: Array<INode<HTMLElement>> = []
-    let startOffset: number = offset
-
-    for (const childNode of this._childNodes) {
-      const childNodeSize: number = childNode.getSize()
-      if (this._nodeInRange(start, end, startOffset, childNode.getSize())) {
-        newChildNodes = newChildNodes.concat(childNode.addTextStyle(textStyleType, startOffset, start, end))
-      } else {
-        newChildNodes.push(childNode)
-      }
-
-      startOffset += childNodeSize
+    const childNodeInRange: ChildNodeInRangeCase<TextStyleType> = (childNode, offset, start, end, textStyleType) => {
+      return childNode.addTextStyle(offset, start, end, textStyleType)
     }
-
-    // this._childNodes = newChildNodes
-    this._childNodes = this.mergeNodes(newChildNodes)
+    this._childNodes = this._mergeNodes(
+      this._updateChildNodesInRange<TextStyleType>(childNodeInRange, offset, start, end, textStyleType)
+    )
 
     return [this]
   }
 
-  removeAllTextStyles (offset: number, start: number, end: number = start + this.getSize()): Array<INode<HTMLElement>> {
-    let newChildNodes: Array<INode<HTMLElement>> = []
-    let startOffset: number = offset
-
-    for (const childNode of this._childNodes) {
-      const childNodeSize: number = childNode.getSize()
-
-      if (this._nodeInRange(start, end, startOffset, childNode.getSize())) {
-        newChildNodes = newChildNodes.concat(childNode.removeAllTextStyles(startOffset, start, end))
-      } else {
-        newChildNodes.push(childNode)
-      }
-
-      startOffset += childNodeSize
+  removeAllTextStyles (offset: number, start: number, end: number): Array<INode<HTMLElement>> {
+    const childNodeInRange: ChildNodeInRangeCase<null> = (childNode, offset, start, end) => {
+      return childNode.removeAllTextStyles(offset, start, end)
     }
-
-    // this._childNodes = newChildNodes
-    this._childNodes = this.mergeNodes(newChildNodes)
+    this._childNodes = this._mergeNodes(
+      this._updateChildNodesInRange<null>(childNodeInRange, offset, start, end, null)
+    )
 
     if (start <= offset && end >= offset + this.getSize()) {
       return this._childNodes
@@ -109,34 +88,80 @@ class NodeStyleContainer extends BaseNodeContainer {
     return [this]
   }
 
-  removeConcreteTextStyle (textStyleType: TextStyleType, offset: number, start: number, end: number = start + this.getSize()): Array<INode<HTMLElement>> {
-    // it doesn't work when concrete style is same as container's style but need to remove only part of style container
-    if (textStyleType === this._textStyleType && (start <= offset && end >= offset + this.getSize())) {
-      return this._childNodes
-    }
+  private _findLeftNodeIndexInRange (offset: number, start: number, end: number): number {
+    let childStartOffset: number = offset
 
-    let newChildNodes: Array<INode<HTMLElement>> = []
-    let startOffset = offset
+    for (let i = 0; i < this._childNodes.length; i++) {
+      const childNodeSize: number = this._childNodes[i].getSize()
 
-    for (const childNode of this._childNodes) {
-      const childNodeSize: number = childNode.getSize()
-
-      if (this._nodeInRange(start, end, startOffset, childNode.getSize())) {
-        newChildNodes = newChildNodes.concat(childNode.removeConcreteTextStyle(textStyleType, startOffset, start, end))
-      } else {
-        newChildNodes.push(childNode)
+      if (this._nodeInRange(start, end, childStartOffset, childNodeSize)) {
+        return i
       }
 
-      startOffset += childNodeSize
+      childStartOffset += childNodeSize
     }
 
-    // this._childNodes = newChildNodes
-    this._childNodes = this.mergeNodes(this._childNodes)
+    throw new Error("couldn't find left node to split NodeStyleContainer")
+  }
+
+  private _findRightNodeIndexInRange (offset: number, start: number, end: number): number {
+    let childStartOffset: number = offset + this.getSize()
+
+    for (let i = this._childNodes.length - 1; i >= 0; i--) {
+      const childNodeSize: number = this._childNodes[i].getSize()
+
+      if (this._nodeInRange(start, end, childStartOffset, childNodeSize)) {
+        return i
+      }
+
+      childStartOffset -= childNodeSize
+    }
+
+    throw new Error("couldn't find right node to split NodeStyleContainer")
+  }
+
+  removeConcreteTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): Array<INode<HTMLElement>> {
+    if (textStyleType === this._textStyleType) {
+      const endOfNode: number = offset + this.getSize()
+
+      // temporary solution - NEED TO REFACTOR
+      if ((start <= offset && end >= endOfNode)) {
+        return this._childNodes
+      } else if (start >= offset && end <= endOfNode) {
+        const leftNodeIndexInRange: number = this._findLeftNodeIndexInRange(offset, start, end)
+        const rightNodeIndexInRange: number = this._findRightNodeIndexInRange(offset, start, end)
+        const rightNodeStyleContainer: INode<HTMLElement> = new NodeStyleContainer(
+          this._childNodes.slice(rightNodeIndexInRange), this._textStyleType
+        )
+        const nodesWithoutStyleContainer: Array<INode<HTMLElement>> = this._childNodes.slice(leftNodeIndexInRange, rightNodeIndexInRange)
+        this._childNodes = this._childNodes.slice(0, leftNodeIndexInRange)
+        return ([this] as Array<INode<HTMLElement>>).concat(nodesWithoutStyleContainer, rightNodeStyleContainer)
+      } else if (start >= offset && start <= endOfNode) {
+        const rightNodeIndexInRange: number = this._findRightNodeIndexInRange(offset, start, end)
+        const nodesWithoutStyleContainer: Array<INode<HTMLElement>> = this._childNodes.slice(rightNodeIndexInRange)
+        this._childNodes = this._childNodes.slice(0, rightNodeIndexInRange)
+        return ([this] as Array<INode<HTMLElement>>).concat(nodesWithoutStyleContainer)
+      } else if (end >= offset && end <= endOfNode) {
+        const leftNodeIndexInRange: number = this._findLeftNodeIndexInRange(offset, start, end)
+        const nodesWithoutStyleContainer: Array<INode<HTMLElement>> = this._childNodes.slice(0, leftNodeIndexInRange)
+        this._childNodes = this._childNodes.slice(leftNodeIndexInRange)
+        return nodesWithoutStyleContainer.concat([this])
+      }
+
+      return [this]
+    }
+
+    const childNodeInRange: ChildNodeInRangeCase<TextStyleType> = (childNode, offset, start, end, textStyleType) => {
+      return childNode.removeConcreteTextStyle(offset, start, end, textStyleType)
+    }
+    this._childNodes = this._mergeNodes(
+      this._updateChildNodesInRange<TextStyleType>(childNodeInRange, offset, start, end, textStyleType)
+    )
 
     return [this]
   }
 
-  textStylesInRange (offset: number, start: number, end: number = start + this.getSize()): TextStyleType[] {
+  textStylesInRange (offset: number, start: number, end: number): TextStyleType[] {
     let startOffset: number = offset
 
     if (this._nodeInRange(start, end, startOffset, this.getSize())) {

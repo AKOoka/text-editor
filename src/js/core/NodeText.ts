@@ -8,7 +8,7 @@ class NodeText extends BaseNode {
     return null
   }
 
-  addTextStyle (textStyleType: TextStyleType, offset: number, start: number, end: number = start + this.getSize()): Array<INode<HTMLElement>> {
+  addTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): Array<INode<HTMLElement>> {
     const startPosition: number = start - offset
     const endPosition: number = end - offset
 

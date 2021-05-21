@@ -2,12 +2,12 @@
 import { NodeStyleContainer } from '../NodeStyleContainer'
 import { NodeText } from '../NodeText'
 import { NodeTextStyle } from '../NodeTextStyle'
-import {NodeLineContainer} from "../NodeLineContainer";
+import { NodeLineContainer } from '../NodeLineContainer'
 
 const defaultStyle = 'underline'
 const defaultText = 'lorem'
 
-let nodeStyleContainer = new NodeStyleContainer(defaultStyle, [])
+let nodeStyleContainer = new NodeStyleContainer([], defaultStyle)
 
 function childNodesMatchTo (matchObject) {
   expect(nodeStyleContainer._childNodes).toMatchObject(matchObject)
@@ -19,7 +19,7 @@ function instanceOfChildNodes (types) {
 }
 
 beforeEach(() => {
-  nodeStyleContainer = new NodeStyleContainer(defaultStyle, [new NodeText(defaultText)])
+  nodeStyleContainer = new NodeStyleContainer([new NodeText(defaultText)], defaultStyle)
 })
 
 test('add text to middle', () => {
@@ -59,7 +59,7 @@ test('delete text', () => {
 })
 
 test('delete all text', () => {
-  const result = nodeStyleContainer.removeText(0, 0)
+  const result = nodeStyleContainer.removeText(0, 0, defaultText.length)
 
   childNodesMatchTo([])
   expect(result).toBeTruthy()
@@ -72,21 +72,19 @@ test('delete middle node', () => {
   ])
   const result = nodeStyleContainer.removeText(0, defaultText.length, defaultText.length + 'ipsum'.length)
 
-  childNodesMatchTo([{ _text: defaultText }, { _text: 'foo' }])
-  instanceOfChildNodes([NodeText, NodeText])
+  childNodesMatchTo([{ _text: defaultText + 'foo' }])
+  instanceOfChildNodes([NodeText])
   expect(result).toBeFalsy()
 })
 
 test('add text style to two nodes', () => {
   nodeStyleContainer._childNodes.push(new NodeText('ipsum'), new NodeText('foo'))
-  nodeStyleContainer.addTextStyle('italic', 0, 2, 2 + defaultText.length)
+  nodeStyleContainer.addTextStyle(0, 2, 2 + defaultText.length, 'italic')
 
   childNodesMatchTo([
     { _text: 'lo' },
-    { _text: 'rem', _textStyleType: 'italic' },
-    { _text: 'ip', _textStyleType: 'italic' },
-    { _text: 'sum' },
-    { _text: 'foo' }
+    { _text: 'remip', _textStyleType: 'italic' },
+    { _text: 'sumfoo' }
   ])
-  instanceOfChildNodes([NodeText, NodeTextStyle, NodeTextStyle, NodeText, NodeText])
+  instanceOfChildNodes([NodeText, NodeTextStyle, NodeText])
 })

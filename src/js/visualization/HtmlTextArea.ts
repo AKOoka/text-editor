@@ -26,9 +26,13 @@ class HtmlTextArea implements ITextRepresentationSubscriber<HtmlTextRepresentati
     }
     this._ctx2d = canvasContext
     window.onload = () => { // it fixes the problem with styles don't loaded when window.getComputedStyle tries to get them
-      const initFont = window.getComputedStyle(this._context)
-      this._ctx2d.font = `${initFont.getPropertyValue('font-size')} ${initFont.getPropertyValue('font-family')}`
+      this._ctx2d.font = this._getElementFont(this._context)
     }
+  }
+
+  private _getElementFont (element: HTMLElement): string {
+    const initFont = window.getComputedStyle(element)
+    return `${initFont.getPropertyValue('font-size')} ${initFont.getPropertyValue('font-family')}`
   }
 
   private _removeTextLine (linePosition: number): void {
@@ -58,20 +62,26 @@ class HtmlTextArea implements ITextRepresentationSubscriber<HtmlTextRepresentati
     return selection
   }
 
-  getContext (): HTMLElement {
-    return this._context
-  }
-
-  updateTextCursorPosition (position: number, linePosition: number, selections: IRange[]): void {
+  private _updateTextCursorPosition (position: number, linePosition: number): void {
     const textLine = this._textLines[linePosition]
     this._htmlTextCursor.remove()
     textLine.append(this._htmlTextCursor)
+
     for (const sel of this._htmlSelections) {
       sel.remove()
     }
     this._htmlSelections = []
 
     this._htmlTextCursor.style.left = `${this._ctx2d.measureText(textLine.innerText.slice(0, position)).width}px`
+  }
+
+  getContext (): HTMLElement {
+    return this._context
+  }
+
+  updateTextCursorPosition (position: number, linePosition: number, selections: IRange[]): void {
+    this._updateTextCursorPosition(position, linePosition)
+
     for (const { start, end, startLinePosition, endLinePosition } of selections) {
       if (startLinePosition === endLinePosition) {
         const line = this._textLines[startLinePosition]

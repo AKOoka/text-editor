@@ -153,22 +153,22 @@ class TextRepresentation implements ITextRepresentation {
     let output: TextStyleType[] = []
 
     for (const { start, end, startLinePosition, endLinePosition } of textCursorPositions) {
+      const startLine: INode<HTMLElement> = this._textLines[startLinePosition + this._getLinePositionOffset(startLinePosition)]
       if (startLinePosition === endLinePosition) {
-        output = output.concat(this._textLines[startLinePosition + this._getLinePositionOffset(startLinePosition)]
-          .textStylesInRange(
-            0,
-            start + this._getLineTextOffset(startLinePosition, start),
-            end + this._getLineTextOffset(endLinePosition, end)
-          )
-        )
+        output = output.concat(startLine.textStylesInRange(
+          0,
+          start + this._getLineTextOffset(startLinePosition, start),
+          end + this._getLineTextOffset(endLinePosition, end)
+        ))
         continue
       }
 
-      output.concat(this._textLines[startLinePosition + this._getLinePositionOffset(startLinePosition)]
-        .textStylesInRange(0, start + this._getLineTextOffset(startLinePosition, start)))
+      const startLineStart: number = start + this._getLineTextOffset(startLinePosition, start)
+      output.concat(startLine.textStylesInRange(0, startLineStart, startLineStart + startLine.getSize())
+      )
       for (let i = startLinePosition + 1; i < endLinePosition; i++) {
-        output = output.concat(this._textLines[i + this._getLinePositionOffset(i)]
-          .textStylesInRange(0, 0))
+        const curLine: INode<HTMLElement> = this._textLines[i + this._getLinePositionOffset(i)]
+        output = output.concat(curLine.textStylesInRange(0, 0, curLine.getSize()))
       }
       output = output.concat(this._textLines[endLinePosition + this._getLinePositionOffset(startLinePosition)]
         .textStylesInRange(0, 0, end + this._getLineTextOffset(endLinePosition, end)))
@@ -185,26 +185,27 @@ class TextRepresentation implements ITextRepresentation {
 
       if (startLinePosition === endLinePosition) {
         startLine.addTextStyle(
-          textStyleType,
           0,
           start + this._getLineTextOffset(startLinePosition, start),
-          end + this._getLineTextOffset(endLinePosition, end)
+          end + this._getLineTextOffset(endLinePosition, end),
+          textStyleType
         )
         continue
       }
 
-      startLine.addTextStyle(textStyleType, 0, start + this._getLineTextOffset(startLinePosition, start))
+      const startLineStart: number = start + this._getLineTextOffset(startLinePosition, start)
+      startLine.addTextStyle(0, startLineStart, startLineStart + startLine.getSize(), textStyleType)
 
       for (let i = startLinePosition + 1; i < endLinePosition; i++) {
         const curLineOffset: number = this._getLinePositionOffset(i)
         const curLine = this._textLines[i + curLineOffset]
-        curLine.addTextStyle(textStyleType, 0, 0)
+        curLine.addTextStyle(0, 0, curLine.getSize(), textStyleType)
         this._changes.addChange(curLineOffset, i, TextRepresentationChangeType.Change, curLine)
       }
 
       const endLineOffset: number = this._getLinePositionOffset(endLinePosition)
       const endLine = this._textLines[endLinePosition + endLineOffset]
-      endLine.addTextStyle(textStyleType, 0, 0, end + this._getLineTextOffset(endLinePosition, end))
+      endLine.addTextStyle(0, 0, end + this._getLineTextOffset(endLinePosition, end), textStyleType)
       this._changes.addChange(endLineOffset, endLinePosition, TextRepresentationChangeType.Change, endLine)
     }
   }
@@ -225,12 +226,13 @@ class TextRepresentation implements ITextRepresentation {
         continue
       }
 
-      startLine.removeAllTextStyles(0, start + this._getLineTextOffset(startLinePosition, start))
+      const startLineStart: number = start + this._getLineTextOffset(startLinePosition, start)
+      startLine.removeAllTextStyles(0, startLineStart, startLineStart + startLine.getSize())
 
       for (let i = startLinePosition + 1; i < endLinePosition; i++) {
         const curLineOffset: number = this._getLinePositionOffset(i)
         const curLine = this._textLines[i + curLineOffset]
-        curLine.removeAllTextStyles(0, 0)
+        curLine.removeAllTextStyles(0, 0, curLine.getSize())
         this._changes.addChange(curLineOffset, i, TextRepresentationChangeType.Change, curLine)
       }
 
@@ -249,26 +251,27 @@ class TextRepresentation implements ITextRepresentation {
 
       if (startLinePosition === endLinePosition) {
         startLine.removeConcreteTextStyle(
-          textStyleType,
           0,
           start + this._getLineTextOffset(startLinePosition, start),
-          end + this._getLineTextOffset(endLinePosition, end)
+          end + this._getLineTextOffset(endLinePosition, end),
+          textStyleType
         )
         continue
       }
 
-      startLine.removeConcreteTextStyle(textStyleType, 0, start + this._getLineTextOffset(startLinePosition, start))
+      const startLineStart: number = start + this._getLineTextOffset(startLinePosition, start)
+      startLine.removeConcreteTextStyle(0, startLineStart, startLineStart + startLine.getSize(), textStyleType)
 
       for (let i = startLinePosition + 1; i < endLinePosition; i++) {
         const curLineOffset: number = this._getLinePositionOffset(i)
         const curLine = this._textLines[i + curLineOffset]
-        curLine.removeConcreteTextStyle(textStyleType, 0, 0)
+        curLine.removeConcreteTextStyle(0, 0, curLine.getSize(), textStyleType)
         this._changes.addChange(curLineOffset, i, TextRepresentationChangeType.Change, curLine)
       }
 
       const endLineOffset = this._getLinePositionOffset(endLinePosition)
       const endLine = this._textLines[endLinePosition + endLineOffset]
-      endLine.removeConcreteTextStyle(textStyleType, 0, 0, end + this._getLineTextOffset(endLinePosition, end))
+      endLine.removeConcreteTextStyle(0, 0, end + this._getLineTextOffset(endLinePosition, end), textStyleType)
       this._changes.addChange(endLineOffset, endLinePosition, TextRepresentationChangeType.Change, endLine)
     }
   }

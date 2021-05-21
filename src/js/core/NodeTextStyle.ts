@@ -16,21 +16,21 @@ class NodeTextStyle extends BaseNode {
     return this._textStyleType
   }
 
-  addTextStyle (textStyleType: TextStyleType, offset: number, start: number, end: number = start + this.getSize()): Array<INode<HTMLElement>> {
+  addTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): Array<INode<HTMLElement>> {
     const startPosition: number = start - offset
     const endPosition: number = end - offset
 
     if (textStyleType === this._textStyleType) {
       return [this]
     } else if (startPosition <= 0 && endPosition >= this.getSize()) {
-      return [new NodeStyleContainer(textStyleType, [this])]
+      return [new NodeStyleContainer([this], textStyleType)]
     } else if (startPosition > 0 && endPosition < this.getSize()) {
       const middleNodeTextStyle = new NodeTextStyle(this._text.slice(startPosition, endPosition), this._textStyleType)
       const endNodeTextStyle = new NodeTextStyle(this._text.slice(endPosition), this._textStyleType)
       this._text = this._text.slice(0, startPosition)
       return [
         this,
-        new NodeStyleContainer(textStyleType, [middleNodeTextStyle]),
+        new NodeStyleContainer([middleNodeTextStyle], textStyleType),
         endNodeTextStyle
       ]
     } else if (startPosition > 0 && startPosition < this.getSize()) {
@@ -38,13 +38,13 @@ class NodeTextStyle extends BaseNode {
       this._text = this._text.slice(0, startPosition)
       return [
         this,
-        new NodeStyleContainer(textStyleType, [newNodeTextStyle])
+        new NodeStyleContainer([newNodeTextStyle], textStyleType)
       ]
     } else if (endPosition > 0 && endPosition < this.getSize()) {
       const newNodeTextStyle = new NodeTextStyle(this._text.slice(0, endPosition), this._textStyleType)
       this._text = this._text.slice(endPosition)
       return [
-        new NodeStyleContainer(textStyleType, [newNodeTextStyle]),
+        new NodeStyleContainer([newNodeTextStyle], textStyleType),
         this
       ]
     }
@@ -52,7 +52,7 @@ class NodeTextStyle extends BaseNode {
     throw new Error("can't add new text style node to text style node")
   }
 
-  removeAllTextStyles (offset: number, start: number, end: number = start + this.getSize()): Array<INode<HTMLElement>> {
+  removeAllTextStyles (offset: number, start: number, end: number): Array<INode<HTMLElement>> {
     const startPosition: number = start - offset
     const endPosition: number = end - offset
 
@@ -75,14 +75,14 @@ class NodeTextStyle extends BaseNode {
     throw new Error("can't remove all text styles from text style node")
   }
 
-  removeConcreteTextStyle (textStyleType: TextStyleType, offset: number, start: number, end: number = start + this.getSize()): Array<INode<HTMLElement>> {
+  removeConcreteTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): Array<INode<HTMLElement>> {
     if (textStyleType !== this._textStyleType) {
       return [this]
     }
     return this.removeAllTextStyles(offset, start, end)
   }
 
-  textStylesInRange (offset: number, start: number, end: number = start + this.getSize()): TextStyleType[] {
+  textStylesInRange (offset: number, start: number, end: number): TextStyleType[] {
     if (
       (start >= offset && start <= offset + this.getSize()) ||
       (end >= offset && end <= offset + this.getSize())

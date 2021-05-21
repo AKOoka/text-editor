@@ -27,7 +27,7 @@ test('delete text from middle', () => {
 })
 
 test('delete text from middle to end', () => {
-  nodeText.removeText(0, 2)
+  nodeText.removeText(0, 2, 'lorem'.length)
 
   expect(nodeText._text).toBe('lo')
 })
@@ -35,19 +35,19 @@ test('delete text from middle to end', () => {
 test('delete all text', () => {
   nodeText.removeText(0, 0)
 
-  expect(nodeText.removeText(0, 0)).toBeTruthy()
+  expect(nodeText.removeText(0, 0, 'lorem'.length)).toBeTruthy()
   expect(nodeText._text).toBe('')
 })
 
 test('add style from start to end of text', () => {
-  const result = nodeText.addTextStyle('bold', 0, 0)
+  const result = nodeText.addTextStyle(0, 0, 'lorem'.length, 'bold')
 
   expect(result).toMatchObject([{ _text: 'lorem', _textStyleType: 'bold' }])
   expect(result[0]).toBeInstanceOf(NodeTextStyle)
 })
 
 test('add style from start to middle', () => {
-  const result = nodeText.addTextStyle('bold', 0, 0, 2)
+  const result = nodeText.addTextStyle(0, 0, 2, 'bold')
 
   expect(result).toMatchObject([
     { _text: 'lo', _textStyleType: 'bold' },
@@ -58,7 +58,7 @@ test('add style from start to middle', () => {
 })
 
 test('add style from middle to end', () => {
-  const result = nodeText.addTextStyle('bold', 0, 2)
+  const result = nodeText.addTextStyle(0, 2, 'lorem'.length, 'bold')
 
   expect(result).toMatchObject([
     { _text: 'lo' },
@@ -69,7 +69,7 @@ test('add style from middle to end', () => {
 })
 
 test('add style in middle', () => {
-  const result = nodeText.addTextStyle('bold', 0, 2, 4)
+  const result = nodeText.addTextStyle(0, 2, 4, 'bold')
 
   expect(result).toMatchObject([
     { _text: 'lo' },
