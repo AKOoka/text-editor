@@ -1,7 +1,6 @@
-import { IRange } from '../common/IRange'
-import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
-import { HtmlTextRepresentationChanges } from './HtmlTextRepresentationChanges'
-import { TextStyleType } from '../common/TextStyleType'
+import { IRange } from '../../common/IRange'
+import { ITextRepresentationSubscriber } from '../../common/ITextRepresentationSubscriber'
+import { TextStyleType } from '../../common/TextStyleType'
 
 export interface ITextRepresentation {
   getLinesCount: () => number
@@ -15,6 +14,6 @@ export interface ITextRepresentation {
   addTextStylesInRanges: (textStyleType: TextStyleType, textCursorPositions: IRange[]) => void
   removeConcreteTextStyleInRanges: (textStyleType: TextStyleType, textCursorPositions: IRange[]) => void
   removeAllTextStylesInRanges: (textCursorPosition: IRange[]) => void
-  subscribe: (subscriber: ITextRepresentationSubscriber<HtmlTextRepresentationChanges>) => void
+  subscribe: (subscriber: ITextRepresentationSubscriber) => void
   updateSubscribers: () => void
 }

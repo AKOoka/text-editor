@@ -1,9 +1,7 @@
 import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
-import { HtmlTextRepresentationChanges } from '../core/HtmlTextRepresentationChanges'
-import { ITextRepresentationChanges } from '../common/ITextRepresentationChanges'
 import { TextStyleType } from '../common/TextStyleType'
 
-class HtmlUi implements ITextRepresentationSubscriber<HtmlTextRepresentationChanges> {
+class HtmlUi implements ITextRepresentationSubscriber {
   private readonly _context: HTMLElement
   private readonly _buttons: Map<string, HTMLElement>
 
@@ -32,15 +30,17 @@ class HtmlUi implements ITextRepresentationSubscriber<HtmlTextRepresentationChan
     return this._context
   }
 
-  updateTextRepresentation (changes: ITextRepresentationChanges<HtmlTextRepresentationChanges>): void {
+  updateActiveTextStyles (activeTextStyles: TextStyleType[]): void {
     for (const [buttonType, button] of this._buttons.entries()) {
-      if (changes.activeStyles.includes(buttonType as TextStyleType)) {
+      if (activeTextStyles.includes(buttonType as TextStyleType)) {
         button.classList.add('button-active')
         continue
       }
       button.classList.remove('button-active')
     }
   }
+
+  updateLineChanges (): void {}
 }
 
 export { HtmlUi }

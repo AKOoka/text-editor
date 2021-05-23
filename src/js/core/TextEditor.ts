@@ -1,5 +1,5 @@
 import { ITextEditor } from './ITextEditor'
-import { ITextRepresentation } from './ITextRepresentation'
+import { ITextRepresentation } from './TextRepresentation/ITextRepresentation'
 import { ITextCursor } from './ITextCursor'
 import { IRange } from '../common/IRange'
 import { TextStyleType } from '../common/TextStyleType'
@@ -49,10 +49,10 @@ class TextEditor implements ITextEditor {
     this._textRepresentation.removeConcreteTextStyleInRanges(
       textStyleType,
       [{
-        start: this._textCursor.getHorizontalPosition(),
-        end: this._textCursor.getHorizontalPosition(),
-        startLinePosition: this._textCursor.getVerticalPosition(),
-        endLinePosition: this._textCursor.getVerticalPosition()
+        startX: this._textCursor.getHorizontalPosition(),
+        endX: this._textCursor.getHorizontalPosition(),
+        startY: this._textCursor.getVerticalPosition(),
+        endY: this._textCursor.getVerticalPosition()
       }].concat(this._textCursor.getSelections())
     )
   }
@@ -60,10 +60,10 @@ class TextEditor implements ITextEditor {
   removeAllTextStyles (): void {
     this._textRepresentation.removeAllTextStylesInRanges(
       [{
-        start: this._textCursor.getHorizontalPosition(),
-        end: this._textCursor.getHorizontalPosition(),
-        startLinePosition: this._textCursor.getVerticalPosition(),
-        endLinePosition: this._textCursor.getVerticalPosition()
+        startX: this._textCursor.getHorizontalPosition(),
+        endX: this._textCursor.getHorizontalPosition(),
+        startY: this._textCursor.getVerticalPosition(),
+        endY: this._textCursor.getVerticalPosition()
       }].concat(this._textCursor.getSelections())
     )
   }
@@ -117,14 +117,14 @@ class TextEditor implements ITextEditor {
 
   addSelections (selections: IRange[]): void {
     for (const selection of selections) {
-      const validStartVerticalPosition: number = this._getValidVerticalPosition(selection.startLinePosition)
-      const validEndVerticalPosition: number = this._getValidVerticalPosition(selection.endLinePosition)
+      const validStartVerticalPosition: number = this._getValidVerticalPosition(selection.startY)
+      const validEndVerticalPosition: number = this._getValidVerticalPosition(selection.endY)
 
       this._textCursor.addSelection({
-        start: this._getValidHorizontalPosition(validStartVerticalPosition, selection.start),
-        end: this._getValidHorizontalPosition(validEndVerticalPosition, selection.end),
-        startLinePosition: validStartVerticalPosition,
-        endLinePosition: validEndVerticalPosition
+        startX: this._getValidHorizontalPosition(validStartVerticalPosition, selection.startX),
+        endX: this._getValidHorizontalPosition(validEndVerticalPosition, selection.endX),
+        startY: validStartVerticalPosition,
+        endY: validEndVerticalPosition
       })
     }
   }

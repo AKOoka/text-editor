@@ -1,16 +1,23 @@
 import { INode } from './INode'
 import { NodeText } from './NodeText'
-import { TextStyleType } from '../common/TextStyleType'
+import { TextStyleType } from '../../../common/TextStyleType'
 import { NodeStyleContainer } from './NodeStyleContainer'
 import { BaseNodeContainer } from './BaseNodeContainer'
-import { ChildNodeInRangeCase } from './ChildNodeInRangeCase'
+import { ChildNodeInRangeCallback } from './ChildNodeInRangeCallback'
+import { NodeType } from './NodeType'
+import { NodeRepresentation } from './NodeRepresentation'
 
 class NodeLineContainer extends BaseNodeContainer {
-  getStyleType (): TextStyleType | null {
+  constructor (childNodes: INode[]) {
+    super(childNodes)
+    this._representation.setType(NodeType.CONTAINER_LINE)
+  }
+
+  getStyle (): TextStyleType | null {
     return null
   }
 
-  mergeWithNode (): Array<INode<HTMLElement>> {
+  mergeWithNode (): INode[] {
     throw new Error("Node Line Container can't be joined to another node because it must always be single on the top of hierarchy")
   }
 
@@ -30,24 +37,24 @@ class NodeLineContainer extends BaseNodeContainer {
     this._childNodes.push(new NodeText(text))
   }
 
-  addTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): Array<INode<HTMLElement>> {
+  addTextStyle (offset: number, start: number, end: number, textStyle: TextStyleType): INode[] {
     if (start <= offset && end >= offset + this.getSize()) {
-      this._childNodes = [new NodeStyleContainer(this._childNodes, textStyleType)]
+      this._childNodes = [new NodeStyleContainer(this._childNodes, textStyle)]
       return [this]
     }
 
-    const childNodeInRange: ChildNodeInRangeCase<TextStyleType> = (childNode, offset, start, end, textStyleType) => {
+    const childNodeInRange: ChildNodeInRangeCallback<TextStyleType> = (childNode, offset, start, end, textStyleType) => {
       return childNode.addTextStyle(offset, start, end, textStyleType)
     }
     this._childNodes = this._mergeNodes(
-      this._updateChildNodesInRange<TextStyleType>(childNodeInRange, offset, start, end, textStyleType)
+      this._updateChildNodesInRange<TextStyleType>(childNodeInRange, offset, start, end, textStyle)
     )
 
     return [this]
   }
 
-  removeAllTextStyles (offset: number, start: number, end: number): Array<INode<HTMLElement>> {
-    const childNodeInRange: ChildNodeInRangeCase<null> = (childNode, offset, start, end) => {
+  removeAllTextStyles (offset: number, start: number, end: number): INode[] {
+    const childNodeInRange: ChildNodeInRangeCallback<null> = (childNode, offset, start, end) => {
       return childNode.removeAllTextStyles(offset, start, end)
     }
     this._childNodes = this._mergeNodes(
@@ -57,12 +64,12 @@ class NodeLineContainer extends BaseNodeContainer {
     return [this]
   }
 
-  removeConcreteTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): Array<INode<HTMLElement>> {
-    const childNodeInRange: ChildNodeInRangeCase<TextStyleType> = (childNode, offset, start, end, textStyleType) => {
+  removeConcreteTextStyle (offset: number, start: number, end: number, textStyle: TextStyleType): INode[] {
+    const childNodeInRange: ChildNodeInRangeCallback<TextStyleType> = (childNode, offset, start, end, textStyleType) => {
       return childNode.removeConcreteTextStyle(offset, start, end, textStyleType)
     }
     this._childNodes = this._mergeNodes(
-      this._updateChildNodesInRange<TextStyleType>(childNodeInRange, offset, start, end, textStyleType)
+      this._updateChildNodesInRange<TextStyleType>(childNodeInRange, offset, start, end, textStyle)
     )
 
     return [this]
@@ -85,15 +92,13 @@ class NodeLineContainer extends BaseNodeContainer {
     return []
   }
 
-  render (): HTMLElement {
-    const container: HTMLElement = document.createElement('div')
-    container.classList.add('text-line')
-
+  getRepresentation (): NodeRepresentation {
+    const children: NodeRepresentation[] = []
     for (const childNode of this._childNodes) {
-      container.append(childNode.render())
+      children.push(childNode.getRepresentation())
     }
+    return this._representation.setChildren(children)
 
-    return container
   }
 }
 

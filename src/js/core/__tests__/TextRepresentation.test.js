@@ -1,6 +1,6 @@
 /* global describe, test, expect, beforeEach, afterEach, afterAll */
 
-import { TextRepresentation } from '../TextRepresentation'
+import { TextRepresentation } from '../TextRepresentation/TextRepresentation'
 
 const textRepresentation = new TextRepresentation()
 

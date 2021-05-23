@@ -1,8 +1,8 @@
 /* global test, expect, beforeEach */
-import { NodeStyleContainer } from '../NodeStyleContainer'
-import { NodeText } from '../NodeText'
-import { NodeTextStyle } from '../NodeTextStyle'
-import { NodeLineContainer } from '../NodeLineContainer'
+import { NodeStyleContainer } from '../TextRepresentation/Nodes/NodeStyleContainer'
+import { NodeText } from '../TextRepresentation/Nodes/NodeText'
+import { NodeTextStyle } from '../TextRepresentation/Nodes/NodeTextStyle'
+import { NodeLineContainer } from '../TextRepresentation/Nodes/NodeLineContainer'
 
 const defaultStyle = 'underline'
 const defaultText = 'lorem'
@@ -83,7 +83,7 @@ test('add text style to two nodes', () => {
 
   childNodesMatchTo([
     { _text: 'lo' },
-    { _text: 'remip', _textStyleType: 'italic' },
+    { _text: 'remip', _textStyle: 'italic' },
     { _text: 'sumfoo' }
   ])
   instanceOfChildNodes([NodeText, NodeTextStyle, NodeText])

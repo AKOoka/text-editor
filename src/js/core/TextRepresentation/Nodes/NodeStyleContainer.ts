@@ -1,20 +1,25 @@
 import { INode } from './INode'
-import { TextStyleType } from '../common/TextStyleType'
+import { TextStyleType } from '../../../common/TextStyleType'
 import { BaseNodeContainer } from './BaseNodeContainer'
 import { NodeText } from './NodeText'
 import { BaseNode } from './BaseNode'
-import { ChildNodeInRangeCase } from './ChildNodeInRangeCase'
+import { ChildNodeInRangeCallback } from './ChildNodeInRangeCallback'
+import { NodeRepresentation } from './NodeRepresentation'
+import { NodeType } from './NodeType'
 
 class NodeStyleContainer extends BaseNodeContainer {
-  private readonly _textStyleType: TextStyleType
+  private readonly _textStyle: TextStyleType
 
-  constructor (childNodes: Array<INode<HTMLElement>>, textStyleType: TextStyleType) {
+  constructor (childNodes: INode[], textStyle: TextStyleType) {
     super(childNodes)
-    this._textStyleType = textStyleType
+    this._textStyle = textStyle
+    this._representation
+      .setType(NodeType.CONTAINER_STYLE)
+      .setTextStyle(textStyle)
   }
 
-  mergeWithNode (node: INode<HTMLElement>, joinAfter: boolean): Array<INode<HTMLElement>> {
-    if (node.getStyleType() !== this.getStyleType()) {
+  mergeWithNode (node: INode, joinAfter: boolean): INode[] {
+    if (node.getStyle() !== this.getStyle()) {
       if (joinAfter) {
         return [this, node]
       }
@@ -38,8 +43,8 @@ class NodeStyleContainer extends BaseNodeContainer {
     return [this]
   }
 
-  getStyleType (): TextStyleType | null {
-    return this._textStyleType
+  getStyle (): TextStyleType | null {
+    return this._textStyle
   }
 
   addText (text: string, offset: number, position: number): void {
@@ -57,25 +62,25 @@ class NodeStyleContainer extends BaseNodeContainer {
     throw new Error("can't add text to node style container")
   }
 
-  addTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): Array<INode<HTMLElement>> {
-    if (textStyleType === this._textStyleType) {
+  addTextStyle (offset: number, start: number, end: number, textStyle: TextStyleType): INode[] {
+    if (textStyle === this._textStyle) {
       return [this]
     } else if (start <= offset && end >= offset + this.getSize()) {
-      return [new NodeStyleContainer([this], textStyleType)]
+      return [new NodeStyleContainer([this], textStyle)]
     }
 
-    const childNodeInRange: ChildNodeInRangeCase<TextStyleType> = (childNode, offset, start, end, textStyleType) => {
+    const childNodeInRange: ChildNodeInRangeCallback<TextStyleType> = (childNode, offset, start, end, textStyleType) => {
       return childNode.addTextStyle(offset, start, end, textStyleType)
     }
     this._childNodes = this._mergeNodes(
-      this._updateChildNodesInRange<TextStyleType>(childNodeInRange, offset, start, end, textStyleType)
+      this._updateChildNodesInRange<TextStyleType>(childNodeInRange, offset, start, end, textStyle)
     )
 
     return [this]
   }
 
-  removeAllTextStyles (offset: number, start: number, end: number): Array<INode<HTMLElement>> {
-    const childNodeInRange: ChildNodeInRangeCase<null> = (childNode, offset, start, end) => {
+  removeAllTextStyles (offset: number, start: number, end: number): INode[] {
+    const childNodeInRange: ChildNodeInRangeCallback<null> = (childNode, offset, start, end) => {
       return childNode.removeAllTextStyles(offset, start, end)
     }
     this._childNodes = this._mergeNodes(
@@ -120,8 +125,8 @@ class NodeStyleContainer extends BaseNodeContainer {
     throw new Error("couldn't find right node to split NodeStyleContainer")
   }
 
-  removeConcreteTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): Array<INode<HTMLElement>> {
-    if (textStyleType === this._textStyleType) {
+  removeConcreteTextStyle (offset: number, start: number, end: number, textStyle: TextStyleType): INode[] {
+    if (textStyle === this._textStyle) {
       const endOfNode: number = offset + this.getSize()
 
       // temporary solution - NEED TO REFACTOR
@@ -130,20 +135,20 @@ class NodeStyleContainer extends BaseNodeContainer {
       } else if (start >= offset && end <= endOfNode) {
         const leftNodeIndexInRange: number = this._findLeftNodeIndexInRange(offset, start, end)
         const rightNodeIndexInRange: number = this._findRightNodeIndexInRange(offset, start, end)
-        const rightNodeStyleContainer: INode<HTMLElement> = new NodeStyleContainer(
-          this._childNodes.slice(rightNodeIndexInRange), this._textStyleType
+        const rightNodeStyleContainer: INode = new NodeStyleContainer(
+          this._childNodes.slice(rightNodeIndexInRange), this._textStyle
         )
-        const nodesWithoutStyleContainer: Array<INode<HTMLElement>> = this._childNodes.slice(leftNodeIndexInRange, rightNodeIndexInRange)
+        const nodesWithoutStyleContainer: INode[] = this._childNodes.slice(leftNodeIndexInRange, rightNodeIndexInRange)
         this._childNodes = this._childNodes.slice(0, leftNodeIndexInRange)
-        return ([this] as Array<INode<HTMLElement>>).concat(nodesWithoutStyleContainer, rightNodeStyleContainer)
+        return ([this] as INode[]).concat(nodesWithoutStyleContainer, rightNodeStyleContainer)
       } else if (start >= offset && start <= endOfNode) {
         const rightNodeIndexInRange: number = this._findRightNodeIndexInRange(offset, start, end)
-        const nodesWithoutStyleContainer: Array<INode<HTMLElement>> = this._childNodes.slice(rightNodeIndexInRange)
+        const nodesWithoutStyleContainer: INode[] = this._childNodes.slice(rightNodeIndexInRange)
         this._childNodes = this._childNodes.slice(0, rightNodeIndexInRange)
-        return ([this] as Array<INode<HTMLElement>>).concat(nodesWithoutStyleContainer)
+        return ([this] as INode[]).concat(nodesWithoutStyleContainer)
       } else if (end >= offset && end <= endOfNode) {
         const leftNodeIndexInRange: number = this._findLeftNodeIndexInRange(offset, start, end)
-        const nodesWithoutStyleContainer: Array<INode<HTMLElement>> = this._childNodes.slice(0, leftNodeIndexInRange)
+        const nodesWithoutStyleContainer: INode[] = this._childNodes.slice(0, leftNodeIndexInRange)
         this._childNodes = this._childNodes.slice(leftNodeIndexInRange)
         return nodesWithoutStyleContainer.concat([this])
       }
@@ -151,11 +156,11 @@ class NodeStyleContainer extends BaseNodeContainer {
       return [this]
     }
 
-    const childNodeInRange: ChildNodeInRangeCase<TextStyleType> = (childNode, offset, start, end, textStyleType) => {
-      return childNode.removeConcreteTextStyle(offset, start, end, textStyleType)
+    const childNodeInRange: ChildNodeInRangeCallback<TextStyleType> = (childNode, offset, start, end, textStyle) => {
+      return childNode.removeConcreteTextStyle(offset, start, end, textStyle)
     }
     this._childNodes = this._mergeNodes(
-      this._updateChildNodesInRange<TextStyleType>(childNodeInRange, offset, start, end, textStyleType)
+      this._updateChildNodesInRange<TextStyleType>(childNodeInRange, offset, start, end, textStyle)
     )
 
     return [this]
@@ -165,7 +170,7 @@ class NodeStyleContainer extends BaseNodeContainer {
     let startOffset: number = offset
 
     if (this._nodeInRange(start, end, startOffset, this.getSize())) {
-      let textStyles: TextStyleType[] = [this._textStyleType]
+      let textStyles: TextStyleType[] = [this._textStyle]
 
       for (const childNode of this._childNodes) {
         textStyles = textStyles.concat(childNode.textStylesInRange(startOffset, start, end))
@@ -178,15 +183,12 @@ class NodeStyleContainer extends BaseNodeContainer {
     return []
   }
 
-  render (): HTMLElement {
-    const container: HTMLElement = document.createElement('span')
-    container.classList.add(`${this._textStyleType}-text`)
-
+  getRepresentation (): NodeRepresentation {
+    const children: NodeRepresentation[] = []
     for (const childNode of this._childNodes) {
-      container.append(childNode.render())
+      children.push(childNode.getRepresentation())
     }
-
-    return container
+    return this._representation.setChildren(children)
   }
 }
 

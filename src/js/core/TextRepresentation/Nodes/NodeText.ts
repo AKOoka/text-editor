@@ -1,14 +1,21 @@
-import { TextStyleType } from '../common/TextStyleType'
+import { TextStyleType } from '../../../common/TextStyleType'
 import { INode } from './INode'
 import { NodeTextStyle } from './NodeTextStyle'
 import { BaseNode } from './BaseNode'
+import { NodeRepresentation } from './NodeRepresentation'
+import { NodeType } from './NodeType'
 
 class NodeText extends BaseNode {
-  getStyleType (): TextStyleType | null {
+  constructor (text: string) {
+    super(text)
+    this._representation.setType(NodeType.TEXT)
+  }
+
+  getStyle (): TextStyleType | null {
     return null
   }
 
-  addTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): Array<INode<HTMLElement>> {
+  addTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): INode[] {
     const startPosition: number = start - offset
     const endPosition: number = end - offset
 
@@ -33,11 +40,11 @@ class NodeText extends BaseNode {
     throw new Error("can't add text style to text node")
   }
 
-  removeAllTextStyles (): Array<INode<HTMLElement>> {
+  removeAllTextStyles (): INode[] {
     return [this]
   }
 
-  removeConcreteTextStyle (): Array<INode<HTMLElement>> {
+  removeConcreteTextStyle (): INode[] {
     return [this]
   }
 
@@ -45,10 +52,8 @@ class NodeText extends BaseNode {
     return []
   }
 
-  render (): HTMLElement {
-    const element: HTMLElement = document.createElement('span')
-    element.textContent = this._text
-    return element
+  getRepresentation (): NodeRepresentation {
+    return this._representation.setText(this._text)
   }
 }
 

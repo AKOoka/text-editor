@@ -1,16 +1,19 @@
 import { INode } from './INode'
-import { TextStyleType } from '../common/TextStyleType'
+import { TextStyleType } from '../../../common/TextStyleType'
 import { BaseNodeContainer } from './BaseNodeContainer'
+import { NodeRepresentation } from './NodeRepresentation'
 
-abstract class BaseNode implements INode<HTMLElement> {
+abstract class BaseNode implements INode {
   protected _text: string
+  protected _representation: NodeRepresentation
 
-  constructor (text: string) {
+  protected constructor (text: string) {
     this._text = text
+    this._representation = new NodeRepresentation()
   }
 
-  mergeWithNode (node: INode<HTMLElement>): Array<INode<HTMLElement>> {
-    if (node.getStyleType() !== this.getStyleType()) {
+  mergeWithNode (node: INode): INode[] {
+    if (node.getStyle() !== this.getStyle()) {
       return [this, node]
     }
 
@@ -39,12 +42,12 @@ abstract class BaseNode implements INode<HTMLElement> {
     return this._text.length === 0
   }
 
-  abstract getStyleType (): TextStyleType | null
-  abstract addTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): Array<INode<HTMLElement>>
-  abstract removeAllTextStyles (offset: number, start: number, end: number): Array<INode<HTMLElement>>
-  abstract removeConcreteTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): Array<INode<HTMLElement>>
+  abstract getStyle (): TextStyleType | null
+  abstract addTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): INode[]
+  abstract removeAllTextStyles (offset: number, start: number, end: number): INode[]
+  abstract removeConcreteTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): INode[]
   abstract textStylesInRange (offset: number, start: number, end: number): TextStyleType[]
-  abstract render (): HTMLElement
+  abstract getRepresentation (): NodeRepresentation
 }
 
 export { BaseNode }

@@ -1,6 +1,6 @@
 /* global test, expect, beforeEach */
-import { NodeText } from '../NodeText'
-import { NodeTextStyle } from '../NodeTextStyle'
+import { NodeText } from '../TextRepresentation/Nodes/NodeText'
+import { NodeTextStyle } from '../TextRepresentation/Nodes/NodeTextStyle'
 
 let nodeText = new NodeText('')
 
@@ -42,7 +42,7 @@ test('delete all text', () => {
 test('add style from start to end of text', () => {
   const result = nodeText.addTextStyle(0, 0, 'lorem'.length, 'bold')
 
-  expect(result).toMatchObject([{ _text: 'lorem', _textStyleType: 'bold' }])
+  expect(result).toMatchObject([{ _text: 'lorem', _textStyle: 'bold' }])
   expect(result[0]).toBeInstanceOf(NodeTextStyle)
 })
 
@@ -50,7 +50,7 @@ test('add style from start to middle', () => {
   const result = nodeText.addTextStyle(0, 0, 2, 'bold')
 
   expect(result).toMatchObject([
-    { _text: 'lo', _textStyleType: 'bold' },
+    { _text: 'lo', _textStyle: 'bold' },
     { _text: 'rem' }
   ])
   expect(result[0]).toBeInstanceOf(NodeTextStyle)
@@ -62,7 +62,7 @@ test('add style from middle to end', () => {
 
   expect(result).toMatchObject([
     { _text: 'lo' },
-    { _text: 'rem', _textStyleType: 'bold' }
+    { _text: 'rem', _textStyle: 'bold' }
   ])
   expect(result[0]).toBeInstanceOf(NodeText)
   expect(result[1]).toBeInstanceOf(NodeTextStyle)
@@ -73,7 +73,7 @@ test('add style in middle', () => {
 
   expect(result).toMatchObject([
     { _text: 'lo' },
-    { _text: 're', _textStyleType: 'bold' },
+    { _text: 're', _textStyle: 'bold' },
     { _text: 'm' }
   ])
   expect(result[0]).toBeInstanceOf(NodeText)

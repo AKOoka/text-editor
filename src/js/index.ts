@@ -1,23 +1,23 @@
 import '../scss/main.scss'
 import { CommandDispatcher } from './command-pipeline/CommandDispatcher'
 import { HistoryCommandDispatcher } from './command-pipeline/HistoryCommandDispatcher'
-import { HtmlTextArea } from './visualization/HtmlTextArea'
+import { TextArea } from './visualization/TextArea'
 import { ICommandDispatcher } from './command-pipeline/ICommandDispatcher'
-import { IoDevice } from './user-input-handler/IoDevice'
+import { IoDevice } from './user-input/IoDevice'
 import { ITextCursor } from './core/ITextCursor'
 import { ITextEditor } from './core/ITextEditor'
-import { ITextRepresentation } from './core/ITextRepresentation'
+import { ITextRepresentation } from './core/TextRepresentation/ITextRepresentation'
 import { TextCursor } from './core/TextCursor'
 import { TextEditor } from './core/TextEditor'
-import { TextRepresentation } from './core/TextRepresentation'
-import { HtmlUi } from './user-input-handler/HtmlUi'
+import { TextRepresentation } from './core/TextRepresentation/TextRepresentation'
+import { HtmlUi } from './user-input/HtmlUi'
 import { AddTextStyleCommand } from './command-pipeline/commands/AddTextStyleCommand'
 import { AddSelectionCommand } from './command-pipeline/commands/AddSelectionCommand'
 import { ClearSelectionsCommand } from './command-pipeline/commands/ClearSelectionsCommand'
-import { TypeKeysHandler } from './user-input-handler/KeysHandlers/TypeKeysHandler'
-import { DeleteKeysHandler } from './user-input-handler/KeysHandlers/DeleteKeysHandler'
-import { ArrowKeysHandler } from './user-input-handler/KeysHandlers/ArrowKeysHandler'
-import { AddLineKeysHandler } from './user-input-handler/KeysHandlers/AddLineKeysHandler'
+import { TypeKeysHandler } from './user-input/KeysHandlers/TypeKeysHandler'
+import { DeleteKeysHandler } from './user-input/KeysHandlers/DeleteKeysHandler'
+import { ArrowKeysHandler } from './user-input/KeysHandlers/ArrowKeysHandler'
+import { AddLineKeysHandler } from './user-input/KeysHandlers/AddLineKeysHandler'
 
 const textCursor: ITextCursor = new TextCursor()
 const textRepresentation: ITextRepresentation = new TextRepresentation()
@@ -25,7 +25,7 @@ const textEditor: ITextEditor = new TextEditor(textCursor, textRepresentation)
 const commandDispatcher: ICommandDispatcher = new CommandDispatcher(textEditor)
 const historyCommandDispatcher: HistoryCommandDispatcher = new HistoryCommandDispatcher(commandDispatcher)
 const ioDevice: IoDevice = new IoDevice(document, historyCommandDispatcher)
-const htmlTextArea = new HtmlTextArea()
+const htmlTextArea = new TextArea()
 const htmlUi = new HtmlUi()
 
 htmlUi.createButton('bold', 'bold', () => {
@@ -35,10 +35,10 @@ htmlUi.createButton('underline', 'underline', () => {
   historyCommandDispatcher.doCommand(new AddTextStyleCommand('underline', true))
 })
 htmlUi.createButton('addSelection', 'addSelection', () => {
-  historyCommandDispatcher.doCommand(new AddSelectionCommand({ start: 0, end: 5, startLinePosition: 0, endLinePosition: 0 }, false))
+  historyCommandDispatcher.doCommand(new AddSelectionCommand({ startX: 0, endX: 5, startY: 0, endY: 0 }, false))
 })
 htmlUi.createButton('addSecondSelection', 'addSecondSelection', () => {
-  historyCommandDispatcher.doCommand(new AddSelectionCommand({ start: 2, end: 7, startLinePosition: 0, endLinePosition: 0 }, false))
+  historyCommandDispatcher.doCommand(new AddSelectionCommand({ startX: 2, endX: 7, startY: 0, endY: 0 }, false))
 })
 htmlUi.createButton('clearSelection', 'clearSelection', () => {
   historyCommandDispatcher.doCommand(new ClearSelectionsCommand(false))

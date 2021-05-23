@@ -1,6 +1,6 @@
 export interface IRange {
-  start: number
-  end: number
-  startLinePosition: number
-  endLinePosition: number
+  startX: number
+  startY: number
+  endX: number
+  endY: number
 }

@@ -1,14 +1,17 @@
 import { INode } from './INode'
-import { TextStyleType } from '../common/TextStyleType'
-import { ChildNodeInRangeCase } from './ChildNodeInRangeCase'
+import { TextStyleType } from '../../../common/TextStyleType'
+import { ChildNodeInRangeCallback } from './ChildNodeInRangeCallback'
+import { NodeRepresentation } from './NodeRepresentation'
 
-abstract class BaseNodeContainer implements INode<HTMLElement> {
-  protected _childNodes: Array<INode<HTMLElement>>
+abstract class BaseNodeContainer implements INode {
+  protected _childNodes: INode[]
   protected _size: number
+  protected _representation: NodeRepresentation
 
-  constructor (childNodes: Array<INode<HTMLElement>>) {
+  protected constructor (childNodes: INode[]) {
     this._childNodes = childNodes
     this._size = 0
+    this._representation = new NodeRepresentation()
 
     for (const childNode of this._childNodes) {
       this._size += childNode.getSize()
@@ -26,23 +29,23 @@ abstract class BaseNodeContainer implements INode<HTMLElement> {
            ((end >= nodeOffset && end <= rightEdge) && !(end === nodeOffset && start <= nodeOffset)))
   }
 
-  protected _mergeNodes (nodes: Array<INode<HTMLElement>>): Array<INode<HTMLElement>> {
+  protected _mergeNodes (nodes: INode[]): INode[] {
     if (nodes.length <= 1) {
       return nodes
     }
 
-    // const mergedNodes: Array<INode<HTMLElement>> = [nodes[0]]
+    // const mergedNodes: INode[] = [nodes[0]]
 
     // for (let i = 1; i < nodes.length - 1; i++) {
-    //   const mergeResult: Array<INode<HTMLElement>> = mergedNodes[mergedNodes.length - 1].mergeWithNode(nodes[i], true)
+    //   const mergeResult: INode[] = mergedNodes[mergedNodes.length - 1].mergeWithNode(nodes[i], true)
     //   mergedNodes.push(mergeResult[mergeResult.length === 2 ? 1 : 0])
     // }
 
-    const mergedNodes: Array<INode<HTMLElement>> = [nodes[0]]
+    const mergedNodes: INode[] = [nodes[0]]
     let mergeIndex: number = 0
 
     for (let i = 1; i < nodes.length; i++) {
-      const mergeResult: Array<INode<HTMLElement>> = mergedNodes[mergeIndex].mergeWithNode(nodes[i], true)
+      const mergeResult: INode[] = mergedNodes[mergeIndex].mergeWithNode(nodes[i], true)
 
       if (mergeResult.length === 1) {
         continue
@@ -56,13 +59,13 @@ abstract class BaseNodeContainer implements INode<HTMLElement> {
   }
 
   protected _updateChildNodesInRange<TextStyle> (
-    inRange: ChildNodeInRangeCase<TextStyle>,
+    inRange: ChildNodeInRangeCallback<TextStyle>,
     offset: number,
     start: number,
     end: number,
     textStyleType: TextStyle
-  ): Array<INode<HTMLElement>> {
-    let childNodesInRange: Array<INode<HTMLElement>> = []
+  ): INode[] {
+    let childNodesInRange: INode[] = []
     let childStartOffset: number = offset
 
     for (const childNode of this._childNodes) {
@@ -80,7 +83,7 @@ abstract class BaseNodeContainer implements INode<HTMLElement> {
     return childNodesInRange
   }
 
-  getChildNodes (): Array<INode<HTMLElement>> {
+  getChildNodes (): INode[] {
     return this._childNodes
   }
 
@@ -94,7 +97,7 @@ abstract class BaseNodeContainer implements INode<HTMLElement> {
   }
 
   removeText (offset: number, start: number, end: number): boolean {
-    const newChildNodes: Array<INode<HTMLElement>> = []
+    const newChildNodes: INode[] = []
     let startOffset: number = offset
 
     for (const childNode of this._childNodes) {
@@ -120,14 +123,14 @@ abstract class BaseNodeContainer implements INode<HTMLElement> {
     return this._size === 0
   }
 
-  abstract mergeWithNode (node: INode<HTMLElement>, joinAfter: boolean): Array<INode<HTMLElement>>
-  abstract getStyleType (): TextStyleType | null
+  abstract mergeWithNode (node: INode, joinAfter: boolean): INode[]
+  abstract getStyle (): TextStyleType | null
   abstract addText (text: string, offset: number, position: number): void
-  abstract addTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): Array<INode<HTMLElement>>
-  abstract removeAllTextStyles (offset: number, start: number, end: number): Array<INode<HTMLElement>>
-  abstract removeConcreteTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): Array<INode<HTMLElement>>
+  abstract addTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): INode[]
+  abstract removeAllTextStyles (offset: number, start: number, end: number): INode[]
+  abstract removeConcreteTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): INode[]
   abstract textStylesInRange (offset: number, start: number, end: number): TextStyleType[]
-  abstract render (): HTMLElement
+  abstract getRepresentation (): NodeRepresentation
 }
 
 export { BaseNodeContainer }

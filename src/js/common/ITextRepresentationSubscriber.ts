@@ -1,5 +1,7 @@
-import { ITextRepresentationChanges } from './ITextRepresentationChanges'
+import { TextStyleType } from './TextStyleType'
+import { TextRepresentationChange } from '../core/TextRepresentation/TextRepresentationChange'
 
-export interface ITextRepresentationSubscriber<ChangedLines> {
-  updateTextRepresentation: (changes: ITextRepresentationChanges<ChangedLines>) => void
+export interface ITextRepresentationSubscriber {
+  updateLineChanges: (changes: TextRepresentationChange[]) => void
+  updateActiveTextStyles: (activeTextStyles: TextStyleType[]) => void
 }
