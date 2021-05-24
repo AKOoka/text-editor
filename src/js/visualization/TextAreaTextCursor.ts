@@ -1,30 +1,29 @@
 class TextAreaTextCursor {
-  private readonly _htmlElement: HTMLElement
-  private _y: number
+  private readonly _context: HTMLElement
 
   constructor () {
-    this._htmlElement = document.createElement('div')
-    this._htmlElement.classList.add('text-cursor')
-  }
-
-  getY (): number {
-    return this._y
+    this._context = document.createElement('div')
+    this._context.classList.add('text-cursor')
   }
 
   setY (y: number): void {
-    this._y = y
+    this._context.style.top = `${y}px`
   }
 
   setX (x: number): void {
-    this._htmlElement.style.left = `${x}px`
+    this._context.style.left = `${x}px`
   }
 
-  getHtmlElement (): HTMLElement {
-    return this._htmlElement
+  setHeight (height: number): void {
+    this._context.style.height = `${height}px`
   }
 
-  removeHtmlElement (): void {
-    this._htmlElement.remove()
+  getContext (): HTMLElement {
+    return this._context
+  }
+
+  removeContext (): void {
+    this._context.remove()
   }
 }
 

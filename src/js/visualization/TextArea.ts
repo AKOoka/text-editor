@@ -3,68 +3,62 @@ import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubs
 import { TextRepresentationAction } from '../core/TextRepresentation/TextRepresentationAction'
 import { TextRepresentationChange } from '../core/TextRepresentation/TextRepresentationChange'
 import { TextAreaTextSelectionPool } from './TextAreaTextSelectionPool'
-import { TextAreaTextCursor } from './TextAreaTextCursor'
-import { TextAreaTextLinePool } from './TextAreaTextLinePool'
+import { TextAreaTextPool } from './TextAreaTextPool'
 import { MeasureHtmlTool } from './MeasureHtmlTool'
 import { IRange } from '../common/IRange'
 import { NodeRepresentation } from '../core/TextRepresentation/Nodes/NodeRepresentation'
 import { NodeType } from '../core/TextRepresentation/Nodes/NodeType'
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
+import { TextAreaLayerText } from './TextAreaLayerText'
+import { TextAreaLayerUi } from './TextAreaLayerUi'
 
 class TextArea implements ITextRepresentationSubscriber, ITextCursorPositionSubscriber, ITextCursorSelectionsSubscriber {
   private readonly _context: HTMLElement
   private readonly _measureHtmlTool: MeasureHtmlTool
-  private readonly _textCursor: TextAreaTextCursor
   private readonly _textSelectionPool: TextAreaTextSelectionPool
-  private readonly _textLinePool: TextAreaTextLinePool
+  private readonly _textPool: TextAreaTextPool
+  private readonly _layerText: TextAreaLayerText
+  private readonly _layerUi: TextAreaLayerUi
 
   constructor () {
     this._context = document.createElement('div')
     this._context.classList.add('text-area')
-    this._measureHtmlTool = new MeasureHtmlTool(this._context)
-    this._textCursor = new TextAreaTextCursor()
-    this._textLinePool = new TextAreaTextLinePool()
-    this._textSelectionPool = new TextAreaTextSelectionPool()
+    this._measureHtmlTool = new MeasureHtmlTool()
+    this._textPool = new TextAreaTextPool(1)
+    this._textSelectionPool = new TextAreaTextSelectionPool(1)
+    this._layerText = new TextAreaLayerText()
+    this._layerUi = new TextAreaLayerUi()
+    this._layerUi.addTextCursor()
+
+    this._context.append(this._layerText.getContext())
+    this._context.append(this._layerUi.getContext())
   }
 
-  private _removeTextLine (linePosition: number): void {
-    this._textLinePool.removeTextLine(linePosition)
-  }
-
-  private _addTextLine (linePosition: number, line: HTMLElement): void {
-    this._context.insertBefore(line, this._textLinePool.getTextLineContext(linePosition + 1))
-    this._textLinePool.addTextLine(linePosition, line)
-  }
-
-  private _changeTextLine (linePosition: number, line: HTMLElement): void {
-    this._textLinePool.changeTextLine(linePosition, line)
-  }
-
-  private _createHtmlNode (nodeRepresentation: NodeRepresentation): HTMLElement {
+  private _generateHtmlNode (nodeRepresentation: NodeRepresentation): HTMLElement {
     let node: HTMLElement
 
     switch (nodeRepresentation.getType()) {
       case NodeType.TEXT:
-        node = document.createElement('span')
+        node = this._textPool.getNode()
         node.append(nodeRepresentation.getText())
         return node
       case NodeType.TEXT_STYLE:
-        node = document.createElement('span')
+        node = this._textPool.getNode()
         node.classList.add(`${nodeRepresentation.getTextStyle()}`)
         node.append(nodeRepresentation.getText())
         return node
       case NodeType.CONTAINER_STYLE:
-        node = document.createElement('span')
+        node = this._textPool.getNode()
         node.classList.add(`${nodeRepresentation.getTextStyle()}`)
         for (const child of nodeRepresentation.getChildren()) {
-          node.append(this._createHtmlNode(child))
+          node.append(this._generateHtmlNode(child))
         }
         return node
       case NodeType.CONTAINER_LINE:
-        node = document.createElement('div')
+        node = this._textPool.getTextLine()
         node.classList.add('text-line')
         for (const child of nodeRepresentation.getChildren()) {
-          node.append(this._createHtmlNode(child))
+          node.append(this._generateHtmlNode(child))
         }
         return node
       default:
@@ -76,41 +70,52 @@ class TextArea implements ITextRepresentationSubscriber, ITextCursorPositionSubs
     return this._context
   }
 
+  init (): void {
+    this._measureHtmlTool.setContext(this._context)
+  }
+
   updateTextCursorPosition (x: number, y: number): void {
-    if (this._textCursor.getY() !== y) {
-      this._textCursor.removeHtmlElement()
-      this._textCursor.setY(y)
-      // this._textLinePool.appendChildToLine(y, this._textCursor.getHtmlElement())
-    }
-
-    this._textLinePool.appendChildToLine(y, this._textCursor.getHtmlElement())
-
-    this._textCursor.setX(this._measureHtmlTool.computePositionInTextLine(this._textLinePool.getTextLineChildren(y), x))
+    this._layerUi.setTextCursorX(this._measureHtmlTool.computePositionX(this._layerText.getTextLine(y), x))
+    this._layerUi.setTextCursorY(this._measureHtmlTool.computePositionY(this._layerText.getAllTextLines(), y))
+    this._layerUi.setTextCursorHeight(this._measureHtmlTool.computeLineHeight(this._layerText.getTextLine(y)))
   }
 
   updateTextCursorSelections (selections: IRange[]): void {
+    this._layerUi.removeAllTextSelections()
     const sel = this._textSelectionPool.updateSelections(selections)
 
     for (let i = 0; i < sel.length; i++) {
       let part = sel[i][0]
-      let x = this._measureHtmlTool.computePositionInTextLine(this._textLinePool.getTextLineChildren(part.y), part.x)
-      this._textLinePool.appendChildToLine(part.y, part.htmlElement)
-      part.htmlElement.style.left = `${x}px`
+      const left = this._measureHtmlTool.computePositionX(this._layerText.getTextLine(part.y), part.left)
+      this._layerUi.addTextSelection(part.htmlElement)
+      part.htmlElement.style.left = `${left}px`
+      part.htmlElement.style.height = `${this._measureHtmlTool.computePositionY(this._layerText.getAllTextLines(), part.y)}`
+      part.htmlElement.style.height = `${this._measureHtmlTool.computeLineHeight(this._layerText.getTextLine(part.y))}px`
+
+      if (sel[i].length === 1) {
+        part.htmlElement.style.width =
+          `${left + this._measureHtmlTool.computePositionX(this._layerText.getTextLine(part.y), part.right)}px`
+        continue
+      }
+
       part.htmlElement.style.right = '0px'
 
       for (let l = 1; l < sel[i].length - 1; l++) {
         part = sel[i][l]
-        x = this._measureHtmlTool.computePositionInTextLine(this._textLinePool.getTextLineChildren(part.y), part.x)
-        this._textLinePool.appendChildToLine(part.y, part.htmlElement)
-        part.htmlElement.style.left = `${x}px`
+        this._layerUi.addTextSelection(part.htmlElement)
+        part.htmlElement.style.left = '0px'
         part.htmlElement.style.right = '0px'
+        part.htmlElement.style.top = `${this._measureHtmlTool.computePositionY(this._layerText.getAllTextLines(), part.y)}`
+        part.htmlElement.style.height = `${this._measureHtmlTool.computeLineHeight(this._layerText.getTextLine(part.y))}px`
       }
 
       part = sel[i][sel[i].length - 1]
-      x = this._measureHtmlTool.computePositionInTextLine(this._textLinePool.getTextLineChildren(part.y), part.x)
-      this._textLinePool.appendChildToLine(part.y, part.htmlElement)
+      this._layerUi.addTextSelection(part.htmlElement)
       part.htmlElement.style.left = '0px'
-      part.htmlElement.style.width = `${x}px`
+      part.htmlElement.style.top = `${this._measureHtmlTool.computePositionY(this._layerText.getAllTextLines(), part.y)}`
+      part.htmlElement.style.height = `${this._measureHtmlTool.computeLineHeight(this._layerText.getTextLine(part.y))}px`
+      part.htmlElement.style.width =
+        `${this._measureHtmlTool.computePositionX(this._layerText.getTextLine(part.y), part.right)}px`
     }
   }
 
@@ -118,13 +123,13 @@ class TextArea implements ITextRepresentationSubscriber, ITextCursorPositionSubs
     for (const change of changes) {
       switch (change.getAction()) {
         case TextRepresentationAction.REMOVE:
-          this._removeTextLine(change.getPosition())
+          this._layerText.removeTextLine(change.getPosition())
           break
         case TextRepresentationAction.ADD:
-          this._addTextLine(change.getPosition(), this._createHtmlNode(change.getNodeRepresentation()))
+          this._layerText.insertTextLine(change.getPosition(), this._generateHtmlNode(change.getNodeRepresentation()))
           break
         case TextRepresentationAction.CHANGE:
-          this._changeTextLine(change.getPosition(), this._createHtmlNode(change.getNodeRepresentation()))
+          this._layerText.changeTextLine(change.getPosition(), this._generateHtmlNode(change.getNodeRepresentation()))
           break
         default:
           throw new Error(`TextArea can't handle "${change.getAction()}" TextRepresentation action`)

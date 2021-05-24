@@ -1,34 +1,25 @@
 import { IRange } from '../common/IRange'
 import { TextAreaTextSelection } from './TextAreaTextSelection'
-
-type TextAreaHtmlSelection = Array<{
-  y: number
-  x: number
-  htmlElement: HTMLElement
-}>
+import { ITextAreaHtmlSelectionPart } from './ITextAreaHtmlSelectionPart'
 
 class TextAreaTextSelectionPool {
   private _selectionPool: TextAreaTextSelection[]
 
-  constructor () {
+  constructor (size: number) {
     this._selectionPool = []
+
+    for (let i = 0; i < size; i++) {
+      this._selectionPool.push()
+    }
   }
 
-  // updateSelections (selections: IRange[]): void {
-  //   if (selections.length === 0) {
-  //     for (const selection of this._selectionPool) {
-  //       selection.remove()
-  //     }
-  //     return
-  //   }
-
-  updateSelections (selections: IRange[]): TextAreaHtmlSelection[] {
+  updateSelections (selections: IRange[]): ITextAreaHtmlSelectionPart[][] {
     for (const selection of this._selectionPool) {
       selection.remove()
     }
     this._selectionPool = []
 
-    const outputSelections: TextAreaHtmlSelection[] = []
+    const outputSelections: ITextAreaHtmlSelectionPart[][] = []
 
     for (let l = 0; l < selections.length; l++) {
       const { startX, startY, endX, endY } = selections[l]
@@ -37,22 +28,36 @@ class TextAreaTextSelectionPool {
       this._selectionPool.push(selection)
 
       outputSelections.push([])
+
+      if (selectionParts.length === 1) {
+        outputSelections[l].push({
+          y: startY,
+          left: startX,
+          right: endX,
+          htmlElement: selectionParts[0]
+        })
+        continue
+      }
+
       outputSelections[l].push({
         y: startY,
-        x: startX,
+        left: startX,
+        right: 0,
         htmlElement: selectionParts[0]
       })
       for (let i = 1; i < selectionParts.length; i++) {
         const curY: number = startY + i
         outputSelections[l].push({
           y: curY,
-          x: 0,
+          left: 0,
+          right: 0,
           htmlElement: selectionParts[i]
         })
       }
       outputSelections[l].push({
         y: endY,
-        x: endX,
+        left: 0,
+        right: endX,
         htmlElement: selectionParts[selectionParts.length - 1]
       })
     }

@@ -44,18 +44,20 @@ htmlUi.createButton('redo', 'redo', () => {
   historyCommandDispatcher.redoCommand()
 })
 
+document.getElementById('text-editor')?.append(htmlUi.getContext(), htmlTextArea.getContext())
+
 textEditor.subscribeForTextCursorPosition(htmlTextArea)
 textEditor.subscribeForTextCursorSelections(htmlTextArea)
 textEditor.subscribeForTextRepresentation(htmlTextArea)
 textEditor.subscribeForActiveStyles(htmlUi)
 textEditor.init()
 
+htmlTextArea.init()
+
 ioDevice.addKeysHandler(new TypeKeysHandler())
 ioDevice.addKeysHandler(new DeleteKeysHandler())
 ioDevice.addKeysHandler(new ArrowKeysHandler())
 ioDevice.addKeysHandler(new AddLineKeysHandler())
 ioDevice.setHandlersOnKeyDown()
-
-document.getElementById('text-editor')?.append(htmlUi.getContext(), htmlTextArea.getContext())
 
 export { textEditor }

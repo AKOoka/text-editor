@@ -1,3 +1,8 @@
+//body {
+//  margin: 0;
+//  padding: 0;
+//}
+
 .text-editor {
   width: 800px;
   height: 600px;
@@ -10,9 +15,20 @@
 }
 
 .text-area {
+  position: relative;
+  height: 90%;
   background-color: black;
   color: white;
-  height: 90%;
+}
+
+.text-area_layer-text, .text-area_layer-ui {
+  height: 100%;
+  width: 100%;
+}
+
+.text-area_layer-ui {
+  position: absolute;
+  top: 0;
 }
 
 .bold-text {
@@ -34,16 +50,14 @@
 
 .text-cursor {
   position: absolute;
-  width: 2px;
-  height: 100%;
-  top: 0;
+  width: 4px;
   background-color: green;
 }
 
-.selection {
+.text-selection {
+  position: absolute;
   background-color: blue;
   opacity: 0.5;
   height: 100%;
-  position: absolute;
   top: 0;
 }

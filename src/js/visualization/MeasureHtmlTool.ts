@@ -1,26 +1,26 @@
 interface SearchChildResult {
-  child: Node
+  child: HTMLElement
   childOffset: number
-  elementsBeforeChild: Node[]
 }
 
 class MeasureHtmlTool {
-  private readonly _ctx: CanvasRenderingContext2D
+  private readonly _canvasContext: CanvasRenderingContext2D
+  private _contextX: number
   private _contextFont: string
 
-  constructor (textAreaContext: HTMLElement) {
+  constructor () {
     const ctx = document.createElement('canvas').getContext('2d')
     if (ctx === null) {
       throw new Error("can't create canvas context 2d")
     }
+    this._canvasContext = ctx
+  }
 
-    this._ctx = ctx
-
-    window.onload = () => {
-      this._contextFont = this._getFontFromElement(textAreaContext)
-      this._ctx.font = this._contextFont
-      console.log(this._contextFont)
-    }
+  setContext (textAreaContext: HTMLElement): void {
+    this._contextX = textAreaContext.getBoundingClientRect().x
+    this._contextFont = this._getFontFromElement(textAreaContext)
+    this._canvasContext.font = this._contextFont
+    console.log(`text area font: ${this._contextFont}\ncontext x: ${this._contextX}`)
   }
 
   private _getFontFromElement (htmlElement: HTMLElement): string {
@@ -28,51 +28,56 @@ class MeasureHtmlTool {
     return `${font.getPropertyValue('font-size')} ${font.getPropertyValue('font-family')}`
   }
 
-  private _getChildNodeOnPosition (childNodes: NodeListOf<ChildNode>, position: number): SearchChildResult {
-    const elementsBeforeChild: Node[] = []
-    let offset: number = 0
+  private _getChildOnPosition (parent: HTMLElement, x: number): SearchChildResult {
+    let childOffset: number = 0
 
-    for (let i = 0; i < childNodes.length; i++) {
-      const childNode = childNodes[i]
+    for (let i = 0; i < parent.children.length; i++) {
+      const child: HTMLElement = parent.children[i] as HTMLElement
 
-      // for now i don't use elementsBeforeChild, only first element
-      elementsBeforeChild.push(childNode)
-
-      if (childNode.textContent === null) {
-        continue
-      }
-
-      if (position >= offset && position <= offset + childNode.textContent.length) {
+      if (x >= childOffset && x <= childOffset + child.innerText.length) {
+        const result = this._getChildOnPosition(child, x)
         return {
-          child: childNode,
-          childOffset: offset,
-          elementsBeforeChild
+          child: result.child,
+          childOffset: childOffset + result.childOffset
         }
       }
 
-      offset += childNode.textContent.length
+      childOffset += child.innerText.length
     }
 
-    throw new Error(`no child in text line on ${position}`)
+    return {
+      child: parent,
+      childOffset
+    }
   }
 
-  computePositionInTextLine (childNodes: NodeListOf<ChildNode>, position: number): number {
-    const { elementsBeforeChild } = this._getChildNodeOnPosition(childNodes, position)
+  computePositionX (line: HTMLElement, x: number): number {
+    if (line.innerText.length === 0 || x === 0) {
+      return 0
+    }
+
+    const { child, childOffset } = this._getChildOnPosition(line, x)
+
+    this._canvasContext.font =
+      child.nodeType === Node.ELEMENT_NODE
+        ? this._getFontFromElement(child)
+        : this._contextFont
+    const computedPosition = child.getBoundingClientRect().left - this._contextX + this._canvasContext.measureText(child.innerText.slice(0, x - childOffset)).width
+
+    console.log(`x: ${Math.ceil(computedPosition)}`)
+    return Math.ceil(computedPosition)
+  }
+
+  computePositionY (lines: HTMLElement[], y: number): number {
     let computedPosition: number = 0
-
-    for (const element of elementsBeforeChild) {
-      if (element.textContent === null) {
-        continue
-      }
-
-      this._ctx.font =
-        element.nodeType === Node.ELEMENT_NODE
-          ? this._getFontFromElement(element as HTMLElement)
-          : this._contextFont
-
-      computedPosition += this._ctx.measureText(element.textContent).width
+    for (let i = 0; i < y; i++) {
+      computedPosition += lines[i].offsetHeight
     }
     return computedPosition
+  }
+
+  computeLineHeight (line: HTMLElement): number {
+    return line.offsetHeight
   }
 }
 

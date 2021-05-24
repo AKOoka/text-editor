@@ -1,3 +1,5 @@
+// may here i will get htmlElement from pool and pool be used only here
+
 class TextAreaTextSelection {
   private _startY: number
   private _endY: number
