@@ -1,7 +1,7 @@
-import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
 import { TextStyleType } from '../common/TextStyleType'
+import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscriber'
 
-class HtmlUi implements ITextRepresentationSubscriber {
+class HtmlUi implements IActiveTextStylesSubscriber {
   private readonly _context: HTMLElement
   private readonly _buttons: Map<string, HTMLElement>
 
@@ -39,8 +39,6 @@ class HtmlUi implements ITextRepresentationSubscriber {
       button.classList.remove('button-active')
     }
   }
-
-  updateLineChanges (): void {}
 }
 
 export { HtmlUi }

@@ -10,13 +10,13 @@ class VerMoveTextCursor extends BaseCommand {
   }
 
   do (context: ITextEditor): void {
-    context.verticalMoveTextCursor(this._offset)
-    context.updateTextCursor()
+    context.moveTextCursorYPosition(this._offset)
+    context.updateTextCursorPosition()
   }
 
   undo (context: ITextEditor): void {
-    context.verticalMoveTextCursor(-this._offset)
-    context.updateTextCursor()
+    context.moveTextCursorYPosition(-this._offset)
+    context.updateTextCursorPosition()
   }
 }
 

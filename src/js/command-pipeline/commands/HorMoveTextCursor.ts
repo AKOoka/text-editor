@@ -10,13 +10,13 @@ class HorMoveTextCursor extends BaseCommand {
   }
 
   do (context: ITextEditor): void {
-    context.horizontalMoveTextCursor(this._offset)
-    context.updateTextCursor()
+    context.moveTextCursorXPosition(this._offset)
+    context.updateTextCursorPosition()
   }
 
   undo (context: ITextEditor): void {
-    context.horizontalMoveTextCursor(-this._offset)
-    context.updateTextCursor()
+    context.moveTextCursorXPosition(-this._offset)
+    context.updateTextCursorPosition()
   }
 }
 

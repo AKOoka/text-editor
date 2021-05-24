@@ -1,4 +1,3 @@
-import { ITextRepresentation } from './ITextRepresentation'
 import { IRange } from '../../common/IRange'
 import { ITextRepresentationSubscriber } from '../../common/ITextRepresentationSubscriber'
 import { INode } from './Nodes/INode'
@@ -12,13 +11,12 @@ interface ILineTextOffset {
   offset: number
 }
 
-class TextRepresentation implements ITextRepresentation {
+class TextRepresentation {
   private readonly _subscribers: ITextRepresentationSubscriber[]
   private _textLines: INode[]
   private _linePositionOffset: Map<number, number>
   private _lineTextOffset: Map<number, ILineTextOffset[]>
   private _changes: Map<INode, [number, TextRepresentationAction]>
-  private _activeTextStyles: TextStyleType[]
 
   constructor () {
     this._textLines = []
@@ -26,14 +24,12 @@ class TextRepresentation implements ITextRepresentation {
     this._linePositionOffset = new Map()
     this._lineTextOffset = new Map()
     this._changes = new Map()
-    this._activeTextStyles = []
   }
 
   private _reset (): void {
     this._linePositionOffset = new Map()
     this._lineTextOffset = new Map()
     this._changes = new Map()
-    this._activeTextStyles = []
   }
 
   private _getLinePositionOffset (linePosition: number): number {
@@ -160,13 +156,13 @@ class TextRepresentation implements ITextRepresentation {
     }
   }
 
-  getTextStylesInRanges (textCursorPositions: IRange[]): void {
-    let output: TextStyleType[] = []
+  getTextStylesInRanges (textCursorPositions: IRange[]): TextStyleType[] {
+    let textStylesInRange: TextStyleType[] = []
 
     for (const { startX, endX, startY, endY } of textCursorPositions) {
       const startLine: INode = this._textLines[startY + this._getLinePositionOffset(startY)]
       if (startY === endY) {
-        output = output.concat(startLine.textStylesInRange(
+        textStylesInRange = textStylesInRange.concat(startLine.textStylesInRange(
           0,
           startX + this._getLineTextOffset(startY, startX),
           endX + this._getLineTextOffset(endY, endX)
@@ -175,17 +171,17 @@ class TextRepresentation implements ITextRepresentation {
       }
 
       const startLineStart: number = startX + this._getLineTextOffset(startY, startX)
-      output.concat(startLine.textStylesInRange(0, startLineStart, startLineStart + startLine.getSize())
+      textStylesInRange.concat(startLine.textStylesInRange(0, startLineStart, startLineStart + startLine.getSize())
       )
       for (let i = startY + 1; i < endY; i++) {
         const curLine: INode = this._textLines[i + this._getLinePositionOffset(i)]
-        output = output.concat(curLine.textStylesInRange(0, 0, curLine.getSize()))
+        textStylesInRange = textStylesInRange.concat(curLine.textStylesInRange(0, 0, curLine.getSize()))
       }
-      output = output.concat(this._textLines[endY + this._getLinePositionOffset(startY)]
+      textStylesInRange = textStylesInRange.concat(this._textLines[endY + this._getLinePositionOffset(startY)]
         .textStylesInRange(0, 0, endX + this._getLineTextOffset(endY, endX)))
     }
 
-    this._activeTextStyles = output
+    return textStylesInRange
   }
 
   addTextStylesInRanges (textStyleType: TextStyleType, textCursorPositions: IRange[]): void {
@@ -291,7 +287,7 @@ class TextRepresentation implements ITextRepresentation {
     this._subscribers.push(subscriber)
   }
 
-  updateSubscribers (): void {
+  notifySubscribers (): void {
     const lineChanges: TextRepresentationChange[] = []
 
     for (const [line, [position, action]] of this._changes.entries()) {
@@ -304,8 +300,7 @@ class TextRepresentation implements ITextRepresentation {
     }
 
     for (const sub of this._subscribers) {
-      sub.updateLineChanges(lineChanges)
-      sub.updateActiveTextStyles(this._activeTextStyles)
+      sub.updateTextRepresentation(lineChanges)
     }
 
     this._reset()

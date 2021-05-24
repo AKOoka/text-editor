@@ -11,16 +11,16 @@ class AddTextCommand extends BaseCommand {
 
   do (context: ITextEditor): void {
     context.addText(this._text)
-    context.horizontalMoveTextCursor(this._text.length)
+    context.moveTextCursorXPosition(this._text.length)
     context.updateTextRepresentation()
-    context.updateTextCursor()
+    context.updateTextCursorPosition()
   }
 
   undo (context: ITextEditor): void {
-    context.horizontalMoveTextCursor(-this._text.length)
+    context.moveTextCursorXPosition(-this._text.length)
     context.deleteTextOnTextCursor(this._text.length)
     context.updateTextRepresentation()
-    context.updateTextCursor()
+    context.updateTextCursorPosition()
   }
 }
 

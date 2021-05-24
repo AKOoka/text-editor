@@ -15,13 +15,13 @@ class DeleteTextCommand extends BaseCommand {
     const lineDeleted: boolean = context.deleteTextOnTextCursor(this._deleteOffset)
     context.deleteTextOnSelection()
     if (lineDeleted) {
-      context.verticalMoveTextCursor(-1)
-      context.horizontalMoveTextCursor(Infinity)
+      context.moveTextCursorYPosition(-1)
+      context.moveTextCursorXPosition(Infinity)
     } else {
-      context.horizontalMoveTextCursor(this._deleteMove)
+      context.moveTextCursorXPosition(this._deleteMove)
     }
     context.updateTextRepresentation()
-    context.updateTextCursor()
+    context.updateTextCursorPosition()
   }
 
   undo (context: ITextEditor): void {

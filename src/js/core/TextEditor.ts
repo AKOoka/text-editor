@@ -1,37 +1,51 @@
 import { ITextEditor } from './ITextEditor'
-import { ITextRepresentation } from './TextRepresentation/ITextRepresentation'
-import { ITextCursor } from './ITextCursor'
 import { IRange } from '../common/IRange'
 import { TextStyleType } from '../common/TextStyleType'
+import { TextCursor } from './TextCursor'
+import { TextRepresentation } from './TextRepresentation/TextRepresentation'
+import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubscriber'
+import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
+import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
+import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscriber'
 
 class TextEditor implements ITextEditor {
-  private readonly _textCursor: ITextCursor
-  private readonly _textRepresentation: ITextRepresentation
+  private readonly _textCursor: TextCursor
+  private readonly _textRepresentation: TextRepresentation
+  private readonly _activeTextStylesSubscribers: IActiveTextStylesSubscriber[]
 
-  constructor (textCursor: ITextCursor, textRepresentation: ITextRepresentation) {
-    this._textCursor = textCursor
-    this._textRepresentation = textRepresentation
+  constructor () {
+    this._textCursor = new TextCursor()
+    this._textRepresentation = new TextRepresentation()
+    this._activeTextStylesSubscribers = []
+  }
+
+  init (): void {
+    this._textRepresentation.createNewLines(0, 1)
+    this._textCursor.setX(0)
+    this._textCursor.setY(0)
+    this.updateTextRepresentation()
+    this.updateTextCursorPosition()
   }
 
   addText (text: string): void {
-    this._textRepresentation.addTextInLine(text, this._textCursor.getVerticalPosition(), this._textCursor.getHorizontalPosition())
+    this._textRepresentation.addTextInLine(text, this._textCursor.getY(), this._textCursor.getX())
   }
 
   deleteTextOnTextCursor (offset: number): boolean {
     if (offset > 0) {
       return this._textRepresentation.deleteTextInLine(
-        this._textCursor.getVerticalPosition(),
-        this._textCursor.getHorizontalPosition(),
-        this._textCursor.getHorizontalPosition() + offset
+        this._textCursor.getY(),
+        this._textCursor.getX(),
+        this._textCursor.getX() + offset
       )
     } else {
       return this._textRepresentation.deleteTextInLine(
-        this._textCursor.getVerticalPosition(),
+        this._textCursor.getY(),
         this._getValidHorizontalPosition(
-          this._textCursor.getVerticalPosition(),
-          this._textCursor.getHorizontalPosition() + offset
+          this._textCursor.getY(),
+          this._textCursor.getX() + offset
         ),
-        this._textCursor.getHorizontalPosition()
+        this._textCursor.getX()
       )
     }
   }
@@ -49,10 +63,10 @@ class TextEditor implements ITextEditor {
     this._textRepresentation.removeConcreteTextStyleInRanges(
       textStyleType,
       [{
-        startX: this._textCursor.getHorizontalPosition(),
-        endX: this._textCursor.getHorizontalPosition(),
-        startY: this._textCursor.getVerticalPosition(),
-        endY: this._textCursor.getVerticalPosition()
+        startX: this._textCursor.getX(),
+        endX: this._textCursor.getX(),
+        startY: this._textCursor.getY(),
+        endY: this._textCursor.getY()
       }].concat(this._textCursor.getSelections())
     )
   }
@@ -60,10 +74,10 @@ class TextEditor implements ITextEditor {
   removeAllTextStyles (): void {
     this._textRepresentation.removeAllTextStylesInRanges(
       [{
-        startX: this._textCursor.getHorizontalPosition(),
-        endX: this._textCursor.getHorizontalPosition(),
-        startY: this._textCursor.getVerticalPosition(),
-        endY: this._textCursor.getVerticalPosition()
+        startX: this._textCursor.getX(),
+        endX: this._textCursor.getX(),
+        startY: this._textCursor.getY(),
+        endY: this._textCursor.getY()
       }].concat(this._textCursor.getSelections())
     )
   }
@@ -90,28 +104,28 @@ class TextEditor implements ITextEditor {
     }
   }
 
-  setHorizontalPositionTextCursor (position: number): void {
-    this._textCursor.setHorizontalPosition(
-      this._getValidHorizontalPosition(this._textCursor.getVerticalPosition(), position)
+  setTextCursorXPosition (position: number): void {
+    this._textCursor.setX(
+      this._getValidHorizontalPosition(this._textCursor.getY(), position)
     )
   }
 
-  setVerticalPositionTextCursor (position: number): void {
-    this._textCursor.setVerticalPosition(this._getValidVerticalPosition(position))
+  setTextCursorYPosition (position: number): void {
+    this._textCursor.setY(this._getValidVerticalPosition(position))
   }
 
-  horizontalMoveTextCursor (offset: number): void {
-    this._textCursor.setHorizontalPosition(
+  moveTextCursorXPosition (offset: number): void {
+    this._textCursor.setX(
       this._getValidHorizontalPosition(
-        this._textCursor.getVerticalPosition(),
-        this._textCursor.getHorizontalPosition() + offset
+        this._textCursor.getY(),
+        this._textCursor.getX() + offset
       )
     )
   }
 
-  verticalMoveTextCursor (offset: number): void {
-    this._textCursor.setVerticalPosition(
-      this._getValidVerticalPosition(this._textCursor.getVerticalPosition() + offset)
+  moveTextCursorYPosition (offset: number): void {
+    this._textCursor.setY(
+      this._getValidVerticalPosition(this._textCursor.getY() + offset)
     )
   }
 
@@ -136,20 +150,47 @@ class TextEditor implements ITextEditor {
   }
 
   createNewTextLines (count: number = 1): void {
-    this._textRepresentation.createNewLines(this._textCursor.getVerticalPosition(), count)
+    this._textRepresentation.createNewLines(this._textCursor.getY(), count)
   }
 
   deleteTextLines (offset: number, count: number = 1): void {
     // make similar to deleting text
-    this._textRepresentation.deleteLines(this._textCursor.getVerticalPosition() + offset, count)
+    this._textRepresentation.deleteLines(this._textCursor.getY() + offset, count)
   }
 
-  updateTextCursor (): void {
-    this._textCursor.updateSubscribers()
+  subscribeForTextCursorPosition (subscriber: ITextCursorPositionSubscriber): void {
+    this._textCursor.subscribeForPosition(subscriber)
+  }
+
+  subscribeForTextCursorSelections (subscriber: ITextCursorSelectionsSubscriber): void {
+    this._textCursor.subscribeForSelections(subscriber)
+  }
+
+  subscribeForTextRepresentation (subscriber: ITextRepresentationSubscriber): void {
+    this._textRepresentation.subscribe(subscriber)
+  }
+
+  subscribeForActiveStyles (subscriber: IActiveTextStylesSubscriber): void {
+    this._activeTextStylesSubscribers.push(subscriber)
+  }
+
+  updateTextCursorPosition (): void {
+    this._textCursor.notifyPositionSubscribers()
+  }
+
+  updateTextCursorSelections (): void {
+    this._textCursor.notifySelectionsSubscribers()
   }
 
   updateTextRepresentation (): void {
-    this._textRepresentation.updateSubscribers()
+    this._textRepresentation.notifySubscribers()
+  }
+
+  updateActiveStyles (): void {
+    const activeTextStyles: TextStyleType[] = this._textRepresentation.getTextStylesInRanges(this._textCursor.getSelections())
+    for (const subscriber of this._activeTextStylesSubscribers) {
+      subscriber.updateActiveTextStyles(activeTextStyles)
+    }
   }
 }
 

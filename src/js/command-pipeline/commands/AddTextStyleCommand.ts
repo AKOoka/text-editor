@@ -17,14 +17,14 @@ class AddTextStyleCommand extends BaseCommand {
     context.addTextStyle(this._style)
     this._selections = context.clearSelections()
     context.updateTextRepresentation()
-    context.updateTextCursor()
+    context.updateTextCursorPosition()
   }
 
   undo (context: ITextEditor): void {
     context.addSelections(this._selections)
     context.removeConcreteTextStyle(this._style)
     context.updateTextRepresentation()
-    context.updateTextCursor()
+    context.updateTextCursorPosition()
   }
 }
 

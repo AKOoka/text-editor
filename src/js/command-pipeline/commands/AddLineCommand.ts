@@ -11,17 +11,17 @@ class AddLineCommand extends BaseCommand {
 
   do (context: ITextEditor): void {
     context.createNewTextLines(this._count)
-    context.verticalMoveTextCursor(this._count)
-    context.setHorizontalPositionTextCursor(0)
+    context.moveTextCursorYPosition(this._count)
+    context.setTextCursorXPosition(0)
     context.updateTextRepresentation()
-    context.updateTextCursor()
+    context.updateTextCursorPosition()
   }
 
   undo (context: ITextEditor): void {
-    context.verticalMoveTextCursor(-this._count)
+    context.moveTextCursorYPosition(-this._count)
     context.deleteTextLines(-this._count)
     context.updateTextRepresentation()
-    context.updateTextCursor()
+    context.updateTextCursorPosition()
   }
 }
 

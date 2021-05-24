@@ -1,15 +1,18 @@
 import { ITextEditor } from '../../core/ITextEditor'
 import { BaseCommand } from './BaseCommand'
+import { IRange } from '../../common/IRange'
 
 class ClearSelectionsCommand extends BaseCommand {
+  private _selections: IRange[]
+
   do (context: ITextEditor): void {
-    context.clearSelections()
-    context.updateTextCursor()
+    this._selections = context.clearSelections()
+    context.updateTextCursorSelections()
   }
 
   undo (context: ITextEditor): void {
-    context.clearSelections()
-    context.updateTextCursor()
+    context.addSelections(this._selections)
+    context.updateTextCursorSelections()
   }
 }
 

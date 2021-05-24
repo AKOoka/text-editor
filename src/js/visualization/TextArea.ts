@@ -1,4 +1,4 @@
-import { ITextCursorSubscriber } from '../common/ITextCursorSubscriber'
+import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubscriber'
 import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
 import { TextRepresentationAction } from '../core/TextRepresentation/TextRepresentationAction'
 import { TextRepresentationChange } from '../core/TextRepresentation/TextRepresentationChange'
@@ -9,8 +9,9 @@ import { MeasureHtmlTool } from './MeasureHtmlTool'
 import { IRange } from '../common/IRange'
 import { NodeRepresentation } from '../core/TextRepresentation/Nodes/NodeRepresentation'
 import { NodeType } from '../core/TextRepresentation/Nodes/NodeType'
+import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
 
-class TextArea implements ITextRepresentationSubscriber, ITextCursorSubscriber {
+class TextArea implements ITextRepresentationSubscriber, ITextCursorPositionSubscriber, ITextCursorSelectionsSubscriber {
   private readonly _context: HTMLElement
   private readonly _measureHtmlTool: MeasureHtmlTool
   private readonly _textCursor: TextAreaTextCursor
@@ -20,7 +21,7 @@ class TextArea implements ITextRepresentationSubscriber, ITextCursorSubscriber {
   constructor () {
     this._context = document.createElement('div')
     this._context.classList.add('text-area')
-    this._measureHtmlTool = new MeasureHtmlTool()
+    this._measureHtmlTool = new MeasureHtmlTool(this._context)
     this._textCursor = new TextAreaTextCursor()
     this._textLinePool = new TextAreaTextLinePool()
     this._textSelectionPool = new TextAreaTextSelectionPool()
@@ -79,8 +80,10 @@ class TextArea implements ITextRepresentationSubscriber, ITextCursorSubscriber {
     if (this._textCursor.getY() !== y) {
       this._textCursor.removeHtmlElement()
       this._textCursor.setY(y)
-      this._textLinePool.appendChildToLine(y, this._textCursor.getHtmlElement())
+      // this._textLinePool.appendChildToLine(y, this._textCursor.getHtmlElement())
     }
+
+    this._textLinePool.appendChildToLine(y, this._textCursor.getHtmlElement())
 
     this._textCursor.setX(this._measureHtmlTool.computePositionInTextLine(this._textLinePool.getTextLineChildren(y), x))
   }
@@ -111,7 +114,7 @@ class TextArea implements ITextRepresentationSubscriber, ITextCursorSubscriber {
     }
   }
 
-  updateLineChanges (changes: TextRepresentationChange[]): void {
+  updateTextRepresentation (changes: TextRepresentationChange[]): void {
     for (const change of changes) {
       switch (change.getAction()) {
         case TextRepresentationAction.REMOVE:
@@ -128,8 +131,6 @@ class TextArea implements ITextRepresentationSubscriber, ITextCursorSubscriber {
       }
     }
   }
-
-  updateActiveTextStyles (): void {}
 }
 
 export { TextArea }
