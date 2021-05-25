@@ -14,8 +14,9 @@ class AddTextStyleCommand extends BaseCommand {
   }
 
   do (context: ITextEditor): void {
+    this._selections = context.fetchData('text-selections').getTextSelections()
     context.addTextStyle(this._style)
-    this._selections = context.clearSelections()
+    context.clearSelections()
     context.updateTextRepresentation()
     context.updateTextCursorPosition()
   }

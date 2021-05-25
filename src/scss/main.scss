@@ -21,12 +21,12 @@
   color: white;
 }
 
-.text-area_layer-text, .text-area_layer-ui {
+.text-area_layer-text, .text-area_layer-ui, .text-area_layer-interactive {
   height: 100%;
   width: 100%;
 }
 
-.text-area_layer-ui {
+.text-area_layer-ui, .text-area_layer-interactive {
   position: absolute;
   top: 0;
 }
@@ -60,4 +60,8 @@
   opacity: 0.5;
   height: 100%;
   top: 0;
+}
+
+.mouse-contextual-menu {
+  position: absolute;
 }

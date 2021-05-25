@@ -11,14 +11,16 @@ import { NodeType } from '../core/TextRepresentation/Nodes/NodeType'
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
 import { TextAreaLayerText } from './TextAreaLayerText'
 import { TextAreaLayerUi } from './TextAreaLayerUi'
+import { ITextArea } from './ITextArea'
 
-class TextArea implements ITextRepresentationSubscriber, ITextCursorPositionSubscriber, ITextCursorSelectionsSubscriber {
+class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorPositionSubscriber, ITextCursorSelectionsSubscriber {
   private readonly _context: HTMLElement
   private readonly _measureHtmlTool: MeasureHtmlTool
   private readonly _textSelectionPool: TextAreaTextSelectionPool
   private readonly _textPool: TextAreaTextPool
   private readonly _layerText: TextAreaLayerText
   private readonly _layerUi: TextAreaLayerUi
+  private readonly _layerInteractive: HTMLElement
 
   constructor () {
     this._context = document.createElement('div')
@@ -29,9 +31,10 @@ class TextArea implements ITextRepresentationSubscriber, ITextCursorPositionSubs
     this._layerText = new TextAreaLayerText()
     this._layerUi = new TextAreaLayerUi()
     this._layerUi.addTextCursor()
+    this._layerInteractive = document.createElement('div')
+    this._layerInteractive.classList.add('text-area_layer-interactive')
 
-    this._context.append(this._layerText.getContext())
-    this._context.append(this._layerUi.getContext())
+    this._context.append(this._layerText.getContext(), this._layerUi.getContext(), this._layerInteractive)
   }
 
   private _generateHtmlNode (nodeRepresentation: NodeRepresentation): HTMLElement {
@@ -70,8 +73,16 @@ class TextArea implements ITextRepresentationSubscriber, ITextCursorPositionSubs
     return this._context
   }
 
+  getInteractiveLayerContext (): HTMLElement {
+    return this._layerInteractive
+  }
+
   init (): void {
     this._measureHtmlTool.setContext(this._context)
+  }
+
+  getTextPosition (displayX: number, displayY: number): { x: number, y: number } {
+    return this._measureHtmlTool.getTextPosition(this._layerText.getAllTextLines(), displayX, displayY)
   }
 
   updateTextCursorPosition (x: number, y: number): void {

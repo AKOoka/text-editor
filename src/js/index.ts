@@ -3,24 +3,25 @@ import { CommandDispatcher } from './command-pipeline/CommandDispatcher'
 import { HistoryCommandDispatcher } from './command-pipeline/HistoryCommandDispatcher'
 import { TextArea } from './visualization/TextArea'
 import { ICommandDispatcher } from './command-pipeline/ICommandDispatcher'
-import { IoDevice } from './user-input/IoDevice'
+import { Keyboard } from './user-input/keyboard/Keyboard'
 import { ITextEditor } from './core/ITextEditor'
 import { TextEditor } from './core/TextEditor'
 import { HtmlUi } from './user-input/HtmlUi'
 import { AddTextStyleCommand } from './command-pipeline/commands/AddTextStyleCommand'
 import { AddSelectionCommand } from './command-pipeline/commands/AddSelectionCommand'
 import { ClearSelectionsCommand } from './command-pipeline/commands/ClearSelectionsCommand'
-import { TypeKeysHandler } from './user-input/KeysHandlers/TypeKeysHandler'
-import { DeleteKeysHandler } from './user-input/KeysHandlers/DeleteKeysHandler'
-import { ArrowKeysHandler } from './user-input/KeysHandlers/ArrowKeysHandler'
-import { AddLineKeysHandler } from './user-input/KeysHandlers/AddLineKeysHandler'
+import { Mouse } from './user-input/mouse/Mouse'
+import { IInputEventManager } from './user-input/IInputEventManager'
+import { InputEventManager } from './user-input/InputEventManager'
 
 const textEditor: ITextEditor = new TextEditor()
 const commandDispatcher: ICommandDispatcher = new CommandDispatcher(textEditor)
 const historyCommandDispatcher: HistoryCommandDispatcher = new HistoryCommandDispatcher(commandDispatcher)
-const ioDevice: IoDevice = new IoDevice(document, historyCommandDispatcher)
-const htmlTextArea = new TextArea()
+const textArea: TextArea = new TextArea()
+const inputEventManager: IInputEventManager = new InputEventManager(textArea, commandDispatcher)
+const keyboard: Keyboard = new Keyboard()
 const htmlUi = new HtmlUi()
+const mouse: Mouse = new Mouse()
 
 htmlUi.createButton('bold', 'bold', () => {
   historyCommandDispatcher.doCommand(new AddTextStyleCommand('bold', true))
@@ -44,20 +45,17 @@ htmlUi.createButton('redo', 'redo', () => {
   historyCommandDispatcher.redoCommand()
 })
 
-document.getElementById('text-editor')?.append(htmlUi.getContext(), htmlTextArea.getContext())
+document.getElementById('text-editor')?.append(htmlUi.getContext(), textArea.getContext())
 
-textEditor.subscribeForTextCursorPosition(htmlTextArea)
-textEditor.subscribeForTextCursorSelections(htmlTextArea)
-textEditor.subscribeForTextRepresentation(htmlTextArea)
+textEditor.subscribeForTextCursorPosition(textArea)
+textEditor.subscribeForTextCursorSelections(textArea)
+textEditor.subscribeForTextRepresentation(textArea)
 textEditor.subscribeForActiveStyles(htmlUi)
 textEditor.init()
 
-htmlTextArea.init()
+textArea.init()
 
-ioDevice.addKeysHandler(new TypeKeysHandler())
-ioDevice.addKeysHandler(new DeleteKeysHandler())
-ioDevice.addKeysHandler(new ArrowKeysHandler())
-ioDevice.addKeysHandler(new AddLineKeysHandler())
-ioDevice.setHandlersOnKeyDown()
+keyboard.setContext(inputEventManager)
+mouse.setContext(inputEventManager)
 
 export { textEditor }

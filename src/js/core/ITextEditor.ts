@@ -4,15 +4,17 @@ import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubs
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
 import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
 import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscriber'
+import { RequestType } from '../common/RequestType'
+import { TextEditorResponse } from '../common/TextEditorResponse'
 
 export interface ITextEditor {
   init: () => void
   addText: (text: string) => void
-  deleteTextOnTextCursor: (offset: number) => boolean
+  deleteTextOnTextCursor: (offset: number) => void
   deleteTextOnSelection: () => void
   addTextStyle: (textStyleType: string) => void
   addSelections: (selections: IRange[]) => void
-  clearSelections: () => IRange[]
+  clearSelections: () => void
   removeConcreteTextStyle: (textStyleType: TextStyleType) => void
   removeAllTextStyles: () => void
   setTextCursorXPosition: (x: number) => void
@@ -29,4 +31,5 @@ export interface ITextEditor {
   updateTextCursorSelections: () => void
   updateTextRepresentation: () => void
   updateActiveStyles: () => void
+  fetchData: (request: RequestType) => TextEditorResponse
 }

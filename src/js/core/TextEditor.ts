@@ -7,6 +7,8 @@ import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubs
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
 import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
 import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscriber'
+import { RequestType } from '../common/RequestType'
+import { TextEditorResponse } from '../common/TextEditorResponse'
 
 class TextEditor implements ITextEditor {
   private readonly _textCursor: TextCursor
@@ -31,15 +33,15 @@ class TextEditor implements ITextEditor {
     this._textRepresentation.addTextInLine(text, this._textCursor.getY(), this._textCursor.getX())
   }
 
-  deleteTextOnTextCursor (offset: number): boolean {
+  deleteTextOnTextCursor (offset: number): void {
     if (offset > 0) {
-      return this._textRepresentation.deleteTextInLine(
+      this._textRepresentation.deleteTextInLine(
         this._textCursor.getY(),
         this._textCursor.getX(),
         this._textCursor.getX() + offset
       )
     } else {
-      return this._textRepresentation.deleteTextInLine(
+      this._textRepresentation.deleteTextInLine(
         this._textCursor.getY(),
         this._getValidHorizontalPosition(
           this._textCursor.getY(),
@@ -105,9 +107,7 @@ class TextEditor implements ITextEditor {
   }
 
   setTextCursorXPosition (position: number): void {
-    this._textCursor.setX(
-      this._getValidHorizontalPosition(this._textCursor.getY(), position)
-    )
+    this._textCursor.setX(this._getValidHorizontalPosition(this._textCursor.getY(), position))
   }
 
   setTextCursorYPosition (position: number): void {
@@ -143,10 +143,8 @@ class TextEditor implements ITextEditor {
     }
   }
 
-  clearSelections (): IRange[] {
-    const selections = this._textCursor.getSelections()
+  clearSelections (): void {
     this._textCursor.clearSelections()
-    return selections
   }
 
   createNewTextLines (count: number = 1): void {
@@ -183,6 +181,8 @@ class TextEditor implements ITextEditor {
   }
 
   updateTextRepresentation (): void {
+    // maybe delegate observer functionality to this class instead of textRepresentation
+    // same for textCursor
     this._textRepresentation.notifySubscribers()
   }
 
@@ -190,6 +190,27 @@ class TextEditor implements ITextEditor {
     const activeTextStyles: TextStyleType[] = this._textRepresentation.getTextStylesInRanges(this._textCursor.getSelections())
     for (const subscriber of this._activeTextStylesSubscribers) {
       subscriber.updateActiveTextStyles(activeTextStyles)
+    }
+  }
+
+  fetchData (request: RequestType): TextEditorResponse {
+    const response: TextEditorResponse = new TextEditorResponse()
+
+    switch (request) {
+      case 'text-cursor-x':
+        return response.setTextCursorX(this._textCursor.getX())
+      case 'text-cursor-y':
+        return response.setTextCursorY(this._textCursor.getY())
+      case 'text-cursor-position':
+        return response
+          .setTextCursorX(this._textCursor.getX())
+          .setTextCursorY(this._textCursor.getY())
+      case 'text-length':
+        return response.setTextLength(this._textRepresentation.getTextLengthInLine(this._textCursor.getY()))
+      case 'text-selected':
+        return response.setTextSelected('work in progress')
+      case 'text-selections':
+        return response.setTextSelections(this._textCursor.getSelections())
     }
   }
 }

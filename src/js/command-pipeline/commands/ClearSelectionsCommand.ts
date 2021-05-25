@@ -6,7 +6,8 @@ class ClearSelectionsCommand extends BaseCommand {
   private _selections: IRange[]
 
   do (context: ITextEditor): void {
-    this._selections = context.clearSelections()
+    this._selections = context.fetchData('text-selections').getTextSelections()
+    context.clearSelections()
     context.updateTextCursorSelections()
   }
 
