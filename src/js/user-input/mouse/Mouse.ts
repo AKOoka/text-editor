@@ -3,7 +3,7 @@ import { IInputEventManager } from '../IInputEventManager'
 import { IInputEventHandlerPayload } from '../IInputEventHandlerPayload'
 
 class Mouse {
-  private _context: IInputEventManager
+  private _inputEventManager: IInputEventManager
   private _displayX: number
   private _displayY: number
   private _mouseSelection: boolean
@@ -17,7 +17,7 @@ class Mouse {
 
   private _handlerMouseDown (payload: IInputEventHandlerPayload<MouseEvent>): void {
     console.log('mouse down')
-    this._context.triggerEventChangeTextCursorPosition(payload.event.offsetX, payload.event.offsetY)
+    this._inputEventManager.triggerEventChangeTextCursorPosition(payload.event.offsetX, payload.event.offsetY)
 
     this._displayX = payload.event.offsetX
     this._displayY = payload.event.offsetY
@@ -48,19 +48,19 @@ class Mouse {
     payload.event.preventDefault()
 
     this._contextualMenu.setPosition(this._displayX, this._displayY)
-    this._context.showUiElement(this._contextualMenu.getContext())
+    this._inputEventManager.showUiElementOnInteractiveContext(this._contextualMenu.getContext())
     this._contextualMenu.setActiveState(true)
   }
 
-  setContext (context: IInputEventManager): void {
-    context.subscribeToEvent('mousedown', this._handlerMouseDown.bind(this))
-    context.subscribeToEvent('mousemove', this._handlerMouseMove.bind(this))
-    context.subscribeToEvent('mouseup', this._handlerMouseUp.bind(this))
-    context.subscribeToEvent('contextmenu', this._handlerContextualMenu.bind(this))
+  setInputEventManager (inputEventManager: IInputEventManager): void {
+    inputEventManager.subscribeToEvent('mousedown', this._handlerMouseDown.bind(this))
+    inputEventManager.subscribeToEvent('mousemove', this._handlerMouseMove.bind(this))
+    inputEventManager.subscribeToEvent('mouseup', this._handlerMouseUp.bind(this))
+    inputEventManager.subscribeToEvent('contextmenu', this._handlerContextualMenu.bind(this))
 
-    this._contextualMenu.init(context)
+    this._contextualMenu.setInputEventManager(inputEventManager)
 
-    this._context = context
+    this._inputEventManager = inputEventManager
   }
 }
 

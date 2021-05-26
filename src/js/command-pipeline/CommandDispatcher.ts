@@ -1,10 +1,9 @@
-import { ICommandDispatcher } from './ICommandDispatcher'
 import { ITextEditor } from '../core/ITextEditor'
 import { BaseCommand } from './commands/BaseCommand'
 import { RequestType } from '../common/RequestType'
 import { TextEditorResponse } from '../common/TextEditorResponse'
 
-class CommandDispatcher implements ICommandDispatcher {
+class CommandDispatcher {
   private readonly _context: ITextEditor
 
   constructor (context: ITextEditor) {

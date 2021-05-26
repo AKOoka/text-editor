@@ -14,11 +14,14 @@ class TextEditor implements ITextEditor {
   private readonly _textCursor: TextCursor
   private readonly _textRepresentation: TextRepresentation
   private readonly _activeTextStylesSubscribers: IActiveTextStylesSubscriber[]
+  private readonly _context: HTMLElement
 
   constructor () {
     this._textCursor = new TextCursor()
     this._textRepresentation = new TextRepresentation()
     this._activeTextStylesSubscribers = []
+    this._context = document.createElement('div')
+    this._context.classList.add('text-editor')
   }
 
   init (): void {
@@ -27,6 +30,10 @@ class TextEditor implements ITextEditor {
     this._textCursor.setY(0)
     this.updateTextRepresentation()
     this.updateTextCursorPosition()
+  }
+
+  getContext (): HTMLElement {
+    return this._context
   }
 
   addText (text: string): void {

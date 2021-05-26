@@ -9,6 +9,7 @@ import { TextEditorResponse } from '../common/TextEditorResponse'
 
 export interface ITextEditor {
   init: () => void
+  getContext: () => HTMLElement
   addText: (text: string) => void
   deleteTextOnTextCursor: (offset: number) => void
   deleteTextOnSelection: () => void

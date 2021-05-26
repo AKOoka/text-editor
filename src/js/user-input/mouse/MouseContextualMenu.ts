@@ -37,7 +37,7 @@ class MouseContextualMenu {
     this._isActive = state
   }
 
-  init (inputEventManager: IInputEventManager): void {
+  setInputEventManager (inputEventManager: IInputEventManager): void {
     const copyButton: HTMLButtonElement = this._createButton('copy')
     const pasteButton: HTMLButtonElement = this._createButton('paste')
 

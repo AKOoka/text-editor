@@ -1,18 +1,18 @@
 import { ITextArea } from '../visualization/ITextArea'
-import { ICommandDispatcher } from '../command-pipeline/ICommandDispatcher'
 import { SetTextCursorPosition } from '../command-pipeline/commands/SetTextCursorPosition'
 import { IInputEventManager } from './IInputEventManager'
 import { CommandPasteText } from '../command-pipeline/commands/CommandPasteText'
 import { InputEventHandler } from './InputEventHandler'
+import { ICommandDispatcher } from '../command-pipeline/ICommandDispatcher'
 
 class InputEventManager implements IInputEventManager {
-  private readonly _interactiveContext: ITextArea
+  private readonly _textArea: ITextArea
   private readonly _commandDispatcher: ICommandDispatcher
   private _savedText: string
 
-  constructor (interactiveContext: ITextArea, commandDispatcher: ICommandDispatcher) {
+  constructor (textArea: ITextArea, commandDispatcher: ICommandDispatcher) {
     this._savedText = ''
-    this._interactiveContext = interactiveContext
+    this._textArea = textArea
     this._commandDispatcher = commandDispatcher
   }
 
@@ -25,25 +25,25 @@ class InputEventManager implements IInputEventManager {
   }
 
   triggerEventChangeTextCursorPosition (displayX: number, displayY: number): void {
-    const { x, y } = this._interactiveContext.getTextPosition(displayX, displayY)
+    const { x, y } = this._textArea.getTextPosition(displayX, displayY)
     this._commandDispatcher.doCommand(new SetTextCursorPosition(false, x, y))
   }
 
-  showUiElement (uiElement: HTMLElement): void {
-    this._interactiveContext.getInteractiveLayerContext().append(uiElement)
+  showUiElementOnInteractiveContext (uiElement: HTMLElement): void {
+    this._textArea.getInteractiveLayerContext().append(uiElement)
   }
 
   subscribeToEvent (
     event: keyof HTMLElementEventMap,
     eventHandler: InputEventHandler,
-    context: HTMLElement = this._interactiveContext.getInteractiveLayerContext()
+    context: HTMLElement = this._textArea.getInteractiveLayerContext()
   ): void {
     context.addEventListener(
       event,
       (e: MouseEvent | KeyboardEvent) => eventHandler({
         event: e,
         commandDispatcher: this._commandDispatcher,
-        interactiveLayer: this._interactiveContext.getInteractiveLayerContext()
+        interactiveLayer: this._textArea.getInteractiveLayerContext()
       })
     )
   }

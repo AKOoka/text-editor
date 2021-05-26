@@ -2,13 +2,14 @@ import { ICommandDispatcher } from './ICommandDispatcher'
 import { BaseCommand } from './commands/BaseCommand'
 import { RequestType } from '../common/RequestType'
 import { TextEditorResponse } from '../common/TextEditorResponse'
+import { CommandDispatcher } from './CommandDispatcher'
 
 class HistoryCommandDispatcher implements ICommandDispatcher {
-  private readonly _commandDispatcher: ICommandDispatcher
+  private readonly _commandDispatcher: CommandDispatcher
   private readonly _commandHistory: BaseCommand[]
   private _historyPointerOffset: number
 
-  constructor (commandDispatcher: ICommandDispatcher) {
+  constructor (commandDispatcher: CommandDispatcher) {
     this._commandDispatcher = commandDispatcher
     this._commandHistory = []
     this._historyPointerOffset = 0

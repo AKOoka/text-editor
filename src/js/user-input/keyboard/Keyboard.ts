@@ -22,11 +22,11 @@ class Keyboard {
     this._lastHandler = handler
   }
 
-  setContext (context: IInputEventManager): void {
+  setInputEventManager (inputEventManager: IInputEventManager): void {
     if (this._lastHandler === undefined) {
       throw new Error('there was no handlers to set on')
     }
-    context.subscribeToEvent('keydown', this._lastHandler.handleEvent.bind(this._lastHandler), document.body)
+    inputEventManager.subscribeToEvent('keydown', this._lastHandler.handleEvent.bind(this._lastHandler), document.body)
   }
 }
 
