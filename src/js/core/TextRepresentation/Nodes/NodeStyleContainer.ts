@@ -4,8 +4,8 @@ import { BaseNodeContainer } from './BaseNodeContainer'
 import { NodeText } from './NodeText'
 import { BaseNode } from './BaseNode'
 import { ChildNodeInRangeCallback } from './ChildNodeInRangeCallback'
-import { NodeRepresentation } from './NodeRepresentation'
 import { NodeType } from './NodeType'
+import { NodeRepresentation } from './NodeRepresentation'
 
 class NodeStyleContainer extends BaseNodeContainer {
   private readonly _textStyle: TextStyleType
@@ -13,9 +13,8 @@ class NodeStyleContainer extends BaseNodeContainer {
   constructor (childNodes: INode[], textStyle: TextStyleType) {
     super(childNodes)
     this._textStyle = textStyle
-    this._representation
-      .setType(NodeType.CONTAINER_STYLE)
-      .setTextStyle(textStyle)
+    this._representation.type = NodeType.CONTAINER_STYLE
+    this._representation.textStyle = textStyle
   }
 
   mergeWithNode (node: INode, joinAfter: boolean): INode[] {
@@ -183,12 +182,25 @@ class NodeStyleContainer extends BaseNodeContainer {
     return []
   }
 
-  getRepresentation (): NodeRepresentation {
-    const children: NodeRepresentation[] = []
-    for (const childNode of this._childNodes) {
-      children.push(childNode.getRepresentation())
+  addContent (content: NodeRepresentation[], offset: number, x: number, parentTextStyles: TextStyleType[]): INode[] {
+    let startOffset: number = offset
+    for (let i = 0; i < this._childNodes.length; i++) {
+      const childSize: number = this._childNodes[i].getSize()
+      if (this._nodeInPosition(startOffset, x, this._childNodes[i].getSize())) {
+        parentTextStyles.push(this._textStyle)
+        this._childNodes.splice(i, 1, ...this._childNodes[i].addContent(content, startOffset, x, parentTextStyles))
+        return [this]
+      }
+      startOffset += childSize
     }
-    return this._representation.setChildren(children)
+    return [this]
+  }
+
+  getContentInRange (offset: number, startX: number, endX: number): NodeRepresentation {
+    const content: NodeRepresentation = super.getContentInRange(offset, startX, endX)
+    content.type = this._representation.type
+    content.textStyle = this._textStyle
+    return content
   }
 }
 

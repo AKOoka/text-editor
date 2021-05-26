@@ -5,10 +5,21 @@ import { TextStyleType } from '../../common/TextStyleType'
 import { TextRepresentationAction } from './TextRepresentationAction'
 import { NodeLineContainer } from './Nodes/NodeLineContainer'
 import { TextRepresentationChange } from './TextRepresentationChange'
+import { NodeRepresentation } from './Nodes/NodeRepresentation'
 
 interface ILineTextOffset {
   offsetPosition: number
   offset: number
+}
+
+type ChangeCallback = (payload: ICallbackPayload) => void
+type GetInfoCallback<Info> = (payload: ICallbackPayload) => Info[]
+
+interface ICallbackPayload {
+  line: INode
+  offset: number
+  startX: number
+  endX: number
 }
 
 class TextRepresentation {
@@ -75,6 +86,71 @@ class TextRepresentation {
     line.push({ offsetPosition, offset })
   }
 
+  private _makeChangesInRanges (ranges: IRange[], changeCallback: ChangeCallback): void {
+    for (const { startX, endX, startY, endY } of ranges) {
+      let lineOffset = this._getLinePositionOffset(startY)
+      let line = this._textLines[startY + lineOffset]
+      this._changes.set(line, [lineOffset + startY, TextRepresentationAction.CHANGE])
+
+      if (startY === endY) {
+        changeCallback({
+          line,
+          offset: 0,
+          startX: startX + this._getLineTextOffset(startY, startX),
+          endX: endX + this._getLineTextOffset(endY, endX)
+        })
+        continue
+      }
+
+      const lineStart: number = startX + this._getLineTextOffset(startY, startX)
+      changeCallback({ line, offset: 0, startX: lineStart, endX: lineStart + line.getSize() })
+
+      for (let i = startY + 1; i < endY; i++) {
+        lineOffset = this._getLinePositionOffset(i)
+        line = this._textLines[i + lineOffset]
+        changeCallback({ line, offset: 0, startX: 0, endX: line.getSize() })
+        this._changes.set(line, [lineOffset + i, TextRepresentationAction.CHANGE])
+      }
+
+      lineOffset = this._getLinePositionOffset(endY)
+      line = this._textLines[endY + lineOffset]
+      changeCallback({ line, offset: 0, startX: 0, endX: endX + this._getLineTextOffset(endY, endX) })
+      this._changes.set(line, [lineOffset + endY, TextRepresentationAction.CHANGE])
+    }
+  }
+
+  private _getInfoInRanges<Info> (ranges: IRange[], getInfoCallback: GetInfoCallback<Info>): Info[] {
+    const info: Info[] = []
+
+    for (const { startX, endX, startY, endY } of ranges) {
+      let line: INode = this._textLines[startY + this._getLinePositionOffset(startY)]
+      if (startY === endY) {
+        info.push(...getInfoCallback({
+          line,
+          offset: 0,
+          startX: startX + this._getLineTextOffset(startY, startX),
+          endX: endX + this._getLineTextOffset(endY, endX)
+        }))
+        continue
+      }
+
+      const lineStart: number = startX + this._getLineTextOffset(startY, startX)
+      info.push(...getInfoCallback({ line, offset: 0, startX: lineStart, endX: lineStart + line.getSize() }))
+      for (let i = startY + 1; i < endY; i++) {
+        line = this._textLines[i + this._getLinePositionOffset(i)]
+        info.push(...getInfoCallback({ line, offset: 0, startX: 0, endX: line.getSize() }))
+      }
+      info.push(...getInfoCallback({
+        line: this._textLines[endY + this._getLinePositionOffset(startY)],
+        offset: 0,
+        startX: 0,
+        endX: endX + this._getLineTextOffset(endY, endX)
+      }))
+    }
+
+    return info
+  }
+
   getLinesCount (): number {
     return this._textLines.length
   }
@@ -119,7 +195,7 @@ class TextRepresentation {
   }
 
   // need to think how to make forward delete when text cursor is in the end of text line
-  deleteTextInLine (linePosition: number, start: number, end?: number): boolean {
+  deleteTextInLine (linePosition: number, start: number, end: number): void {
     const linePositionOffset: number = this._getLinePositionOffset(linePosition)
     const linePos = linePosition + linePositionOffset
     const line: INode = this._textLines[linePos]
@@ -128,7 +204,7 @@ class TextRepresentation {
       this._textLines = this._textLines.slice(0, linePos).concat(this._textLines.slice(linePos + 1))
       this._setLinePositionOffset(linePosition, -1)
       this._changes.set(line, [linePositionOffset + linePosition, TextRepresentationAction.REMOVE])
-      return true
+      return
     }
 
     const endPosition: number = end === undefined ? line.getSize() : end
@@ -140,7 +216,6 @@ class TextRepresentation {
     )
     this._setLineTextOffset(linePosition, start, endPosition - start)
     this._changes.set(line, [linePositionOffset + linePosition, TextRepresentationAction.CHANGE])
-    return false
   }
 
   deleteTextInRanges (textCursorPositions: IRange[]): void {
@@ -150,137 +225,61 @@ class TextRepresentation {
         continue
       }
 
-      this.deleteTextInLine(startY, startX)
+      this.deleteTextInLine(startY, startX, this._textLines[startY].getSize())
       this.deleteTextInLine(endY, 0, endX)
       this.deleteLines(startY + 1, endY - startY - 1)
     }
   }
 
   getTextStylesInRanges (textCursorPositions: IRange[]): TextStyleType[] {
-    let textStylesInRange: TextStyleType[] = []
+    return this._getInfoInRanges(textCursorPositions, ({ line, offset, startX, endX }) => {
+      return line.textStylesInRange(offset, startX, endX)
+    })
+  }
 
-    for (const { startX, endX, startY, endY } of textCursorPositions) {
-      const startLine: INode = this._textLines[startY + this._getLinePositionOffset(startY)]
-      if (startY === endY) {
-        textStylesInRange = textStylesInRange.concat(startLine.textStylesInRange(
-          0,
-          startX + this._getLineTextOffset(startY, startX),
-          endX + this._getLineTextOffset(endY, endX)
-        ))
-        continue
-      }
+  getContentInRanges (ranges: IRange[]): NodeRepresentation[] {
+    return this._getInfoInRanges<NodeRepresentation>(ranges, ({ line, offset, startX, endX }) => {
+      return [line.getContentInRange(offset, startX, endX)]
+    })
+  }
 
-      const startLineStart: number = startX + this._getLineTextOffset(startY, startX)
-      textStylesInRange.concat(startLine.textStylesInRange(0, startLineStart, startLineStart + startLine.getSize())
-      )
-      for (let i = startY + 1; i < endY; i++) {
-        const curLine: INode = this._textLines[i + this._getLinePositionOffset(i)]
-        textStylesInRange = textStylesInRange.concat(curLine.textStylesInRange(0, 0, curLine.getSize()))
-      }
-      textStylesInRange = textStylesInRange.concat(this._textLines[endY + this._getLinePositionOffset(startY)]
-        .textStylesInRange(0, 0, endX + this._getLineTextOffset(endY, endX)))
+  pasteContent (content: NodeRepresentation[], x: number, y: number): void {
+    const lineOffset = this._getLinePositionOffset(y)
+    const line = this._textLines[y + lineOffset]
+    let contentSize: number = 0
+    for (const c of content) {
+      contentSize += c.size
     }
-
-    return textStylesInRange
+    line.addContent(content, 0, x + this._getLineTextOffset(y, x), [])
+    this._setLineTextOffset(y, x, contentSize)
+    this._changes.set(line, [lineOffset + y, TextRepresentationAction.CHANGE])
   }
 
   addTextStylesInRanges (textStyleType: TextStyleType, textCursorPositions: IRange[]): void {
-    for (const { startX, endX, startY, endY } of textCursorPositions) {
-      const startLineOffset: number = this._getLinePositionOffset(startY)
-      const startLine = this._textLines[startY + startLineOffset]
-      this._changes.set(startLine, [startLineOffset + startY, TextRepresentationAction.CHANGE])
-
-      if (startY === endY) {
-        startLine.addTextStyle(
-          0,
-          startX + this._getLineTextOffset(startY, startX),
-          endX + this._getLineTextOffset(endY, endX),
-          textStyleType
-        )
-        continue
+    this._makeChangesInRanges(
+      textCursorPositions,
+      ({ line, offset, startX, endX }) => {
+        line.addTextStyle(offset, startX, endX, textStyleType)
       }
-
-      const startLineStart: number = startX + this._getLineTextOffset(startY, startX)
-      startLine.addTextStyle(0, startLineStart, startLineStart + startLine.getSize(), textStyleType)
-
-      for (let i = startY + 1; i < endY; i++) {
-        const curLineOffset: number = this._getLinePositionOffset(i)
-        const curLine = this._textLines[i + curLineOffset]
-        curLine.addTextStyle(0, 0, curLine.getSize(), textStyleType)
-        this._changes.set(curLine, [curLineOffset + i, TextRepresentationAction.CHANGE])
-      }
-
-      const endLineOffset: number = this._getLinePositionOffset(endY)
-      const endLine = this._textLines[endY + endLineOffset]
-      endLine.addTextStyle(0, 0, endX + this._getLineTextOffset(endY, endX), textStyleType)
-      this._changes.set(endLine, [endLineOffset + endY, TextRepresentationAction.CHANGE])
-    }
+    )
   }
 
-  // try to find way to use private function that will just accept remove(All/Concrete)TextStyle instead of copy two near the same functions
   removeAllTextStylesInRanges (textCursorPositions: IRange[]): void {
-    for (const { startX, endX, startY, endY } of textCursorPositions) {
-      const startLineOffset = this._getLinePositionOffset(startY)
-      const startLine = this._textLines[startY + startLineOffset]
-      this._changes.set(startLine, [startLineOffset + startY, TextRepresentationAction.CHANGE])
-
-      if (startY === endY) {
-        startLine.removeAllTextStyles(
-          0,
-          startX + this._getLineTextOffset(startY, startX),
-          endX + this._getLineTextOffset(endY, endX)
-        )
-        continue
+    this._makeChangesInRanges(
+      textCursorPositions,
+      ({ line, offset, startX, endX }) => {
+        line.removeAllTextStyles(offset, startX, endX)
       }
-
-      const startLineStart: number = startX + this._getLineTextOffset(startY, startX)
-      startLine.removeAllTextStyles(0, startLineStart, startLineStart + startLine.getSize())
-
-      for (let i = startY + 1; i < endY; i++) {
-        const curLineOffset: number = this._getLinePositionOffset(i)
-        const curLine = this._textLines[i + curLineOffset]
-        curLine.removeAllTextStyles(0, 0, curLine.getSize())
-        this._changes.set(curLine, [curLineOffset + i, TextRepresentationAction.CHANGE])
-      }
-
-      const endLineOffset = this._getLinePositionOffset(endY)
-      const endLine = this._textLines[endY + endLineOffset]
-      endLine.removeAllTextStyles(0, 0, endX + this._getLineTextOffset(endY, endX))
-      this._changes.set(endLine, [endLineOffset + endY, TextRepresentationAction.CHANGE])
-    }
+    )
   }
 
   removeConcreteTextStyleInRanges (textStyleType: TextStyleType, textCursorPositions: IRange[]): void {
-    for (const { startX, endX, startY, endY } of textCursorPositions) {
-      const startLineOffset = this._getLinePositionOffset(startY)
-      const startLine = this._textLines[startY + startLineOffset]
-      this._changes.set(startLine, [startLineOffset + startY, TextRepresentationAction.CHANGE])
-
-      if (startY === endY) {
-        startLine.removeConcreteTextStyle(
-          0,
-          startX + this._getLineTextOffset(startY, startX),
-          endX + this._getLineTextOffset(endY, endX),
-          textStyleType
-        )
-        continue
+    this._makeChangesInRanges(
+      textCursorPositions,
+      ({ line, offset, startX, endX }) => {
+        line.removeConcreteTextStyle(offset, startX, endX, textStyleType)
       }
-
-      const startLineStart: number = startX + this._getLineTextOffset(startY, startX)
-      startLine.removeConcreteTextStyle(0, startLineStart, startLineStart + startLine.getSize(), textStyleType)
-
-      for (let i = startY + 1; i < endY; i++) {
-        const curLineOffset: number = this._getLinePositionOffset(i)
-        const curLine = this._textLines[i + curLineOffset]
-        curLine.removeConcreteTextStyle(0, 0, curLine.getSize(), textStyleType)
-        this._changes.set(curLine, [curLineOffset + i, TextRepresentationAction.CHANGE])
-      }
-
-      const endLineOffset = this._getLinePositionOffset(endY)
-      const endLine = this._textLines[endY + endLineOffset]
-      endLine.removeConcreteTextStyle(0, 0, endX + this._getLineTextOffset(endY, endX), textStyleType)
-      this._changes.set(endLine, [endLineOffset + endY, TextRepresentationAction.CHANGE])
-    }
+    )
   }
 
   subscribe (subscriber: ITextRepresentationSubscriber): void {

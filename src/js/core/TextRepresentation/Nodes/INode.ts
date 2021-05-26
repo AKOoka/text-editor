@@ -6,11 +6,13 @@ export interface INode {
   getSize: () => number
   getStyle: () => TextStyleType | null
   mergeWithNode: (node: INode, joinAfter: boolean) => INode[]
-  addText: (text: string, offset: number, position: number) => void
-  removeText: (offset: number, start: number, end: number) => boolean
-  addTextStyle: (offset: number, start: number, end: number, textStyle: TextStyleType) => INode[]
-  removeAllTextStyles: (offset: number, start: number, end: number) => INode[]
-  removeConcreteTextStyle: (offset: number, start: number, end: number, textStyle: TextStyleType) => INode[]
-  textStylesInRange: (offset: number, start: number, end: number) => TextStyleType[]
+  addText: (text: string, offset: number, x: number) => void
+  removeText: (offset: number, startX: number, endX: number) => boolean
+  addTextStyle: (offset: number, startX: number, endX: number, textStyle: TextStyleType) => INode[]
+  removeAllTextStyles: (offset: number, startX: number, endX: number) => INode[]
+  removeConcreteTextStyle: (offset: number, startX: number, endX: number, textStyle: TextStyleType) => INode[]
+  textStylesInRange: (offset: number, startX: number, endX: number) => TextStyleType[]
+  getContentInRange: (offset: number, startX: number, endX: number) => NodeRepresentation
+  addContent: (content: NodeRepresentation[], offset: number, x: number, parentTextStyles: TextStyleType[]) => INode[]
   getRepresentation: () => NodeRepresentation
 }

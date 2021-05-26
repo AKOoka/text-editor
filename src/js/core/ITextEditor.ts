@@ -6,10 +6,12 @@ import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubs
 import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscriber'
 import { RequestType } from '../common/RequestType'
 import { TextEditorResponse } from '../common/TextEditorResponse'
+import { NodeRepresentation } from './TextRepresentation/Nodes/NodeRepresentation'
 
 export interface ITextEditor {
   init: () => void
   getContext: () => HTMLElement
+  pasteContent: (content: NodeRepresentation[]) => void
   addText: (text: string) => void
   deleteTextOnTextCursor: (offset: number) => void
   deleteTextOnSelection: () => void

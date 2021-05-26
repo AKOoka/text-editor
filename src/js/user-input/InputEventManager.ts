@@ -1,27 +1,27 @@
 import { ITextArea } from '../visualization/ITextArea'
 import { SetTextCursorPosition } from '../command-pipeline/commands/SetTextCursorPosition'
 import { IInputEventManager } from './IInputEventManager'
-import { CommandPasteText } from '../command-pipeline/commands/CommandPasteText'
+import { CommandPasteContent } from '../command-pipeline/commands/CommandPasteContent'
 import { InputEventHandler } from './InputEventHandler'
 import { ICommandDispatcher } from '../command-pipeline/ICommandDispatcher'
+import { NodeRepresentation } from '../core/TextRepresentation/Nodes/NodeRepresentation'
 
 class InputEventManager implements IInputEventManager {
   private readonly _textArea: ITextArea
   private readonly _commandDispatcher: ICommandDispatcher
-  private _savedText: string
+  private _savedContent: NodeRepresentation[]
 
   constructor (textArea: ITextArea, commandDispatcher: ICommandDispatcher) {
-    this._savedText = ''
     this._textArea = textArea
     this._commandDispatcher = commandDispatcher
   }
 
   triggerEventCopy (): void {
-    this._savedText = this._commandDispatcher.fetchData('text-selected').getTextSelected()
+    this._savedContent = this._commandDispatcher.fetchData('selectedContent').selectedContent
   }
 
   triggerEventPaste (): void {
-    this._commandDispatcher.doCommand(new CommandPasteText(true, this._savedText))
+    this._commandDispatcher.doCommand(new CommandPasteContent(true, this._savedContent))
   }
 
   triggerEventChangeTextCursorPosition (displayX: number, displayY: number): void {

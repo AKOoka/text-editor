@@ -13,20 +13,20 @@ class SetTextCursorPosition extends BaseCommand {
   }
 
   do (context: ITextEditor): void {
-    const res: TextEditorResponse = context.fetchData('text-cursor-position')
+    const res: TextEditorResponse = context.fetchData('textCursorPosition')
     context.setTextCursorXPosition(this._x)
     context.setTextCursorYPosition(this._y)
-    this._x = res.getTextCursorX()
-    this._y = res.getTextCursorY()
+    this._x = res.textCursorX
+    this._y = res.textCursorY
     context.updateTextCursorPosition()
   }
 
   undo (context: ITextEditor): void {
-    const res: TextEditorResponse = context.fetchData('text-cursor-position')
+    const res: TextEditorResponse = context.fetchData('textCursorPosition')
     context.setTextCursorXPosition(this._x)
     context.setTextCursorYPosition(this._y)
-    this._x = res.getTextCursorX()
-    this._y = res.getTextCursorY()
+    this._x = res.textCursorX
+    this._y = res.textCursorY
     context.updateTextCursorPosition()
   }
 }

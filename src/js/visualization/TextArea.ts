@@ -40,32 +40,32 @@ class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorP
   private _generateHtmlNode (nodeRepresentation: NodeRepresentation): HTMLElement {
     let node: HTMLElement
 
-    switch (nodeRepresentation.getType()) {
+    switch (nodeRepresentation.type) {
       case NodeType.TEXT:
         node = this._textPool.getNode()
-        node.append(nodeRepresentation.getText())
+        node.append(nodeRepresentation.text)
         return node
       case NodeType.TEXT_STYLE:
         node = this._textPool.getNode()
-        node.classList.add(`${nodeRepresentation.getTextStyle()}`)
-        node.append(nodeRepresentation.getText())
+        node.classList.add(`${nodeRepresentation.textStyle}`)
+        node.append(nodeRepresentation.text)
         return node
       case NodeType.CONTAINER_STYLE:
         node = this._textPool.getNode()
-        node.classList.add(`${nodeRepresentation.getTextStyle()}`)
-        for (const child of nodeRepresentation.getChildren()) {
+        node.classList.add(`${nodeRepresentation.textStyle}`)
+        for (const child of nodeRepresentation.children) {
           node.append(this._generateHtmlNode(child))
         }
         return node
       case NodeType.CONTAINER_LINE:
         node = this._textPool.getTextLine()
         node.classList.add('text-line')
-        for (const child of nodeRepresentation.getChildren()) {
+        for (const child of nodeRepresentation.children) {
           node.append(this._generateHtmlNode(child))
         }
         return node
       default:
-        throw new Error(`TextArea can't handle such NodeRepresentation type: ${nodeRepresentation.getType()}`)
+        throw new Error("TextArea can't handle NodeRepresentation type")
     }
   }
 

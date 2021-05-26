@@ -8,7 +8,7 @@ import { NodeType } from './NodeType'
 class NodeText extends BaseNode {
   constructor (text: string) {
     super(text)
-    this._representation.setType(NodeType.TEXT)
+    this._representation.type = NodeType.TEXT
   }
 
   getStyle (): TextStyleType | null {
@@ -52,8 +52,12 @@ class NodeText extends BaseNode {
     return []
   }
 
-  getRepresentation (): NodeRepresentation {
-    return this._representation.setText(this._text)
+  addContent (content: NodeRepresentation[], offset: number, x: number, parentTextStyle: TextStyleType[]): INode[] {
+    const newNodes: INode[] = [new NodeText(this._text.slice(0, x - offset))]
+    for (const c of content) {
+      newNodes.push(...this._createNodeFromContent(c, parentTextStyle))
+    }
+    return newNodes
   }
 }
 

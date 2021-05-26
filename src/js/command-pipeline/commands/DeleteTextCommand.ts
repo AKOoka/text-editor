@@ -12,7 +12,7 @@ class DeleteTextCommand extends BaseCommand {
   }
 
   do (context: ITextEditor): void {
-    const lineLength: number = context.fetchData('text-length').getTextLength()
+    const lineLength: number = context.fetchData('textLength').textLength
     context.deleteTextOnTextCursor(this._deleteOffset)
     context.deleteTextOnSelection()
     if (lineLength <= 1) {

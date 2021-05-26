@@ -1,10 +1,10 @@
-import { TextStyleType } from '../common/TextStyleType'
-import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscriber'
-import { AddTextStyleCommand } from '../command-pipeline/commands/AddTextStyleCommand'
-import { AddSelectionCommand } from '../command-pipeline/commands/AddSelectionCommand'
-import { ClearSelectionsCommand } from '../command-pipeline/commands/ClearSelectionsCommand'
-import { IInputEventManager } from './IInputEventManager'
-import { InputEventHandler } from './InputEventHandler'
+import { TextStyleType } from '../../common/TextStyleType'
+import { IActiveTextStylesSubscriber } from '../../common/IActiveTextStylesSubscriber'
+import { AddTextStyleCommand } from '../../command-pipeline/commands/AddTextStyleCommand'
+import { AddSelectionCommand } from '../../command-pipeline/commands/AddSelectionCommand'
+import { ClearSelectionsCommand } from '../../command-pipeline/commands/ClearSelectionsCommand'
+import { IInputEventManager } from '../IInputEventManager'
+import { InputEventHandler } from '../InputEventHandler'
 
 interface IUiButtonConfig {
   type: string
@@ -22,7 +22,7 @@ const uiButtonConfigs: IUiButtonConfig[] = [
   { type: 'redo', popupText: 'redo', handler: ({ commandDispatcher }) => commandDispatcher.redoCommand() }
 ]
 
-class HtmlUi implements IActiveTextStylesSubscriber {
+class UiMenu implements IActiveTextStylesSubscriber {
   private readonly _context: HTMLElement
   private readonly _buttons: Map<string, HTMLElement>
   private _inputEventManager: IInputEventManager
@@ -67,4 +67,4 @@ class HtmlUi implements IActiveTextStylesSubscriber {
   }
 }
 
-export { HtmlUi }
+export { UiMenu }

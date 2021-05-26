@@ -12,9 +12,8 @@ class NodeTextStyle extends BaseNode {
   constructor (text: string, textStyle: TextStyleType) {
     super(text)
     this._textStyle = textStyle
-    this._representation
-      .setType(NodeType.TEXT_STYLE)
-      .setTextStyle(textStyle)
+    this._representation.type = NodeType.TEXT_STYLE
+    this._representation.textStyle = textStyle
   }
 
   getStyle (): TextStyleType | null {
@@ -97,9 +96,21 @@ class NodeTextStyle extends BaseNode {
     return []
   }
 
-  getRepresentation (): NodeRepresentation {
-    return this._representation.setText(this._text)
+  getContentInRange (offset: number, startX: number, endX: number): NodeRepresentation {
+    const content: NodeRepresentation = super.getContentInRange(offset, startX, endX)
+    content.type = this._representation.type
+    content.textStyle = this._textStyle
+    return content
+  }
 
+  addContent (content: NodeRepresentation[], offset: number, x: number, parentTextStyle: TextStyleType[]): INode[] {
+    const newNodes: INode[] = [new NodeText(this._text.slice(0, x - offset))]
+    parentTextStyle.push(this._textStyle)
+    for (const c of content) {
+      newNodes.push(...this._createNodeFromContent(c, parentTextStyle))
+    }
+    newNodes.push(new NodeText(this._text.slice(x - offset)))
+    return [new NodeStyleContainer(newNodes, this._textStyle)]
   }
 }
 

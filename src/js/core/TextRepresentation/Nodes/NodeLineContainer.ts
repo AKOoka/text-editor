@@ -10,7 +10,7 @@ import { NodeRepresentation } from './NodeRepresentation'
 class NodeLineContainer extends BaseNodeContainer {
   constructor (childNodes: INode[]) {
     super(childNodes)
-    this._representation.setType(NodeType.CONTAINER_LINE)
+    this._representation.type = NodeType.CONTAINER_LINE
   }
 
   getStyle (): TextStyleType | null {
@@ -75,6 +75,25 @@ class NodeLineContainer extends BaseNodeContainer {
     return [this]
   }
 
+  addContent (content: NodeRepresentation[], offset: number, x: number, parentTextStyles: TextStyleType[]): INode[] {
+    let startOffset: number = offset
+    for (let i = 0; i < this._childNodes.length; i++) {
+      const childSize: number = this._childNodes[i].getSize()
+      if (this._nodeInPosition(startOffset, x, this._childNodes[i].getSize())) {
+        this._childNodes.splice(i, 1, ...this._childNodes[i].addContent(content, startOffset, x, parentTextStyles))
+        return [this]
+      }
+      startOffset += childSize
+    }
+    return [this]
+  }
+
+  getContentInRange (offset: number, startX: number, endX: number): NodeRepresentation {
+    const content: NodeRepresentation = super.getContentInRange(offset, startX, endX)
+    content.type = this._representation.type
+    return content
+  }
+
   textStylesInRange (offset: number, start: number, end: number): TextStyleType[] {
     let startOffset: number = offset
 
@@ -90,15 +109,6 @@ class NodeLineContainer extends BaseNodeContainer {
     }
 
     return []
-  }
-
-  getRepresentation (): NodeRepresentation {
-    const children: NodeRepresentation[] = []
-    for (const childNode of this._childNodes) {
-      children.push(childNode.getRepresentation())
-    }
-    return this._representation.setChildren(children)
-
   }
 }
 

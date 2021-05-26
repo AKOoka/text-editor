@@ -2,6 +2,10 @@ import { INode } from './INode'
 import { TextStyleType } from '../../../common/TextStyleType'
 import { BaseNodeContainer } from './BaseNodeContainer'
 import { NodeRepresentation } from './NodeRepresentation'
+import { NodeType } from './NodeType'
+import { NodeStyleContainer } from './NodeStyleContainer'
+import { NodeText } from './NodeText'
+import { NodeTextStyle } from './NodeTextStyle'
 
 abstract class BaseNode implements INode {
   protected _text: string
@@ -10,6 +14,30 @@ abstract class BaseNode implements INode {
   protected constructor (text: string) {
     this._text = text
     this._representation = new NodeRepresentation()
+  }
+
+  protected _createNodeFromContent (content: NodeRepresentation, parentTextStyles: TextStyleType[]): INode[] {
+    if (content.type === NodeType.CONTAINER_STYLE) {
+      const childNodes: INode[] = []
+      for (const childContent of content.children) {
+        childNodes.push(...this._createNodeFromContent(childContent, parentTextStyles))
+      }
+      if (parentTextStyles.includes(content.textStyle)) {
+        return childNodes
+      } else {
+        return [new NodeStyleContainer(childNodes, content.textStyle)]
+      }
+    } else if (content.type === NodeType.TEXT_STYLE) {
+      if (parentTextStyles.includes(content.textStyle)) {
+        return [new NodeText(content.text)]
+      } else {
+        return [new NodeTextStyle(content.text, content.textStyle)]
+      }
+    } else if (content.type === NodeType.TEXT) {
+      return [new NodeText(content.text)]
+    }
+
+    throw new Error(`can't create node from ${content.type} content`)
   }
 
   mergeWithNode (node: INode): INode[] {
@@ -42,12 +70,25 @@ abstract class BaseNode implements INode {
     return this._text.length === 0
   }
 
+  getContentInRange (offset: number, startX: number, endX: number): NodeRepresentation {
+    const content: NodeRepresentation = new NodeRepresentation()
+    content.text = this._text.slice(startX - offset, endX - offset)
+    content.size = content.text.length
+    return content
+  }
+
+  getRepresentation (): NodeRepresentation {
+    this._representation.text = this._text
+    this._representation.size = this._text.length
+    return this._representation
+  }
+
+  abstract addContent (content: NodeRepresentation[], offset: number, x: number, parentTextStyle: TextStyleType[]): INode[]
   abstract getStyle (): TextStyleType | null
   abstract addTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): INode[]
   abstract removeAllTextStyles (offset: number, start: number, end: number): INode[]
   abstract removeConcreteTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): INode[]
   abstract textStylesInRange (offset: number, start: number, end: number): TextStyleType[]
-  abstract getRepresentation (): NodeRepresentation
 }
 
 export { BaseNode }

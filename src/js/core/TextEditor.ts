@@ -9,6 +9,7 @@ import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubs
 import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscriber'
 import { RequestType } from '../common/RequestType'
 import { TextEditorResponse } from '../common/TextEditorResponse'
+import { NodeRepresentation } from './TextRepresentation/Nodes/NodeRepresentation'
 
 class TextEditor implements ITextEditor {
   private readonly _textCursor: TextCursor
@@ -38,6 +39,10 @@ class TextEditor implements ITextEditor {
 
   addText (text: string): void {
     this._textRepresentation.addTextInLine(text, this._textCursor.getY(), this._textCursor.getX())
+  }
+
+  pasteContent (content: NodeRepresentation[]): void {
+    this._textRepresentation.pasteContent(content, this._textCursor.getX(), this._textCursor.getY())
   }
 
   deleteTextOnTextCursor (offset: number): void {
@@ -204,21 +209,30 @@ class TextEditor implements ITextEditor {
     const response: TextEditorResponse = new TextEditorResponse()
 
     switch (request) {
-      case 'text-cursor-x':
-        return response.setTextCursorX(this._textCursor.getX())
-      case 'text-cursor-y':
-        return response.setTextCursorY(this._textCursor.getY())
-      case 'text-cursor-position':
-        return response
-          .setTextCursorX(this._textCursor.getX())
-          .setTextCursorY(this._textCursor.getY())
-      case 'text-length':
-        return response.setTextLength(this._textRepresentation.getTextLengthInLine(this._textCursor.getY()))
-      case 'text-selected':
-        return response.setTextSelected('work in progress')
-      case 'text-selections':
-        return response.setTextSelections(this._textCursor.getSelections())
+      case 'textCursorX':
+        response.textCursorX = this._textCursor.getX()
+        break
+      case 'textCursorY':
+        response.textCursorY = this._textCursor.getY()
+        break
+      case 'textCursorPosition':
+        response.textCursorPosition = {
+          x: this._textCursor.getX(),
+          y: this._textCursor.getY()
+        }
+        break
+      case 'textLength':
+        response.textLength = this._textRepresentation.getTextLengthInLine(this._textCursor.getY())
+        break
+      case 'selectedContent':
+        response.selectedContent = this._textRepresentation.getContentInRanges(this._textCursor.getSelections())
+        break
+      case 'textSelections':
+        response.textSelections = this._textCursor.getSelections()
+        break
     }
+
+    return response
   }
 }
 

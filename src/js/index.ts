@@ -5,7 +5,7 @@ import { TextArea } from './visualization/TextArea'
 import { Keyboard } from './user-input/keyboard/Keyboard'
 import { ITextEditor } from './core/ITextEditor'
 import { TextEditor } from './core/TextEditor'
-import { HtmlUi } from './user-input/HtmlUi'
+import { UiMenu } from './user-input/ui-menu/UiMenu'
 import { Mouse } from './user-input/mouse/Mouse'
 import { IInputEventManager } from './user-input/IInputEventManager'
 import { InputEventManager } from './user-input/InputEventManager'
@@ -17,7 +17,7 @@ const historyCommandDispatcher: ICommandDispatcher = new HistoryCommandDispatche
 const textArea: TextArea = new TextArea()
 const inputEventManager: IInputEventManager = new InputEventManager(textArea, historyCommandDispatcher)
 const keyboard: Keyboard = new Keyboard()
-const htmlUi = new HtmlUi()
+const htmlUi = new UiMenu()
 const mouse: Mouse = new Mouse()
 
 textEditorContext.append(htmlUi.getContext(), textArea.getContext())
