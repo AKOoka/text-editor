@@ -5,13 +5,14 @@ import { TextRepresentationChange } from '../core/TextRepresentation/TextReprese
 import { TextAreaTextSelectionPool } from './TextAreaTextSelectionPool'
 import { TextAreaTextPool } from './TextAreaTextPool'
 import { MeasureHtmlTool } from './MeasureHtmlTool'
-import { IRange } from '../common/IRange'
-import { NodeRepresentation } from '../core/TextRepresentation/Nodes/NodeRepresentation'
+import { NodeRepresentation } from '../core/TextRepresentation/NodeRepresentation'
 import { NodeType } from '../core/TextRepresentation/Nodes/NodeType'
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
 import { TextAreaLayerText } from './TextAreaLayerText'
 import { TextAreaLayerUi } from './TextAreaLayerUi'
 import { ITextArea } from './ITextArea'
+import { IPoint } from '../common/IPoint'
+import { ISelection } from '../common/ISelection'
 
 class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorPositionSubscriber, ITextCursorSelectionsSubscriber {
   private readonly _context: HTMLElement
@@ -77,21 +78,28 @@ class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorP
     return this._layerInteractive
   }
 
+  showElementOnInteractiveLayer (displayPoint: IPoint, element: HTMLElement): void {
+    const { x, y } = this._measureHtmlTool.normalizeDisplayPosition(displayPoint)
+    element.style.left = `${x}px`
+    element.style.top = `${y}px`
+    this._layerInteractive.append(element)
+  }
+
   init (): void {
     this._measureHtmlTool.setContext(this._context)
   }
 
-  getTextPosition (displayX: number, displayY: number): { x: number, y: number } {
-    return this._measureHtmlTool.getTextPosition(this._layerText.getAllTextLines(), displayX, displayY)
+  getTextPosition (displayPoint: IPoint): IPoint {
+    return this._measureHtmlTool.convertDisplayPosition(this._layerText.getAllTextLines(), displayPoint)
   }
 
-  updateTextCursorPosition (x: number, y: number): void {
-    this._layerUi.setTextCursorX(this._measureHtmlTool.computePositionX(this._layerText.getTextLine(y), x))
-    this._layerUi.setTextCursorY(this._measureHtmlTool.computePositionY(this._layerText.getAllTextLines(), y))
-    this._layerUi.setTextCursorHeight(this._measureHtmlTool.computeLineHeight(this._layerText.getTextLine(y)))
+  updateTextCursorPosition (point: IPoint): void {
+    this._layerUi.setTextCursorX(this._measureHtmlTool.computePositionX(this._layerText.getTextLine(point.y), point.x))
+    this._layerUi.setTextCursorY(this._measureHtmlTool.computePositionY(this._layerText.getAllTextLines(), point.y))
+    this._layerUi.setTextCursorHeight(this._measureHtmlTool.computeLineHeight(this._layerText.getTextLine(point.y)))
   }
 
-  updateTextCursorSelections (selections: IRange[]): void {
+  updateTextCursorSelections (selections: ISelection[]): void {
     this._layerUi.removeAllTextSelections()
     const sel = this._textSelectionPool.updateSelections(selections)
 
@@ -132,18 +140,18 @@ class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorP
 
   updateTextRepresentation (changes: TextRepresentationChange[]): void {
     for (const change of changes) {
-      switch (change.getAction()) {
+      switch (change.action) {
         case TextRepresentationAction.REMOVE:
-          this._layerText.removeTextLine(change.getPosition())
+          this._layerText.removeTextLine(change.position)
           break
         case TextRepresentationAction.ADD:
-          this._layerText.insertTextLine(change.getPosition(), this._generateHtmlNode(change.getNodeRepresentation()))
+          this._layerText.insertTextLine(change.position, this._generateHtmlNode(change.nodeRepresentation))
           break
         case TextRepresentationAction.CHANGE:
-          this._layerText.changeTextLine(change.getPosition(), this._generateHtmlNode(change.getNodeRepresentation()))
+          this._layerText.changeTextLine(change.position, this._generateHtmlNode(change.nodeRepresentation))
           break
         default:
-          throw new Error(`TextArea can't handle "${change.getAction()}" TextRepresentation action`)
+          throw new Error("TextArea can't handle TextRepresentation action")
       }
     }
   }

@@ -1,7 +1,7 @@
 import { ITextEditor } from '../core/ITextEditor'
 import { BaseCommand } from './commands/BaseCommand'
-import { RequestType } from '../common/RequestType'
 import { TextEditorResponse } from '../common/TextEditorResponse'
+import { TextEditorRequestType } from '../common/TextEditorRequestType'
 
 class CommandDispatcher {
   private readonly _context: ITextEditor
@@ -18,7 +18,7 @@ class CommandDispatcher {
     command.undo(this._context)
   }
 
-  fetchData (request: RequestType): TextEditorResponse {
+  fetchData (request: TextEditorRequestType): TextEditorResponse {
     return this._context.fetchData(request)
   }
 }

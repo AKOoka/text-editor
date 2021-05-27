@@ -1,12 +1,13 @@
-import { IRange } from './IRange'
-import { NodeRepresentation } from '../core/TextRepresentation/Nodes/NodeRepresentation'
+import { NodeRepresentation } from '../core/TextRepresentation/NodeRepresentation'
+import { ISelection } from './ISelection'
+import { IPoint } from './IPoint'
 
 class TextEditorResponse {
   textCursorX: number
   textCursorY: number
-  textCursorPosition: { x: number, y: number }
+  textCursorPosition: IPoint
   textLength: number
-  textSelections: IRange[]
+  textSelections: ISelection[]
   selectedContent: NodeRepresentation[]
 }
 

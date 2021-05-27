@@ -1,5 +1,5 @@
-import { IRange } from './IRange'
+import { ISelection } from './ISelection'
 
 export interface ITextCursorSelectionsSubscriber {
-  updateTextCursorSelections: (selections: IRange[]) => void
+  updateTextCursorSelections: (selections: ISelection[]) => void
 }

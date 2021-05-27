@@ -1,11 +1,13 @@
 import { INode } from './INode'
 import { TextStyleType } from '../../../common/TextStyleType'
 import { BaseNodeContainer } from './BaseNodeContainer'
-import { NodeRepresentation } from './NodeRepresentation'
+import { NodeRepresentation } from '../NodeRepresentation'
 import { NodeType } from './NodeType'
 import { NodeStyleContainer } from './NodeStyleContainer'
 import { NodeText } from './NodeText'
 import { NodeTextStyle } from './NodeTextStyle'
+import { RangeNode } from './RangeNode'
+import { PositionNode } from './PositionNode'
 
 abstract class BaseNode implements INode {
   protected _text: string
@@ -61,18 +63,18 @@ abstract class BaseNode implements INode {
     return this._text.length
   }
 
-  addText (text: string, offset: number, position: number): void {
-    this._text = this._text.slice(0, position - offset) + text + this._text.slice(position - offset)
+  addText (position: PositionNode, text: string): void {
+    this._text = this._text.slice(0, position.position) + text + this._text.slice(position.position)
   }
 
-  removeText (offset: number, start: number, end: number): boolean {
-    this._text = this._text.slice(0, start - offset) + this._text.slice(end - offset)
+  deleteText (range: RangeNode): boolean {
+    this._text = this._text.slice(0, range.start) + this._text.slice(range.end)
     return this._text.length === 0
   }
 
-  getContentInRange (offset: number, startX: number, endX: number): NodeRepresentation {
+  getContentInRange (range: RangeNode): NodeRepresentation {
     const content: NodeRepresentation = new NodeRepresentation()
-    content.text = this._text.slice(startX - offset, endX - offset)
+    content.text = this._text.slice(range.start, range.end)
     content.size = content.text.length
     return content
   }
@@ -83,12 +85,12 @@ abstract class BaseNode implements INode {
     return this._representation
   }
 
-  abstract addContent (content: NodeRepresentation[], offset: number, x: number, parentTextStyle: TextStyleType[]): INode[]
   abstract getStyle (): TextStyleType | null
-  abstract addTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): INode[]
-  abstract removeAllTextStyles (offset: number, start: number, end: number): INode[]
-  abstract removeConcreteTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): INode[]
-  abstract textStylesInRange (offset: number, start: number, end: number): TextStyleType[]
+  abstract getTextStylesInRange (range: RangeNode): TextStyleType[]
+  abstract addContent (position: PositionNode, content: NodeRepresentation[], parentTextStyles: TextStyleType[]): INode[]
+  abstract addTextStyle (range: RangeNode, textStyle: TextStyleType): INode[]
+  abstract deleteAllTextStyles (range: RangeNode): INode[]
+  abstract deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType): INode[]
 }
 
 export { BaseNode }

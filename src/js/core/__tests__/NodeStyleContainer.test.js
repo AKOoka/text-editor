@@ -52,14 +52,14 @@ test('add text to second child node', () => {
 })
 
 test('delete text', () => {
-  const result = nodeStyleContainer.removeText(0, 1, 3)
+  const result = nodeStyleContainer.deleteText(0, 1, 3)
 
   childNodesMatchTo([{ _text: defaultText.slice(0, 1) + defaultText.slice(3) }])
   expect(result).toBeFalsy()
 })
 
 test('delete all text', () => {
-  const result = nodeStyleContainer.removeText(0, 0, defaultText.length)
+  const result = nodeStyleContainer.deleteText(0, 0, defaultText.length)
 
   childNodesMatchTo([])
   expect(result).toBeTruthy()
@@ -70,7 +70,7 @@ test('delete middle node', () => {
   nodeStyleContainer = new NodeLineContainer([
     new NodeText(defaultText), new NodeText('ipsum'), new NodeText('foo')
   ])
-  const result = nodeStyleContainer.removeText(0, defaultText.length, defaultText.length + 'ipsum'.length)
+  const result = nodeStyleContainer.deleteText(0, defaultText.length, defaultText.length + 'ipsum'.length)
 
   childNodesMatchTo([{ _text: defaultText + 'foo' }])
   instanceOfChildNodes([NodeText])

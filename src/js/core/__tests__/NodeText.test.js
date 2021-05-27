@@ -21,21 +21,21 @@ test('add text in middle', () => {
 })
 
 test('delete text from middle', () => {
-  nodeText.removeText(0, 2, 4)
+  nodeText.deleteText(0, 2, 4)
 
   expect(nodeText._text).toBe('lom')
 })
 
 test('delete text from middle to end', () => {
-  nodeText.removeText(0, 2, 'lorem'.length)
+  nodeText.deleteText(0, 2, 'lorem'.length)
 
   expect(nodeText._text).toBe('lo')
 })
 
 test('delete all text', () => {
-  nodeText.removeText(0, 0)
+  nodeText.deleteText(0, 0)
 
-  expect(nodeText.removeText(0, 0, 'lorem'.length)).toBeTruthy()
+  expect(nodeText.deleteText(0, 0, 'lorem'.length)).toBeTruthy()
   expect(nodeText._text).toBe('')
 })
 

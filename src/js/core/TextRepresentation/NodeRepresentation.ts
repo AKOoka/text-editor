@@ -1,5 +1,5 @@
-import { NodeType } from './NodeType'
-import { TextStyleType } from '../../../common/TextStyleType'
+import { NodeType } from './Nodes/NodeType'
+import { TextStyleType } from '../../common/TextStyleType'
 
 class NodeRepresentation {
   type: NodeType

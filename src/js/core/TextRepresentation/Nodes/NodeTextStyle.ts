@@ -3,8 +3,10 @@ import { TextStyleType } from '../../../common/TextStyleType'
 import { NodeStyleContainer } from './NodeStyleContainer'
 import { NodeText } from './NodeText'
 import { BaseNode } from './BaseNode'
-import { NodeRepresentation } from './NodeRepresentation'
+import { NodeRepresentation } from '../NodeRepresentation'
 import { NodeType } from './NodeType'
+import { RangeNode } from './RangeNode'
+import { PositionNode } from './PositionNode'
 
 class NodeTextStyle extends BaseNode {
   private readonly _textStyle: TextStyleType
@@ -20,33 +22,30 @@ class NodeTextStyle extends BaseNode {
     return this._textStyle
   }
 
-  addTextStyle (offset: number, start: number, end: number, textStyle: TextStyleType): INode[] {
-    const startPosition: number = start - offset
-    const endPosition: number = end - offset
-
+  addTextStyle (range: RangeNode, textStyle: TextStyleType): INode[] {
     if (textStyle === this._textStyle) {
       return [this]
-    } else if (startPosition <= 0 && endPosition >= this.getSize()) {
+    } else if (range.nodeInsideRange(this.getSize())) {
       return [new NodeStyleContainer([this], textStyle)]
-    } else if (startPosition > 0 && endPosition < this.getSize()) {
-      const middleNodeTextStyle = new NodeTextStyle(this._text.slice(startPosition, endPosition), this._textStyle)
-      const endNodeTextStyle = new NodeTextStyle(this._text.slice(endPosition), this._textStyle)
-      this._text = this._text.slice(0, startPosition)
+    } else if (range.rangeInsideNode(this.getSize())) {
+      const middleNodeTextStyle = new NodeTextStyle(this._text.slice(range.start, range.end), this._textStyle)
+      const endNodeTextStyle = new NodeTextStyle(this._text.slice(range.end), this._textStyle)
+      this._text = this._text.slice(0, range.start)
       return [
         this,
         new NodeStyleContainer([middleNodeTextStyle], textStyle),
         endNodeTextStyle
       ]
-    } else if (startPosition > 0 && startPosition < this.getSize()) {
-      const newNodeTextStyle = new NodeTextStyle(this._text.slice(startPosition), this._textStyle)
-      this._text = this._text.slice(0, startPosition)
+    } else if (range.nodeStartInRange(this.getSize())) {
+      const newNodeTextStyle = new NodeTextStyle(this._text.slice(range.start), this._textStyle)
+      this._text = this._text.slice(0, range.start)
       return [
         this,
         new NodeStyleContainer([newNodeTextStyle], textStyle)
       ]
-    } else if (endPosition > 0 && endPosition < this.getSize()) {
-      const newNodeTextStyle = new NodeTextStyle(this._text.slice(0, endPosition), this._textStyle)
-      this._text = this._text.slice(endPosition)
+    } else if (range.nodeEndInRange(this.getSize())) {
+      const newNodeTextStyle = new NodeTextStyle(this._text.slice(0, range.end), this._textStyle)
+      this._text = this._text.slice(range.end)
       return [
         new NodeStyleContainer([newNodeTextStyle], textStyle),
         this
@@ -56,60 +55,54 @@ class NodeTextStyle extends BaseNode {
     throw new Error("can't add new text style node to text style node")
   }
 
-  removeAllTextStyles (offset: number, start: number, end: number): INode[] {
-    const startPosition: number = start - offset
-    const endPosition: number = end - offset
-
-    if (startPosition <= 0 && endPosition >= this.getSize()) {
+  deleteAllTextStyles (range: RangeNode): INode[] {
+    if (range.nodeInsideRange(this.getSize())) {
       return [new NodeText(this._text)]
-    } else if (startPosition > 0 && endPosition < this.getSize()) {
-      const middleNodeText = new NodeText(this._text.slice(startPosition, endPosition))
-      const endNodeTextStyle = new NodeTextStyle(this._text.slice(endPosition), this._textStyle)
-      this._text = this._text.slice(0, startPosition)
+    } else if (range.rangeInsideNode(this.getSize())) {
+      const middleNodeText = new NodeText(this._text.slice(range.start, range.end))
+      const endNodeTextStyle = new NodeTextStyle(this._text.slice(range.end), this._textStyle)
+      this._text = this._text.slice(0, range.start)
       return [this, middleNodeText, endNodeTextStyle]
-    } else if (startPosition > 0 && startPosition < this.getSize()) {
-      const textNode = new NodeText(this._text.slice(startPosition))
-      this._text = this._text.slice(0, startPosition)
+    } else if (range.nodeStartInRange(this.getSize())) {
+      const textNode = new NodeText(this._text.slice(range.start))
+      this._text = this._text.slice(0, range.start)
       return [this, textNode]
-    } else if (endPosition > 0 && endPosition < this.getSize()) {
-      const textNode = new NodeText(this._text.slice(0, endPosition))
-      this._text = this._text.slice(endPosition)
+    } else if (range.nodeEndInRange(this.getSize())) {
+      const textNode = new NodeText(this._text.slice(0, range.end))
+      this._text = this._text.slice(range.end)
       return [textNode, this]
     }
     throw new Error("can't remove all text styles from text style node")
   }
 
-  removeConcreteTextStyle (offset: number, start: number, end: number, textStyle: TextStyleType): INode[] {
+  deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType): INode[] {
     if (textStyle !== this._textStyle) {
       return [this]
     }
-    return this.removeAllTextStyles(offset, start, end)
+    return this.deleteAllTextStyles(range)
   }
 
-  textStylesInRange (offset: number, start: number, end: number): TextStyleType[] {
-    if (
-      (start >= offset && start <= offset + this.getSize()) ||
-      (end >= offset && end <= offset + this.getSize())
-    ) {
+  getTextStylesInRange (range: RangeNode): TextStyleType[] {
+    if (range.nodeInRange(this.getSize())) {
       return [this._textStyle]
     }
     return []
   }
 
-  getContentInRange (offset: number, startX: number, endX: number): NodeRepresentation {
-    const content: NodeRepresentation = super.getContentInRange(offset, startX, endX)
+  getContentInRange (range: RangeNode): NodeRepresentation {
+    const content: NodeRepresentation = super.getContentInRange(range)
     content.type = this._representation.type
     content.textStyle = this._textStyle
     return content
   }
 
-  addContent (content: NodeRepresentation[], offset: number, x: number, parentTextStyle: TextStyleType[]): INode[] {
-    const newNodes: INode[] = [new NodeText(this._text.slice(0, x - offset))]
+  addContent (position: PositionNode, content: NodeRepresentation[], parentTextStyle: TextStyleType[]): INode[] {
+    const newNodes: INode[] = [new NodeText(this._text.slice(0, position.position))]
     parentTextStyle.push(this._textStyle)
     for (const c of content) {
       newNodes.push(...this._createNodeFromContent(c, parentTextStyle))
     }
-    newNodes.push(new NodeText(this._text.slice(x - offset)))
+    newNodes.push(new NodeText(this._text.slice(position.position)))
     return [new NodeStyleContainer(newNodes, this._textStyle)]
   }
 }

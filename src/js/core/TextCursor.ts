@@ -1,55 +1,62 @@
 import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubscriber'
-import { IRange } from '../common/IRange'
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
+import { ISelection } from '../common/ISelection'
+import { IPoint } from '../common/IPoint'
 
 class TextCursor {
-  private _x: number
-  private _y: number
-  private _selections: IRange[]
+  private _position: IPoint
+  private _selections: ISelection[]
   private readonly _positionSubscribers: ITextCursorPositionSubscriber[]
   private readonly _selectionsSubscribers: ITextCursorSelectionsSubscriber[]
 
   constructor () {
-    this._x = 0
-    this._y = 0
+    this._position = { x: 0, y: 0 }
     this._selections = []
     this._positionSubscribers = []
     this._selectionsSubscribers = []
   }
 
-  getX (): number {
-    return this._x
+  get x (): number {
+    return this._position.x
   }
 
-  getY (): number {
-    return this._y
+  set x (x: number) {
+    this._position.x = x
+    console.log(`x: ${this._position.x}`)
   }
 
-  setX (position: number): void {
-    this._x = position
-    console.log(`h: ${this._x}`)
+  get y (): number {
+    return this._position.y
   }
 
-  setY (position: number): void {
-    this._y = position
-    console.log(`v: ${this._y}`)
+  set y (y: number) {
+    this._position.y = y
+    console.log(`y: ${this._position.y}`)
   }
 
-  getSelections (): IRange[] {
+  get position (): IPoint {
+    return { x: this._position.x, y: this._position.y }
+  }
+
+  set position (position: IPoint) {
+    this._position = position
+  }
+
+  get selections (): ISelection[] {
     return this._selections
   }
 
-  addSelection (selection: IRange): void {
-    this._selections.push(selection)
+  addSelections (selections: ISelection[]): void {
+    this._selections.push(...selections)
   }
 
-  clearSelections (): void {
+  deleteSelections (): void {
     this._selections = []
   }
 
   notifyPositionSubscribers (): void {
     for (const subscriber of this._positionSubscribers) {
-      subscriber.updateTextCursorPosition(this._x, this._y, this._selections)
+      subscriber.updateTextCursorPosition({ x: this._position.x, y: this._position.y })
     }
   }
 

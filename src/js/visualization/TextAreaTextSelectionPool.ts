@@ -1,6 +1,6 @@
-import { IRange } from '../common/IRange'
 import { TextAreaTextSelection } from './TextAreaTextSelection'
 import { ITextAreaHtmlSelectionPart } from './ITextAreaHtmlSelectionPart'
+import { ISelection } from '../common/ISelection'
 
 class TextAreaTextSelectionPool {
   private _selectionPool: TextAreaTextSelection[]
@@ -13,7 +13,7 @@ class TextAreaTextSelectionPool {
     }
   }
 
-  updateSelections (selections: IRange[]): ITextAreaHtmlSelectionPart[][] {
+  updateSelections (selections: ISelection[]): ITextAreaHtmlSelectionPart[][] {
     for (const selection of this._selectionPool) {
       selection.remove()
     }
@@ -22,8 +22,8 @@ class TextAreaTextSelectionPool {
     const outputSelections: ITextAreaHtmlSelectionPart[][] = []
 
     for (let l = 0; l < selections.length; l++) {
-      const { startX, startY, endX, endY } = selections[l]
-      const selection = new TextAreaTextSelection(startY, endY)
+      const { rangeX: { start: x, end: endX }, rangeY: { start: y, end: endY } } = selections[l]
+      const selection = new TextAreaTextSelection(y, endY)
       const selectionParts = selection.getParts()
       this._selectionPool.push(selection)
 
@@ -31,8 +31,8 @@ class TextAreaTextSelectionPool {
 
       if (selectionParts.length === 1) {
         outputSelections[l].push({
-          y: startY,
-          left: startX,
+          y: y,
+          left: x,
           right: endX,
           htmlElement: selectionParts[0]
         })
@@ -40,13 +40,13 @@ class TextAreaTextSelectionPool {
       }
 
       outputSelections[l].push({
-        y: startY,
-        left: startX,
+        y: y,
+        left: x,
         right: 0,
         htmlElement: selectionParts[0]
       })
       for (let i = 1; i < selectionParts.length; i++) {
-        const curY: number = startY + i
+        const curY: number = y + i
         outputSelections[l].push({
           y: curY,
           left: 0,

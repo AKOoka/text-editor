@@ -1,9 +1,8 @@
 import { INode } from './INode'
+import { RangeNode } from './RangeNode'
 
 export type ChildNodeInRangeCallback<TextStyle> = (
+  rangeNode: RangeNode,
   childNode: INode,
-  offset: number,
-  start: number,
-  end: number,
   textStyleType: TextStyle
 ) => INode[]

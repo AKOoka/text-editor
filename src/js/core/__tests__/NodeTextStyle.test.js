@@ -70,7 +70,7 @@ test('add text style in middle', () => {
 })
 
 test('remove style from start to end', () => {
-  const result = nodeTextStyle.removeAllTextStyles(0, 0, 'lorem'.length)
+  const result = nodeTextStyle.deleteAllTextStyles(0, 0, 'lorem'.length)
 
   expect(result).toMatchObject([
     { _text: 'lorem' }
@@ -79,7 +79,7 @@ test('remove style from start to end', () => {
 })
 
 test('remove style from start to middle', () => {
-  const result = nodeTextStyle.removeAllTextStyles(0, 0, 2)
+  const result = nodeTextStyle.deleteAllTextStyles(0, 0, 2)
 
   expect(result).toMatchObject([
     { _text: 'lo' },
@@ -90,7 +90,7 @@ test('remove style from start to middle', () => {
 })
 
 test('remove style from middle to end', () => {
-  const result = nodeTextStyle.removeAllTextStyles(0, 2)
+  const result = nodeTextStyle.deleteAllTextStyles(0, 2)
 
   expect(result).toMatchObject([
     { _text: 'lo', _textStyle: 'bold' },
@@ -101,7 +101,7 @@ test('remove style from middle to end', () => {
 })
 
 test('remove style in middle', () => {
-  const result = nodeTextStyle.removeAllTextStyles(0, 1, 3)
+  const result = nodeTextStyle.deleteAllTextStyles(0, 1, 3)
 
   expect(result).toMatchObject([
     { _text: 'l', _textStyle: 'bold' },

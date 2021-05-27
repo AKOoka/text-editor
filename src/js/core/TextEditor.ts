@@ -1,5 +1,5 @@
 import { ITextEditor } from './ITextEditor'
-import { IRange } from '../common/IRange'
+import { Range } from '../common/Range'
 import { TextStyleType } from '../common/TextStyleType'
 import { TextCursor } from './TextCursor'
 import { TextRepresentation } from './TextRepresentation/TextRepresentation'
@@ -7,9 +7,11 @@ import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubs
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
 import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
 import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscriber'
-import { RequestType } from '../common/RequestType'
 import { TextEditorResponse } from '../common/TextEditorResponse'
-import { NodeRepresentation } from './TextRepresentation/Nodes/NodeRepresentation'
+import { NodeRepresentation } from './TextRepresentation/NodeRepresentation'
+import { IPoint } from '../common/IPoint'
+import { ISelection } from '../common/ISelection'
+import { TextEditorRequestType } from '../common/TextEditorRequestType'
 
 class TextEditor implements ITextEditor {
   private readonly _textCursor: TextCursor
@@ -25,10 +27,31 @@ class TextEditor implements ITextEditor {
     this._context.classList.add('text-editor')
   }
 
+  private _getValidY (y: number): number {
+    const lineCount: number = this._textRepresentation.getLinesCount()
+    if (y < 0) {
+      return 0
+    } else if (y < lineCount) {
+      return y
+    } else {
+      return lineCount - 1
+    }
+  }
+
+  private _getValidX (y: number, x: number): number {
+    const textLength: number = this._textRepresentation.getTextLengthInLine(y)
+    if (x < 0) {
+      return 0
+    } else if (x <= textLength) {
+      return x
+    } else {
+      return textLength
+    }
+  }
+
   init (): void {
-    this._textRepresentation.createNewLines(0, 1)
-    this._textCursor.setX(0)
-    this._textCursor.setY(0)
+    this._textRepresentation.addNewLines(new Range(0, 1))
+    this._textCursor.y = 0
     this.updateTextRepresentation()
     this.updateTextCursorPosition()
   }
@@ -37,135 +60,88 @@ class TextEditor implements ITextEditor {
     return this._context
   }
 
-  addText (text: string): void {
-    this._textRepresentation.addTextInLine(text, this._textCursor.getY(), this._textCursor.getX())
+  addText (point: IPoint, text: string): void {
+    this._textRepresentation.addTextInLine(point, text)
   }
 
-  pasteContent (content: NodeRepresentation[]): void {
-    this._textRepresentation.pasteContent(content, this._textCursor.getX(), this._textCursor.getY())
+  addContent (point: IPoint, content: NodeRepresentation[]): void {
+    this._textRepresentation.addContent(point, content)
   }
 
-  deleteTextOnTextCursor (offset: number): void {
-    if (offset > 0) {
-      this._textRepresentation.deleteTextInLine(
-        this._textCursor.getY(),
-        this._textCursor.getX(),
-        this._textCursor.getX() + offset
-      )
-    } else {
-      this._textRepresentation.deleteTextInLine(
-        this._textCursor.getY(),
-        this._getValidHorizontalPosition(
-          this._textCursor.getY(),
-          this._textCursor.getX() + offset
-        ),
-        this._textCursor.getX()
-      )
-    }
+  addTextStyleInSelections (selections: ISelection[], textStyleType: TextStyleType): void {
+    this._textRepresentation.addTextStylesInSelections(selections, textStyleType)
   }
 
-  deleteTextOnSelection (): void {
-    this._textRepresentation.deleteTextInRanges(this._textCursor.getSelections())
+  addTextCursorSelections (selections: ISelection[]): void {
+    this._textCursor.addSelections(selections)
+    // for (const selection of selections) {
+    //   const validStartY: number = this._getValidY(selection.rangeY)
+    //   const validEndY: number = this._getValidY(selection.endY)
+    //
+    //   this._textCursor.addSelection({
+    //     x: this._getValidX(validStartY, selection.rangeX),
+    //     y: validStartY,
+    //     endX: this._getValidX(validEndY, selection.endX),
+    //     endY: validEndY
+    //   })
+    // }
   }
 
-  addTextStyle (textStyleType: TextStyleType): void {
-    this._textRepresentation.addTextStylesInRanges(textStyleType, this._textCursor.getSelections())
+  addNewLinesInRange (rangeY: Range): void {
+    this._textRepresentation.addNewLines(rangeY)
   }
 
-  removeConcreteTextStyle (textStyleType: TextStyleType): void {
-    // add parameters for methods like removeConcreteTextStyleInRanges() where it will take textCursor separate from selections
-    this._textRepresentation.removeConcreteTextStyleInRanges(
-      textStyleType,
-      [{
-        startX: this._textCursor.getX(),
-        endX: this._textCursor.getX(),
-        startY: this._textCursor.getY(),
-        endY: this._textCursor.getY()
-      }].concat(this._textCursor.getSelections())
-    )
+  deleteTextInRange (y: number, rangeX: Range): void {
+    this._textRepresentation.deleteTextInLine(y, rangeX)
   }
 
-  removeAllTextStyles (): void {
-    this._textRepresentation.removeAllTextStylesInRanges(
-      [{
-        startX: this._textCursor.getX(),
-        endX: this._textCursor.getX(),
-        startY: this._textCursor.getY(),
-        endY: this._textCursor.getY()
-      }].concat(this._textCursor.getSelections())
-    )
+  deleteTextInSelections (selections: ISelection[]): void {
+    this._textRepresentation.deleteTextInSelections(selections)
   }
 
-  private _getValidVerticalPosition (position: number): number {
-    const lineCount: number = this._textRepresentation.getLinesCount()
-    if (position < 0) {
-      return 0
-    } else if (position < lineCount) {
-      return position
-    } else {
-      return lineCount - 1
-    }
+  deleteConcreteTextStylesInSelections (selections: ISelection[], textStyleType: TextStyleType): void {
+    this._textRepresentation.deleteConcreteTextStyleInSelections(selections, textStyleType)
+    // this._textRepresentation.deleteConcreteTextStyleInSelections(
+    //   textStyleType,
+    //   [{
+    //     startX: this._textCursor.getX(),
+    //     endX: this._textCursor.getX(),
+    //     startY: this._textCursor.getY(),
+    //     endY: this._textCursor.getY()
+    //   }].concat(this._textCursor.getSelections())
+    // )
   }
 
-  private _getValidHorizontalPosition (verticalPosition: number, horizontalPosition: number): number {
-    const textLength: number = this._textRepresentation.getTextLengthInLine(verticalPosition)
-    if (horizontalPosition < 0) {
-      return 0
-    } else if (horizontalPosition <= textLength) {
-      return horizontalPosition
-    } else {
-      return textLength
-    }
+  deleteAllTextStylesInSelections (selections: ISelection[]): void {
+    // this._textRepresentation.deleteAllTextStylesInSelections(
+    //   [{
+    //     startX: this._textCursor.getX(),
+    //     endX: this._textCursor.getX(),
+    //     startY: this._textCursor.getY(),
+    //     endY: this._textCursor.getY()
+    //   }].concat(this._textCursor.getSelections())
+    // )
+    this._textRepresentation.deleteAllTextStylesInSelections(selections)
   }
 
-  setTextCursorXPosition (position: number): void {
-    this._textCursor.setX(this._getValidHorizontalPosition(this._textCursor.getY(), position))
+  deleteLinesInRange (rangeY: Range): void {
+    this._textRepresentation.deleteLines(rangeY)
   }
 
-  setTextCursorYPosition (position: number): void {
-    this._textCursor.setY(this._getValidVerticalPosition(position))
+  deleteTextCursorSelections (): void {
+    this._textCursor.deleteSelections()
   }
 
-  moveTextCursorXPosition (offset: number): void {
-    this._textCursor.setX(
-      this._getValidHorizontalPosition(
-        this._textCursor.getY(),
-        this._textCursor.getX() + offset
-      )
-    )
+  setTextCursorX (x: number): void {
+    this._textCursor.x = this._getValidX(this._textCursor.y, x)
   }
 
-  moveTextCursorYPosition (offset: number): void {
-    this._textCursor.setY(
-      this._getValidVerticalPosition(this._textCursor.getY() + offset)
-    )
+  setTextCursorY (y: number): void {
+    this._textCursor.y = this._getValidY(y)
   }
 
-  addSelections (selections: IRange[]): void {
-    for (const selection of selections) {
-      const validStartVerticalPosition: number = this._getValidVerticalPosition(selection.startY)
-      const validEndVerticalPosition: number = this._getValidVerticalPosition(selection.endY)
-
-      this._textCursor.addSelection({
-        startX: this._getValidHorizontalPosition(validStartVerticalPosition, selection.startX),
-        endX: this._getValidHorizontalPosition(validEndVerticalPosition, selection.endX),
-        startY: validStartVerticalPosition,
-        endY: validEndVerticalPosition
-      })
-    }
-  }
-
-  clearSelections (): void {
-    this._textCursor.clearSelections()
-  }
-
-  createNewTextLines (count: number = 1): void {
-    this._textRepresentation.createNewLines(this._textCursor.getY(), count)
-  }
-
-  deleteTextLines (offset: number, count: number = 1): void {
-    // make similar to deleting text
-    this._textRepresentation.deleteLines(this._textCursor.getY() + offset, count)
+  setTextCursorPosition (position: IPoint): void {
+    this._textCursor.position = position
   }
 
   subscribeForTextCursorPosition (subscriber: ITextCursorPositionSubscriber): void {
@@ -199,36 +175,33 @@ class TextEditor implements ITextEditor {
   }
 
   updateActiveStyles (): void {
-    const activeTextStyles: TextStyleType[] = this._textRepresentation.getTextStylesInRanges(this._textCursor.getSelections())
+    const activeTextStyles: TextStyleType[] = this._textRepresentation.getTextStylesInSelections(this._textCursor.selections)
     for (const subscriber of this._activeTextStylesSubscribers) {
       subscriber.updateActiveTextStyles(activeTextStyles)
     }
   }
 
-  fetchData (request: RequestType): TextEditorResponse {
+  fetchData (request: TextEditorRequestType): TextEditorResponse {
     const response: TextEditorResponse = new TextEditorResponse()
 
     switch (request) {
       case 'textCursorX':
-        response.textCursorX = this._textCursor.getX()
+        response.textCursorX = this._textCursor.x
         break
       case 'textCursorY':
-        response.textCursorY = this._textCursor.getY()
+        response.textCursorY = this._textCursor.y
         break
       case 'textCursorPosition':
-        response.textCursorPosition = {
-          x: this._textCursor.getX(),
-          y: this._textCursor.getY()
-        }
+        response.textCursorPosition = this._textCursor.position
         break
       case 'textLength':
-        response.textLength = this._textRepresentation.getTextLengthInLine(this._textCursor.getY())
+        response.textLength = this._textRepresentation.getTextLengthInLine(this._textCursor.y)
         break
       case 'selectedContent':
-        response.selectedContent = this._textRepresentation.getContentInRanges(this._textCursor.getSelections())
+        response.selectedContent = this._textRepresentation.getContentInSelections(this._textCursor.selections)
         break
       case 'textSelections':
-        response.textSelections = this._textCursor.getSelections()
+        response.textSelections = [...this._textCursor.selections]
         break
     }
 

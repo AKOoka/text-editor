@@ -1,4 +1,7 @@
+import { IPoint } from '../common/IPoint'
+
 export interface ITextArea {
   getInteractiveLayerContext: () => HTMLElement
-  getTextPosition: (displayX: number, displayY: number) => { x: number, y: number }
+  getTextPosition: (displayPoint: IPoint) => IPoint
+  showElementOnInteractiveLayer: (displayPoint: IPoint, element: HTMLElement) => void
 }

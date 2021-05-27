@@ -2,8 +2,10 @@ import { TextStyleType } from '../../../common/TextStyleType'
 import { INode } from './INode'
 import { NodeTextStyle } from './NodeTextStyle'
 import { BaseNode } from './BaseNode'
-import { NodeRepresentation } from './NodeRepresentation'
+import { NodeRepresentation } from '../NodeRepresentation'
 import { NodeType } from './NodeType'
+import { RangeNode } from './RangeNode'
+import { PositionNode } from './PositionNode'
 
 class NodeText extends BaseNode {
   constructor (text: string) {
@@ -15,45 +17,42 @@ class NodeText extends BaseNode {
     return null
   }
 
-  addTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): INode[] {
-    const startPosition: number = start - offset
-    const endPosition: number = end - offset
-
-    if (startPosition <= 0 && endPosition >= this.getSize()) {
+  addTextStyle (range: RangeNode, textStyleType: TextStyleType): INode[] {
+    if (range.nodeInsideRange(this.getSize())) {
       return [new NodeTextStyle(this._text, textStyleType)]
-    } else if (startPosition > 0 && endPosition < this.getSize()) {
+    } else if (range.rangeInsideNode(this.getSize())) {
       return [
-        new NodeText(this._text.slice(0, startPosition)),
-        new NodeTextStyle(this._text.slice(startPosition, endPosition), textStyleType),
-        new NodeText(this._text.slice(endPosition))
+        new NodeText(this._text.slice(0, range.start)),
+        new NodeTextStyle(this._text.slice(range.start, range.end), textStyleType),
+        new NodeText(this._text.slice(range.end))
       ]
-    } else if (startPosition > 0 && startPosition < this.getSize()) {
-      const textStyleNode = new NodeTextStyle(this._text.slice(startPosition), textStyleType)
-      this._text = this._text.slice(0, startPosition)
+    } else if (range.nodeStartInRange(this.getSize())) {
+      const textStyleNode = new NodeTextStyle(this._text.slice(range.start), textStyleType)
+      this._text = this._text.slice(0, range.start)
       return [this, textStyleNode]
-    } else if (endPosition > 0 && endPosition < this.getSize()) {
-      const textStyleNode = new NodeTextStyle(this._text.slice(0, endPosition), textStyleType)
-      this._text = this._text.slice(endPosition)
+    } else if (range.nodeEndInRange(this.getSize())) {
+      const textStyleNode = new NodeTextStyle(this._text.slice(0, range.end), textStyleType)
+      this._text = this._text.slice(range.end)
       return [textStyleNode, this]
     }
 
     throw new Error("can't add text style to text node")
   }
 
-  removeAllTextStyles (): INode[] {
+  deleteAllTextStyles (): INode[] {
     return [this]
   }
 
-  removeConcreteTextStyle (): INode[] {
+  deleteConcreteTextStyle (): INode[] {
     return [this]
   }
 
-  textStylesInRange (): TextStyleType[] {
+  getTextStylesInRange (): TextStyleType[] {
     return []
   }
 
-  addContent (content: NodeRepresentation[], offset: number, x: number, parentTextStyle: TextStyleType[]): INode[] {
-    const newNodes: INode[] = [new NodeText(this._text.slice(0, x - offset))]
+  addContent (position: PositionNode, content: NodeRepresentation[], parentTextStyle: TextStyleType[]): INode[] {
+    const newNodes: INode[] = [new NodeText(this._text.slice(0, position.position))]
     for (const c of content) {
       newNodes.push(...this._createNodeFromContent(c, parentTextStyle))
     }

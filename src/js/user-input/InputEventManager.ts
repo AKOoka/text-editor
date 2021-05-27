@@ -1,10 +1,11 @@
 import { ITextArea } from '../visualization/ITextArea'
-import { SetTextCursorPosition } from '../command-pipeline/commands/SetTextCursorPosition'
+import { CommandTextCursorSetPosition } from '../command-pipeline/commands/CommandTextCursorSetPosition'
 import { IInputEventManager } from './IInputEventManager'
-import { CommandPasteContent } from '../command-pipeline/commands/CommandPasteContent'
+import { CommandContentPaste } from '../command-pipeline/commands/CommandContentPaste'
 import { InputEventHandler } from './InputEventHandler'
 import { ICommandDispatcher } from '../command-pipeline/ICommandDispatcher'
-import { NodeRepresentation } from '../core/TextRepresentation/Nodes/NodeRepresentation'
+import { NodeRepresentation } from '../core/TextRepresentation/NodeRepresentation'
+import { IPoint } from '../common/IPoint'
 
 class InputEventManager implements IInputEventManager {
   private readonly _textArea: ITextArea
@@ -21,16 +22,15 @@ class InputEventManager implements IInputEventManager {
   }
 
   triggerEventPaste (): void {
-    this._commandDispatcher.doCommand(new CommandPasteContent(true, this._savedContent))
+    this._commandDispatcher.doCommand(new CommandContentPaste(true, this._savedContent))
   }
 
-  triggerEventChangeTextCursorPosition (displayX: number, displayY: number): void {
-    const { x, y } = this._textArea.getTextPosition(displayX, displayY)
-    this._commandDispatcher.doCommand(new SetTextCursorPosition(false, x, y))
+  triggerEventChangeTextCursorPosition (displayPoint: IPoint): void {
+    this._commandDispatcher.doCommand(new CommandTextCursorSetPosition(false, this._textArea.getTextPosition(displayPoint)))
   }
 
-  showUiElementOnInteractiveContext (uiElement: HTMLElement): void {
-    this._textArea.getInteractiveLayerContext().append(uiElement)
+  showUiElementOnInteractiveContext (displayPoint: IPoint, uiElement: HTMLElement): void {
+    this._textArea.showElementOnInteractiveLayer(displayPoint, uiElement)
   }
 
   subscribeToEvent (
@@ -40,11 +40,14 @@ class InputEventManager implements IInputEventManager {
   ): void {
     context.addEventListener(
       event,
-      (e: MouseEvent | KeyboardEvent) => eventHandler({
-        event: e,
-        commandDispatcher: this._commandDispatcher,
-        interactiveLayer: this._textArea.getInteractiveLayerContext()
-      })
+      (e: MouseEvent | KeyboardEvent) => {
+        e.preventDefault()
+        eventHandler({
+          event: e,
+          commandDispatcher: this._commandDispatcher,
+          interactiveLayer: this._textArea.getInteractiveLayerContext()
+        })
+      }
     )
   }
 }

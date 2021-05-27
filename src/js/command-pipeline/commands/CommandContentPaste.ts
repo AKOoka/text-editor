@@ -1,8 +1,8 @@
 import { BaseCommand } from './BaseCommand'
 import { ITextEditor } from '../../core/ITextEditor'
-import { NodeRepresentation } from '../../core/TextRepresentation/Nodes/NodeRepresentation'
+import { NodeRepresentation } from '../../core/TextRepresentation/NodeRepresentation'
 
-class CommandPasteContent extends BaseCommand {
+class CommandContentPaste extends BaseCommand {
   private readonly _content: NodeRepresentation[]
 
   constructor (toBeSaved: true, content: NodeRepresentation[]) {
@@ -12,7 +12,7 @@ class CommandPasteContent extends BaseCommand {
 
   do (context: ITextEditor): void {
     console.log(this._content)
-    context.pasteContent(this._content)
+    context.addContent({ x: 0, y: 0 }, this._content)
     context.updateTextRepresentation()
     context.updateTextCursorPosition()
   }
@@ -24,4 +24,4 @@ class CommandPasteContent extends BaseCommand {
   }
 }
 
-export { CommandPasteContent }
+export { CommandContentPaste }

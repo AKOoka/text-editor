@@ -1,12 +1,13 @@
-interface SearchChildResult {
+import { IPoint } from '../common/IPoint'
+
+interface ISearchChildResult {
   child: HTMLElement
   childOffset: number
 }
 
 class MeasureHtmlTool {
   private readonly _canvasContext: CanvasRenderingContext2D
-  private _contextX: number
-  private _contextY: number
+  private _contextPoint: IPoint
   private _contextFont: string
 
   constructor () {
@@ -14,15 +15,16 @@ class MeasureHtmlTool {
     if (ctx === null) {
       throw new Error("can't create canvas context 2d")
     }
+    this._contextPoint = { x: 0, y: 0 }
     this._canvasContext = ctx
   }
 
   setContext (textAreaContext: HTMLElement): void {
-    this._contextX = textAreaContext.getBoundingClientRect().x
-    this._contextY = textAreaContext.getBoundingClientRect().y
+    this._contextPoint.x = textAreaContext.getBoundingClientRect().x
+    this._contextPoint.y = textAreaContext.getBoundingClientRect().y
     this._contextFont = this._getFontFromElement(textAreaContext)
     this._canvasContext.font = this._contextFont
-    console.log(`text area font: ${this._contextFont}\ncontext x: ${this._contextX}; y: ${this._contextY}`)
+    console.log(`text area font: ${this._contextFont}\ncontext x: ${this._contextPoint.x}; y: ${this._contextPoint.y}`)
   }
 
   private _getFontFromElement (htmlElement: HTMLElement): string {
@@ -30,7 +32,7 @@ class MeasureHtmlTool {
     return `${font.getPropertyValue('font-size')} ${font.getPropertyValue('font-family')}`
   }
 
-  private _getChildOnPosition (parent: HTMLElement, x: number): SearchChildResult {
+  private _getChildOnPosition (parent: HTMLElement, x: number): ISearchChildResult {
     let childOffset: number = 0
 
     for (let i = 0; i < parent.children.length; i++) {
@@ -64,7 +66,7 @@ class MeasureHtmlTool {
       child.nodeType === Node.ELEMENT_NODE
         ? this._getFontFromElement(child)
         : this._contextFont
-    const computedPosition = child.getBoundingClientRect().left - this._contextX + this._canvasContext.measureText(child.innerText.slice(0, x - childOffset)).width
+    const computedPosition = child.getBoundingClientRect().left - this._contextPoint.x + this._canvasContext.measureText(child.innerText.slice(0, x - childOffset)).width
 
     console.log(`x: ${Math.ceil(computedPosition)}`)
     return Math.ceil(computedPosition)
@@ -82,7 +84,7 @@ class MeasureHtmlTool {
     return line.offsetHeight
   }
 
-  private _getLineByDisplayY (lines: HTMLElement[], displayY: number): number {
+  private _getLineOnDisplayY (lines: HTMLElement[], displayY: number): number {
     let lineDisplayY: number = 0
 
     for (let i = 0; i < lines.length; i++) {
@@ -93,11 +95,11 @@ class MeasureHtmlTool {
       lineDisplayY += this.computeLineHeight(lines[i])
     }
 
-    return 0
+    return lines.length - 1
   }
 
-  private _getTextPositionByDisplayX (line: HTMLElement, displayX: number): number {
-    const { child, childDisplayX } = this._getChildByDisplayX(line, displayX)
+  private _getTextPositionOnDisplayX (line: HTMLElement, displayX: number): number {
+    const { child, childDisplayX } = this._getChildOnDisplayX(line, displayX)
     let startDisplayX: number = childDisplayX
     this._canvasContext.font =
       child.nodeType === Node.ELEMENT_NODE
@@ -117,21 +119,28 @@ class MeasureHtmlTool {
     return child.innerText.length
   }
 
-  private _getChildByDisplayX (parent: HTMLElement, displayX: number): { child: HTMLElement, childDisplayX: number } {
+  private _getChildOnDisplayX (parent: HTMLElement, displayX: number): { child: HTMLElement, childDisplayX: number } {
     for (let i = 0; i < parent.children.length; i++) {
       const child: HTMLElement = parent.children[i] as HTMLElement
 
       if (displayX >= child.offsetLeft && displayX <= child.offsetLeft + child.offsetWidth) {
-        return this._getChildByDisplayX(child, displayX)
+        return this._getChildOnDisplayX(child, displayX)
       }
     }
 
     return { child: parent, childDisplayX: parent.offsetLeft }
   }
 
-  getTextPosition (lines: HTMLElement[], displayX: number, displayY: number): { x: number, y: number } {
-    const y: number = this._getLineByDisplayY(lines, displayY - this._contextY)
-    const x: number = this._getTextPositionByDisplayX(lines[y], displayX - this._contextX)
+  normalizeDisplayPosition (displayPoint: IPoint): IPoint {
+    return {
+      x: displayPoint.x - this._contextPoint.x,
+      y: displayPoint.y - this._contextPoint.y
+    }
+  }
+
+  convertDisplayPosition (lines: HTMLElement[], displayPoint: IPoint): IPoint {
+    const y: number = this._getLineOnDisplayY(lines, displayPoint.y - this._contextPoint.y)
+    const x: number = this._getTextPositionOnDisplayX(lines[y], displayPoint.x - this._contextPoint.y)
 
     return { x, y }
   }

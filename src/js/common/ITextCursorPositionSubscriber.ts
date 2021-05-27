@@ -1,5 +1,5 @@
-import { IRange } from './IRange'
+import { IPoint } from './IPoint'
 
 export interface ITextCursorPositionSubscriber {
-  updateTextCursorPosition: (position: number, linePosition: number, selections: IRange[]) => void
+  updateTextCursorPosition: (position: IPoint) => void
 }

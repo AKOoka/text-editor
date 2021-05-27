@@ -1,8 +1,8 @@
 import { TextStyleType } from '../../common/TextStyleType'
 import { IActiveTextStylesSubscriber } from '../../common/IActiveTextStylesSubscriber'
-import { AddTextStyleCommand } from '../../command-pipeline/commands/AddTextStyleCommand'
-import { AddSelectionCommand } from '../../command-pipeline/commands/AddSelectionCommand'
-import { ClearSelectionsCommand } from '../../command-pipeline/commands/ClearSelectionsCommand'
+import { CommandTextStyleAdd } from '../../command-pipeline/commands/CommandTextStyleAdd'
+// import { CommandSelectionAdd } from '../../command-pipeline/commands/CommandSelectionAdd'
+import { CommandSelectionsClear } from '../../command-pipeline/commands/CommandSelectionsClear'
 import { IInputEventManager } from '../IInputEventManager'
 import { InputEventHandler } from '../InputEventHandler'
 
@@ -13,11 +13,11 @@ interface IUiButtonConfig {
 }
 
 const uiButtonConfigs: IUiButtonConfig[] = [
-  { type: 'bold', popupText: 'bold', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new AddTextStyleCommand('bold', true)) },
-  { type: 'underline', popupText: 'underline', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new AddTextStyleCommand('underline', true)) },
-  { type: 'add selection', popupText: 'add selection', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new AddSelectionCommand({ startX: 0, endX: 5, startY: 0, endY: 0 }, false)) },
-  { type: 'add second selection', popupText: 'add second selection', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new AddSelectionCommand({ startX: 2, endX: 7, startY: 0, endY: 0 }, false)) },
-  { type: 'clear selections', popupText: 'clear selections', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new ClearSelectionsCommand(false)) },
+  { type: 'bold', popupText: 'bold', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleAdd('bold', true)) },
+  { type: 'underline', popupText: 'underline', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleAdd('underline', true)) },
+  // { type: 'add selection', popupText: 'add selection', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandSelectionAdd({ x: 0, endX: 5, y: 0, endY: 0 }, false)) },
+  // { type: 'add second selection', popupText: 'add second selection', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandSelectionAdd({ x: 2, endX: 7, y: 0, endY: 0 }, false)) },
+  { type: 'clear selections', popupText: 'clear selections', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandSelectionsClear(false)) },
   { type: 'undo', popupText: 'undo', handler: ({ commandDispatcher }) => commandDispatcher.undoCommand() },
   { type: 'redo', popupText: 'redo', handler: ({ commandDispatcher }) => commandDispatcher.redoCommand() }
 ]

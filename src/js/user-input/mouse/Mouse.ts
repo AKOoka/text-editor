@@ -1,26 +1,25 @@
 import { MouseContextualMenu } from './MouseContextualMenu'
 import { IInputEventManager } from '../IInputEventManager'
 import { IInputEventHandlerPayload } from '../IInputEventHandlerPayload'
+import { IPoint } from '../../common/IPoint'
 
 class Mouse {
   private _inputEventManager: IInputEventManager
-  private _displayX: number
-  private _displayY: number
+  private _displayPoint: IPoint
   private _mouseSelection: boolean
   private readonly _contextualMenu: MouseContextualMenu
 
   constructor () {
-    this._displayX = 0
-    this._displayY = 0
+    this._displayPoint = { x: 0, y: 0 }
     this._contextualMenu = new MouseContextualMenu()
   }
 
   private _handlerMouseDown (payload: IInputEventHandlerPayload<MouseEvent>): void {
     console.log('mouse down')
-    this._inputEventManager.triggerEventChangeTextCursorPosition(payload.event.offsetX, payload.event.offsetY)
+    this._inputEventManager.triggerEventChangeTextCursorPosition({ x: payload.event.x, y: payload.event.y })
 
-    this._displayX = payload.event.offsetX
-    this._displayY = payload.event.offsetY
+    this._displayPoint.x = payload.event.x
+    this._displayPoint.y = payload.event.y
     this._mouseSelection = true
 
     if (this._contextualMenu.isActive()) {
@@ -30,25 +29,22 @@ class Mouse {
 
   private _handlerMouseMove (payload: IInputEventHandlerPayload<MouseEvent>): void {
     if (this._mouseSelection) {
-      console.log(`mouseX: ${payload.event.offsetX}; mouseY: ${payload.event.offsetY}`)
+      console.log(`mouseX: ${this._displayPoint.x}; mouseY: ${this._displayPoint.y}`, '\nevent: ', payload.event)
     }
   }
 
   private _handlerMouseUp (payload: IInputEventHandlerPayload<MouseEvent>): void {
-    this._displayX = payload.event.offsetX
-    this._displayY = payload.event.offsetY
+    this._displayPoint.x = payload.event.x
+    this._displayPoint.y = payload.event.y
     this._mouseSelection = false
     console.log('mouse up')
   }
 
   private _handlerContextualMenu (payload: IInputEventHandlerPayload<MouseEvent>): void {
-    this._displayX = payload.event.offsetX
-    this._displayY = payload.event.offsetY
+    this._displayPoint.x = payload.event.x
+    this._displayPoint.y = payload.event.y
     console.log(`context menu on x: ${payload.event.x}; y: ${payload.event.y}`)
-    payload.event.preventDefault()
-
-    this._contextualMenu.setPosition(this._displayX, this._displayY)
-    this._inputEventManager.showUiElementOnInteractiveContext(this._contextualMenu.getContext())
+    this._inputEventManager.showUiElementOnInteractiveContext({ x: payload.event.x, y: payload.event.y }, this._contextualMenu.getContext())
     this._contextualMenu.setActiveState(true)
   }
 

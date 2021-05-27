@@ -1,7 +1,7 @@
 import { ITextEditor } from '../../core/ITextEditor'
 import { BaseCommand } from './BaseCommand'
 
-class DeleteTextCommand extends BaseCommand {
+class CommandTextDelete extends BaseCommand {
   private readonly _deleteOffset: number
   private readonly _deleteMove: number
 
@@ -13,14 +13,15 @@ class DeleteTextCommand extends BaseCommand {
 
   do (context: ITextEditor): void {
     const lineLength: number = context.fetchData('textLength').textLength
-    context.deleteTextOnTextCursor(this._deleteOffset)
-    context.deleteTextOnSelection()
-    if (lineLength <= 1) {
-      context.moveTextCursorYPosition(-1)
-      context.moveTextCursorXPosition(Infinity)
+    // context.deleteTextInRange(this._deleteOffset)
+    // context.deleteTextInSelections()
+    if (lineLength === 0) {
+      // context.moveTextCursorYPosition(-1)
+      // context.moveTextCursorXPosition(Infinity)
     } else {
-      context.moveTextCursorXPosition(this._deleteMove)
+      // context.moveTextCursorXPosition(this._deleteMove)
     }
+    console.log(this._deleteMove, this._deleteOffset)
     context.updateTextRepresentation()
     context.updateTextCursorPosition()
   }
@@ -30,4 +31,4 @@ class DeleteTextCommand extends BaseCommand {
   }
 }
 
-export { DeleteTextCommand }
+export { CommandTextDelete }

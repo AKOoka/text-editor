@@ -1,7 +1,9 @@
 import { INode } from './INode'
 import { TextStyleType } from '../../../common/TextStyleType'
 import { ChildNodeInRangeCallback } from './ChildNodeInRangeCallback'
-import { NodeRepresentation } from './NodeRepresentation'
+import { NodeRepresentation } from '../NodeRepresentation'
+import { RangeNode } from './RangeNode'
+import { PositionNode } from './PositionNode'
 
 abstract class BaseNodeContainer implements INode {
   protected _childNodes: INode[]
@@ -12,36 +14,17 @@ abstract class BaseNodeContainer implements INode {
     this._childNodes = childNodes
     this._size = 0
     this._representation = new NodeRepresentation()
-    this._representation.children = []
-    this._representation.size = 0
 
     for (const childNode of this._childNodes) {
       this._size += childNode.getSize()
     }
   }
 
-  protected _nodeInPosition (offset: number, x: number, nodeSize: number): boolean {
-    return (x >= offset && x <= offset + nodeSize)
-  }
-
-  protected _nodeInRange (start: number, end: number, nodeOffset: number, nodeSize: number): boolean {
-    const rightEdge: number = nodeOffset + nodeSize
-
-    return (((start >= nodeOffset && start <= rightEdge) && !(start === rightEdge && end >= rightEdge)) ||
-           ((end >= nodeOffset && end <= rightEdge) && !(end === nodeOffset && start <= nodeOffset)))
-  }
-
   protected _mergeNodes (nodes: INode[]): INode[] {
+    // make like .addContent() but with NodeType instead of TextStyleType
     if (nodes.length <= 1) {
       return nodes
     }
-
-    // const mergedNodes: INode[] = [nodes[0]]
-
-    // for (let i = 1; i < nodes.length - 1; i++) {
-    //   const mergeResult: INode[] = mergedNodes[mergedNodes.length - 1].mergeWithNode(nodes[i], true)
-    //   mergedNodes.push(mergeResult[mergeResult.length === 2 ? 1 : 0])
-    // }
 
     const mergedNodes: INode[] = [nodes[0]]
     let mergeIndex: number = 0
@@ -61,20 +44,18 @@ abstract class BaseNodeContainer implements INode {
   }
 
   protected _updateChildNodesInRange<TextStyle> (
-    inRange: ChildNodeInRangeCallback<TextStyle>,
-    offset: number,
-    start: number,
-    end: number,
+    inRangeCallback: ChildNodeInRangeCallback<TextStyle>,
+    rangeNode: RangeNode,
     textStyleType: TextStyle
   ): INode[] {
     let childNodesInRange: INode[] = []
-    let childStartOffset: number = offset
+    let childStartOffset: number = rangeNode.offset
 
     for (const childNode of this._childNodes) {
       const childNodeSize: number = childNode.getSize()
 
-      if (this._nodeInRange(start, end, childStartOffset, childNodeSize)) {
-        childNodesInRange = childNodesInRange.concat(inRange(childNode, childStartOffset, start, end, textStyleType))
+      if (rangeNode.childNodeInRange(childStartOffset, childNodeSize)) {
+        childNodesInRange = childNodesInRange.concat(inRangeCallback(new RangeNode(childStartOffset, rangeNode.initStart, rangeNode.initEnd), childNode, textStyleType))
       } else {
         childNodesInRange.push(childNode)
       }
@@ -90,24 +71,19 @@ abstract class BaseNodeContainer implements INode {
   }
 
   getSize (): number {
-    // let size: number = 0
-    // for (const child of this._childNodes) {
-    //   size += child.getSize()
-    // }
-    // return size
     return this._size
   }
 
-  removeText (offset: number, start: number, end: number): boolean {
+  deleteText (range: RangeNode): boolean {
     const newChildNodes: INode[] = []
-    let startOffset: number = offset
+    let startOffset: number = range.offset
 
     for (const childNode of this._childNodes) {
       const curChildSize = childNode.getSize()
 
-      if (this._nodeInRange(start, end, startOffset, curChildSize)) {
+      if (range.childNodeInRange(startOffset, curChildSize)) {
         const childSizeBefore: number = childNode.getSize()
-        const emptyChild: boolean = childNode.removeText(startOffset, start, end)
+        const emptyChild: boolean = childNode.deleteText(new RangeNode(startOffset, range.initStart, range.initEnd))
         this._size -= childSizeBefore - childNode.getSize()
         if (!emptyChild) {
           newChildNodes.push(childNode)
@@ -125,12 +101,14 @@ abstract class BaseNodeContainer implements INode {
     return this._size === 0
   }
 
-  getContentInRange (offset: number, startX: number, endX: number): NodeRepresentation {
+  getContentInRange (range: RangeNode): NodeRepresentation {
     const content: NodeRepresentation = new NodeRepresentation()
-    let nodeOffset: number = offset
+    content.children = []
+    content.size = 0
+    let nodeOffset: number = range.offset
     for (const childNode of this._childNodes) {
-      if (this._nodeInRange(startX, endX, nodeOffset, childNode.getSize())) {
-        const childContent = childNode.getContentInRange(nodeOffset, startX, endX)
+      if (range.childNodeInRange(range.start, range.end)) {
+        const childContent = childNode.getContentInRange(new RangeNode(nodeOffset, range.initStart, range.initEnd))
         content.children.push(childContent)
         content.size += childContent.size
       }
@@ -140,6 +118,8 @@ abstract class BaseNodeContainer implements INode {
   }
 
   getRepresentation (): NodeRepresentation {
+    this._representation.children = []
+    this._representation.size = 0
     for (const childNode of this._childNodes) {
       const childRepresentation = childNode.getRepresentation()
       this._representation.children.push(childRepresentation)
@@ -148,14 +128,14 @@ abstract class BaseNodeContainer implements INode {
     return this._representation
   }
 
-  abstract addContent (content: NodeRepresentation[], offset: number, x: number, parentTextStyles: TextStyleType[]): INode[]
-  abstract mergeWithNode (node: INode, joinAfter: boolean): INode[]
   abstract getStyle (): TextStyleType | null
-  abstract addText (text: string, offset: number, position: number): void
-  abstract addTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): INode[]
-  abstract removeAllTextStyles (offset: number, start: number, end: number): INode[]
-  abstract removeConcreteTextStyle (offset: number, start: number, end: number, textStyleType: TextStyleType): INode[]
-  abstract textStylesInRange (offset: number, start: number, end: number): TextStyleType[]
+  abstract getTextStylesInRange (range: RangeNode): TextStyleType[]
+  abstract addText (position: PositionNode, text: string): void
+  abstract addContent (position: PositionNode, content: NodeRepresentation[], parentTextStyles: TextStyleType[]): INode[]
+  abstract addTextStyle (range: RangeNode, textStyle: TextStyleType): INode[]
+  abstract deleteAllTextStyles (range: RangeNode): INode[]
+  abstract deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType): INode[]
+  abstract mergeWithNode (node: INode, joinAfter: boolean): INode[]
 }
 
 export { BaseNodeContainer }

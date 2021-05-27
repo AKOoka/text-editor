@@ -1,7 +1,7 @@
 import { ITextEditor } from '../../core/ITextEditor'
 import { BaseCommand } from './BaseCommand'
 
-class HorMoveTextCursor extends BaseCommand {
+class CommandTextCursorMoveX extends BaseCommand {
   private readonly _offset: number
 
   constructor (toBeSaved: boolean, offset: number) {
@@ -10,14 +10,14 @@ class HorMoveTextCursor extends BaseCommand {
   }
 
   do (context: ITextEditor): void {
-    context.moveTextCursorXPosition(this._offset)
+    context.setTextCursorX(context.fetchData('textCursorX').textCursorX + this._offset)
     context.updateTextCursorPosition()
   }
 
   undo (context: ITextEditor): void {
-    context.moveTextCursorXPosition(-this._offset)
+    context.setTextCursorX(context.fetchData('textCursorX').textCursorX - this._offset)
     context.updateTextCursorPosition()
   }
 }
 
-export { HorMoveTextCursor }
+export { CommandTextCursorMoveX }
