@@ -89,10 +89,9 @@ class NodeTextStyle extends BaseNode {
     return []
   }
 
-  getContentInRange (range: RangeNode): NodeRepresentation {
-    const content: NodeRepresentation = super.getContentInRange(range)
-    content.type = this._representation.type
-    content.textStyle = this._textStyle
+  getContentInRange (range: RangeNode): NodeRepresentation[] {
+    const content: NodeRepresentation[] = super.getContentInRange(range)
+    content[0].textStyle = this._textStyle
     return content
   }
 

@@ -22,7 +22,7 @@ class TextCursor {
 
   set x (x: number) {
     this._position.x = x
-    console.log(`x: ${this._position.x}`)
+    console.log(`x: ${this._position.x}, y: ${this._position.y}`)
   }
 
   get y (): number {
@@ -31,7 +31,7 @@ class TextCursor {
 
   set y (y: number) {
     this._position.y = y
-    console.log(`y: ${this._position.y}`)
+    console.log(`x: ${this._position.x}, y: ${this._position.y}`)
   }
 
   get position (): IPoint {
@@ -40,6 +40,7 @@ class TextCursor {
 
   set position (position: IPoint) {
     this._position = position
+    console.log(`x: ${this._position.x}, y: ${this._position.y}`)
   }
 
   get selections (): ISelection[] {

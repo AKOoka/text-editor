@@ -180,24 +180,18 @@ class NodeStyleContainer extends BaseNodeContainer {
   }
 
   addContent (position: PositionNode, content: NodeRepresentation[], parentTextStyles: TextStyleType[]): INode[] {
-    let startOffset: number = position.offset
-    for (let i = 0; i < this._childNodes.length; i++) {
-      const childSize: number = this._childNodes[i].getSize()
-      if (position.nodeInPosition(startOffset, this._childNodes[i].getSize())) {
-        parentTextStyles.push(this._textStyle)
-        this._childNodes.splice(i, 1, ...this._childNodes[i].addContent(new PositionNode(startOffset, position.initPosition), content, parentTextStyles))
-        return [this]
-      }
-      startOffset += childSize
-    }
-    return [this]
+    parentTextStyles.push(this._textStyle)
+    return super.addContent(position, content, parentTextStyles)
   }
 
-  getContentInRange (range: RangeNode): NodeRepresentation {
-    const content: NodeRepresentation = super.getContentInRange(range)
+  getContentInRange (range: RangeNode): NodeRepresentation[] {
+    const content: NodeRepresentation = new NodeRepresentation()
     content.type = this._representation.type
     content.textStyle = this._textStyle
-    return content
+    content.children = super.getContentInRange(range)
+    // temporary solution. think about send callback to base .getContentInRange()
+    content.size = content.children.reduce((previousValue, currentValue) => previousValue + currentValue.size, 0)
+    return [content]
   }
 }
 

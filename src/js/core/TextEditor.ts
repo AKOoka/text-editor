@@ -11,7 +11,7 @@ import { TextEditorResponse } from '../common/TextEditorResponse'
 import { NodeRepresentation } from './TextRepresentation/NodeRepresentation'
 import { IPoint } from '../common/IPoint'
 import { ISelection } from '../common/ISelection'
-import { TextEditorRequestType } from '../common/TextEditorRequestType'
+import { TextEditorRequest } from '../common/TextEditorRequest'
 
 class TextEditor implements ITextEditor {
   private readonly _textCursor: TextCursor
@@ -25,28 +25,6 @@ class TextEditor implements ITextEditor {
     this._activeTextStylesSubscribers = []
     this._context = document.createElement('div')
     this._context.classList.add('text-editor')
-  }
-
-  private _getValidY (y: number): number {
-    const lineCount: number = this._textRepresentation.getLinesCount()
-    if (y < 0) {
-      return 0
-    } else if (y < lineCount) {
-      return y
-    } else {
-      return lineCount - 1
-    }
-  }
-
-  private _getValidX (y: number, x: number): number {
-    const textLength: number = this._textRepresentation.getTextLengthInLine(y)
-    if (x < 0) {
-      return 0
-    } else if (x <= textLength) {
-      return x
-    } else {
-      return textLength
-    }
   }
 
   init (): void {
@@ -101,26 +79,9 @@ class TextEditor implements ITextEditor {
 
   deleteConcreteTextStylesInSelections (selections: ISelection[], textStyleType: TextStyleType): void {
     this._textRepresentation.deleteConcreteTextStyleInSelections(selections, textStyleType)
-    // this._textRepresentation.deleteConcreteTextStyleInSelections(
-    //   textStyleType,
-    //   [{
-    //     startX: this._textCursor.getX(),
-    //     endX: this._textCursor.getX(),
-    //     startY: this._textCursor.getY(),
-    //     endY: this._textCursor.getY()
-    //   }].concat(this._textCursor.getSelections())
-    // )
   }
 
   deleteAllTextStylesInSelections (selections: ISelection[]): void {
-    // this._textRepresentation.deleteAllTextStylesInSelections(
-    //   [{
-    //     startX: this._textCursor.getX(),
-    //     endX: this._textCursor.getX(),
-    //     startY: this._textCursor.getY(),
-    //     endY: this._textCursor.getY()
-    //   }].concat(this._textCursor.getSelections())
-    // )
     this._textRepresentation.deleteAllTextStylesInSelections(selections)
   }
 
@@ -133,11 +94,11 @@ class TextEditor implements ITextEditor {
   }
 
   setTextCursorX (x: number): void {
-    this._textCursor.x = this._getValidX(this._textCursor.y, x)
+    this._textCursor.x = x
   }
 
   setTextCursorY (y: number): void {
-    this._textCursor.y = this._getValidY(y)
+    this._textCursor.y = y
   }
 
   setTextCursorPosition (position: IPoint): void {
@@ -181,28 +142,33 @@ class TextEditor implements ITextEditor {
     }
   }
 
-  fetchData (request: TextEditorRequestType): TextEditorResponse {
+  fetchData (requests: TextEditorRequest[]): TextEditorResponse {
     const response: TextEditorResponse = new TextEditorResponse()
 
-    switch (request) {
-      case 'textCursorX':
-        response.textCursorX = this._textCursor.x
-        break
-      case 'textCursorY':
-        response.textCursorY = this._textCursor.y
-        break
-      case 'textCursorPosition':
-        response.textCursorPosition = this._textCursor.position
-        break
-      case 'textLength':
-        response.textLength = this._textRepresentation.getTextLengthInLine(this._textCursor.y)
-        break
-      case 'selectedContent':
-        response.selectedContent = this._textRepresentation.getContentInSelections(this._textCursor.selections)
-        break
-      case 'textSelections':
-        response.textSelections = [...this._textCursor.selections]
-        break
+    for (const { type, payload } of requests) {
+      switch (type) {
+        case 'textCursorX':
+          response.textCursorX = this._textCursor.x
+          break
+        case 'textCursorY':
+          response.textCursorY = this._textCursor.y
+          break
+        case 'textCursorPosition':
+          response.textCursorPosition = this._textCursor.position
+          break
+        case 'textLength':
+          response.textLength = this._textRepresentation.getTextLengthInLine(payload.y)
+          break
+        case 'textSelections':
+          response.textSelections = [...this._textCursor.selections]
+          break
+        case 'textLineCount':
+          response.textLineCount = this._textRepresentation.getLinesCount()
+          break
+        case 'selectedContent':
+          response.selectedContent = this._textRepresentation.getContentInSelections(payload.selections)
+          break
+      }
     }
 
     return response

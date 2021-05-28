@@ -7,7 +7,7 @@ import { PositionNode } from './PositionNode'
 export interface INode {
   getSize: () => number
   getStyle: () => TextStyleType | null
-  getContentInRange: (range: RangeNode) => NodeRepresentation
+  getContentInRange: (range: RangeNode) => NodeRepresentation[]
   getRepresentation: () => NodeRepresentation
   getTextStylesInRange: (range: RangeNode) => TextStyleType[]
   addText: (position: PositionNode, text: string) => void

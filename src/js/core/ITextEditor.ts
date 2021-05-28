@@ -8,7 +8,7 @@ import { NodeRepresentation } from './TextRepresentation/NodeRepresentation'
 import { ISelection } from '../common/ISelection'
 import { IPoint } from '../common/IPoint'
 import { Range } from '../common/Range'
-import { TextEditorRequestType } from '../common/TextEditorRequestType'
+import { TextEditorRequest } from '../common/TextEditorRequest'
 
 export interface ITextEditor {
   init: () => void
@@ -35,5 +35,5 @@ export interface ITextEditor {
   updateTextCursorSelections: () => void
   updateTextRepresentation: () => void
   updateActiveStyles: () => void
-  fetchData: (request: TextEditorRequestType) => TextEditorResponse
+  fetchData: (requests: TextEditorRequest[]) => TextEditorResponse
 }

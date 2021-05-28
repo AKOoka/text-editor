@@ -5,7 +5,6 @@ import { NodeStyleContainer } from './NodeStyleContainer'
 import { BaseNodeContainer } from './BaseNodeContainer'
 import { ChildNodeInRangeCallback } from './ChildNodeInRangeCallback'
 import { NodeType } from './NodeType'
-import { NodeRepresentation } from '../NodeRepresentation'
 import { PositionNode } from './PositionNode'
 import { RangeNode } from './RangeNode'
 
@@ -72,28 +71,6 @@ class NodeLineContainer extends BaseNodeContainer {
     )
 
     return [this]
-  }
-
-  addContent (position: PositionNode, content: NodeRepresentation[], parentTextStyles: TextStyleType[]): INode[] {
-    let startOffset: number = position.offset
-    for (let i = 0; i < this._childNodes.length; i++) {
-      const childSize: number = this._childNodes[i].getSize()
-      if (position.nodeInPosition(startOffset, this._childNodes[i].getSize())) {
-        this._childNodes.splice(
-          i,
-          1,
-          ...this._childNodes[i].addContent(new PositionNode(startOffset, position.initPosition), content, parentTextStyles))
-        return [this]
-      }
-      startOffset += childSize
-    }
-    return [this]
-  }
-
-  getContentInRange (range: RangeNode): NodeRepresentation {
-    const content: NodeRepresentation = super.getContentInRange(range)
-    content.type = this._representation.type
-    return content
   }
 
   getTextStylesInRange (range: RangeNode): TextStyleType[] {

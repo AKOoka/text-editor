@@ -174,7 +174,7 @@ class TextRepresentation {
       .slice(0, insertPosition)
       .concat(newLines, this._textLines.slice(insertPosition))
 
-    this._setOffsetY(rangeY.start + 1, rangeY.width)
+    this._setOffsetY(rangeY.start + rangeY.width + 1, rangeY.width)
 
     for (let i = 0; i < rangeY.width; i++) {
       this._changes.set(newLines[i], [offsetY + i + rangeY.start + i + 1, TextRepresentationAction.ADD])
@@ -184,7 +184,7 @@ class TextRepresentation {
   deleteLines (rangeY: Range): void {
     const lineOffset = this._getOffsetY(rangeY.start)
     const deletedLines = this._textLines.splice(rangeY.start + lineOffset, rangeY.width)
-    this._setOffsetY(rangeY.start, -rangeY.width)
+    this._setOffsetY(rangeY.start - rangeY.width - 1, -rangeY.width)
     for (const deletedLine of deletedLines) {
       this._changes.set(deletedLine, [lineOffset + rangeY.start, TextRepresentationAction.REMOVE])
     }
@@ -202,13 +202,6 @@ class TextRepresentation {
     const offsetY: number = this._getOffsetY(y)
     const lineY = y + offsetY
     const line: INode = this._textLines[lineY]
-
-    if (line.getSize() <= 0 && this.getLinesCount() > 1) {
-      this._textLines = this._textLines.slice(0, lineY).concat(this._textLines.slice(lineY + 1))
-      this._setOffsetY(y, -1)
-      this._changes.set(line, [offsetY + y, TextRepresentationAction.REMOVE])
-      return
-    }
 
     line.deleteText(
       new RangeNode(
@@ -243,18 +236,18 @@ class TextRepresentation {
   getContentInSelections (selections: ISelection[]): NodeRepresentation[] {
     return this._getInfoInSelections<NodeRepresentation>(
       selections,
-      ({ line, rangeNode }) => [line.getContentInRange(rangeNode)])
+      ({ line, rangeNode }) => line.getContentInRange(rangeNode))
   }
 
   addContent (point: IPoint, content: NodeRepresentation[]): void {
     const lineOffset = this._getOffsetY(point.y)
     const line = this._textLines[point.y + lineOffset]
-    let contentSize: number = 0
-    for (const c of content) {
-      contentSize += c.size
-    }
     line.addContent(new PositionNode(0, point.x + this._getOffsetX(point.y, point.x)), content, [])
-    this._setOffsetX(point.y, point.x, contentSize)
+    this._setOffsetX(
+      point.y,
+      point.x,
+      content.reduce((previousValue, currentValue) => previousValue + currentValue.size, 0)
+    )
     this._changes.set(line, [lineOffset + point.y, TextRepresentationAction.CHANGE])
   }
 

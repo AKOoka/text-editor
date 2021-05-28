@@ -8,6 +8,7 @@ class TextEditorResponse {
   textCursorPosition: IPoint
   textLength: number
   textSelections: ISelection[]
+  textLineCount: number
   selectedContent: NodeRepresentation[]
 }
 

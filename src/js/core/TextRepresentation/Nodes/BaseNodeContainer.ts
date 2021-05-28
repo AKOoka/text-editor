@@ -101,16 +101,12 @@ abstract class BaseNodeContainer implements INode {
     return this._size === 0
   }
 
-  getContentInRange (range: RangeNode): NodeRepresentation {
-    const content: NodeRepresentation = new NodeRepresentation()
-    content.children = []
-    content.size = 0
+  getContentInRange (range: RangeNode): NodeRepresentation[] {
+    const content: NodeRepresentation[] = []
     let nodeOffset: number = range.offset
     for (const childNode of this._childNodes) {
       if (range.childNodeInRange(range.start, range.end)) {
-        const childContent = childNode.getContentInRange(new RangeNode(nodeOffset, range.initStart, range.initEnd))
-        content.children.push(childContent)
-        content.size += childContent.size
+        content.push(...childNode.getContentInRange(new RangeNode(nodeOffset, range.initStart, range.initEnd)))
       }
       nodeOffset += childNode.getSize()
     }
@@ -128,10 +124,21 @@ abstract class BaseNodeContainer implements INode {
     return this._representation
   }
 
+  addContent (position: PositionNode, content: NodeRepresentation[], parentTextStyles: TextStyleType[]): INode[] {
+    let startOffset: number = position.offset
+    for (let i = 0; i < this._childNodes.length; i++) {
+      const childSize: number = this._childNodes[i].getSize()
+      if (position.nodeInPosition(startOffset, this._childNodes[i].getSize())) {
+        return this._childNodes.splice(i, 1, ...this._childNodes[i].addContent(new PositionNode(startOffset, position.initPosition), content, parentTextStyles))
+      }
+      startOffset += childSize
+    }
+    return this._childNodes
+  }
+
   abstract getStyle (): TextStyleType | null
   abstract getTextStylesInRange (range: RangeNode): TextStyleType[]
   abstract addText (position: PositionNode, text: string): void
-  abstract addContent (position: PositionNode, content: NodeRepresentation[], parentTextStyles: TextStyleType[]): INode[]
   abstract addTextStyle (range: RangeNode, textStyle: TextStyleType): INode[]
   abstract deleteAllTextStyles (range: RangeNode): INode[]
   abstract deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType): INode[]

@@ -2,6 +2,7 @@ import { ITextEditor } from '../../core/ITextEditor'
 import { BaseCommand } from './BaseCommand'
 import { IPoint } from '../../common/IPoint'
 import { Range } from '../../common/Range'
+import { TextEditorRequest } from '../../common/TextEditorRequest'
 
 class CommandTextAdd extends BaseCommand {
   private readonly _text: string
@@ -12,7 +13,7 @@ class CommandTextAdd extends BaseCommand {
   }
 
   do (context: ITextEditor): void {
-    const position: IPoint = context.fetchData('textCursorPosition').textCursorPosition
+    const position: IPoint = context.fetchData([new TextEditorRequest('textCursorPosition')]).textCursorPosition
     context.addText(position, this._text)
     context.setTextCursorX(position.x + this._text.length)
     context.updateTextRepresentation()
@@ -20,7 +21,7 @@ class CommandTextAdd extends BaseCommand {
   }
 
   undo (context: ITextEditor): void {
-    const position: IPoint = context.fetchData('textCursorPosition').textCursorPosition
+    const position: IPoint = context.fetchData([new TextEditorRequest('textCursorPosition')]).textCursorPosition
     context.setTextCursorX(position.x - this._text.length)
     context.deleteTextInRange(position.y, new Range(position.x - this._text.length, position.x))
     context.updateTextRepresentation()

@@ -2,7 +2,7 @@ import { ICommandDispatcher } from './ICommandDispatcher'
 import { BaseCommand } from './commands/BaseCommand'
 import { TextEditorResponse } from '../common/TextEditorResponse'
 import { CommandDispatcher } from './CommandDispatcher'
-import { TextEditorRequestType } from '../common/TextEditorRequestType'
+import { TextEditorRequest } from '../common/TextEditorRequest'
 
 class HistoryCommandDispatcher implements ICommandDispatcher {
   private readonly _commandDispatcher: CommandDispatcher
@@ -39,8 +39,8 @@ class HistoryCommandDispatcher implements ICommandDispatcher {
     this._commandDispatcher.doCommand(this._commandHistory[this._commandHistory.length - 1 - this._historyPointerOffset])
   }
 
-  fetchData (request: TextEditorRequestType): TextEditorResponse {
-    return this._commandDispatcher.fetchData(request)
+  fetchData (requests: TextEditorRequest[]): TextEditorResponse {
+    return this._commandDispatcher.fetchData(requests)
   }
 }
 

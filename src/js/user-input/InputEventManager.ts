@@ -6,6 +6,7 @@ import { InputEventHandler } from './InputEventHandler'
 import { ICommandDispatcher } from '../command-pipeline/ICommandDispatcher'
 import { NodeRepresentation } from '../core/TextRepresentation/NodeRepresentation'
 import { IPoint } from '../common/IPoint'
+import { TextEditorRequest } from '../common/TextEditorRequest'
 
 class InputEventManager implements IInputEventManager {
   private readonly _textArea: ITextArea
@@ -18,7 +19,7 @@ class InputEventManager implements IInputEventManager {
   }
 
   triggerEventCopy (): void {
-    this._savedContent = this._commandDispatcher.fetchData('selectedContent').selectedContent
+    this._savedContent = this._commandDispatcher.fetchData([new TextEditorRequest('selectedContent')]).selectedContent
   }
 
   triggerEventPaste (): void {
@@ -26,7 +27,7 @@ class InputEventManager implements IInputEventManager {
   }
 
   triggerEventChangeTextCursorPosition (displayPoint: IPoint): void {
-    this._commandDispatcher.doCommand(new CommandTextCursorSetPosition(false, this._textArea.getTextPosition(displayPoint)))
+    this._commandDispatcher.doCommand(new CommandTextCursorSetPosition(false, this._textArea.convertToTextPosition(displayPoint)))
   }
 
   showUiElementOnInteractiveContext (displayPoint: IPoint, uiElement: HTMLElement): void {

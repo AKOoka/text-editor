@@ -72,11 +72,12 @@ abstract class BaseNode implements INode {
     return this._text.length === 0
   }
 
-  getContentInRange (range: RangeNode): NodeRepresentation {
+  getContentInRange (range: RangeNode): NodeRepresentation[] {
     const content: NodeRepresentation = new NodeRepresentation()
     content.text = this._text.slice(range.start, range.end)
+    content.type = this._representation.type
     content.size = content.text.length
-    return content
+    return [content]
   }
 
   getRepresentation (): NodeRepresentation {

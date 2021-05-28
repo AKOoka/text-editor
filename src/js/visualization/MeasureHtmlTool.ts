@@ -7,7 +7,7 @@ interface ISearchChildResult {
 
 class MeasureHtmlTool {
   private readonly _canvasContext: CanvasRenderingContext2D
-  private _contextPoint: IPoint
+  private _contextPosition: IPoint
   private _contextFont: string
 
   constructor () {
@@ -15,16 +15,16 @@ class MeasureHtmlTool {
     if (ctx === null) {
       throw new Error("can't create canvas context 2d")
     }
-    this._contextPoint = { x: 0, y: 0 }
+    this._contextPosition = { x: 0, y: 0 }
     this._canvasContext = ctx
   }
 
   setContext (textAreaContext: HTMLElement): void {
-    this._contextPoint.x = textAreaContext.getBoundingClientRect().x
-    this._contextPoint.y = textAreaContext.getBoundingClientRect().y
+    this._contextPosition.x = textAreaContext.getBoundingClientRect().x
+    this._contextPosition.y = textAreaContext.getBoundingClientRect().y
     this._contextFont = this._getFontFromElement(textAreaContext)
     this._canvasContext.font = this._contextFont
-    console.log(`text area font: ${this._contextFont}\ncontext x: ${this._contextPoint.x}; y: ${this._contextPoint.y}`)
+    console.log(`text area font: ${this._contextFont}\ncontext x: ${this._contextPosition.x}; y: ${this._contextPosition.y}`)
   }
 
   private _getFontFromElement (htmlElement: HTMLElement): string {
@@ -51,7 +51,7 @@ class MeasureHtmlTool {
 
     return {
       child: parent,
-      childOffset
+      childOffset: 0
     }
   }
 
@@ -66,9 +66,9 @@ class MeasureHtmlTool {
       child.nodeType === Node.ELEMENT_NODE
         ? this._getFontFromElement(child)
         : this._contextFont
-    const computedPosition = child.getBoundingClientRect().left - this._contextPoint.x + this._canvasContext.measureText(child.innerText.slice(0, x - childOffset)).width
+    const computedPosition = child.getBoundingClientRect().left - this._contextPosition.x + this._canvasContext.measureText(child.innerText.slice(0, x - childOffset)).width
 
-    console.log(`x: ${Math.ceil(computedPosition)}`)
+    // console.log(`x: ${Math.ceil(computedPosition)}`)
     return Math.ceil(computedPosition)
   }
 
@@ -131,16 +131,16 @@ class MeasureHtmlTool {
     return { child: parent, childDisplayX: parent.offsetLeft }
   }
 
-  normalizeDisplayPosition (displayPoint: IPoint): IPoint {
+  normalizeDisplayPosition (displayPosition: IPoint): IPoint {
     return {
-      x: displayPoint.x - this._contextPoint.x,
-      y: displayPoint.y - this._contextPoint.y
+      x: displayPosition.x - this._contextPosition.x,
+      y: displayPosition.y - this._contextPosition.y
     }
   }
 
-  convertDisplayPosition (lines: HTMLElement[], displayPoint: IPoint): IPoint {
-    const y: number = this._getLineOnDisplayY(lines, displayPoint.y - this._contextPoint.y)
-    const x: number = this._getTextPositionOnDisplayX(lines[y], displayPoint.x - this._contextPoint.y)
+  convertDisplayPosition (lines: HTMLElement[], displayPosition: IPoint): IPoint {
+    const y: number = this._getLineOnDisplayY(lines, displayPosition.y - this._contextPosition.y)
+    const x: number = this._getTextPositionOnDisplayX(lines[y], displayPosition.x - this._contextPosition.x)
 
     return { x, y }
   }
