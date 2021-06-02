@@ -1,8 +1,8 @@
 /* global describe, test, expect, beforeEach, afterEach, afterAll */
 
-import { TextRepresentation } from '../TextRepresentation/TextRepresentation'
+import { TextEditorRepresentation } from '../TextRepresentation/TextEditorRepresentation'
 
-const textRepresentation = new TextRepresentation()
+const textRepresentation = new TextEditorRepresentation()
 
 describe('setting line position offset', () => {
   afterEach(() => {

@@ -1,7 +1,5 @@
 import { ITextEditor } from '../../core/ITextEditor'
 import { BaseCommand } from './BaseCommand'
-import { TextEditorRequest } from '../../common/TextEditorRequest'
-import { TextEditorRequestPayload } from '../../common/TextEditorRequestPayload'
 import { IPoint } from '../../common/IPoint'
 
 class CommandTextCursorMoveX extends BaseCommand {
@@ -13,16 +11,14 @@ class CommandTextCursorMoveX extends BaseCommand {
   }
 
   _getNewX (context: ITextEditor, offset: number): IPoint {
-    const { x, y } = context.fetchData([new TextEditorRequest('textCursorPosition')]).textCursorPosition
-    const { textLength, textLineCount } = context.fetchData([
-      TextEditorRequest.NewWithPayload('textLength', TextEditorRequestPayload.NewWithY(y)),
-      new TextEditorRequest('textLineCount')
-    ])
+    const { x, y } = context.getTextCursorPosition()
+    const textLength = context.getLineLength(y)
+    const textLineCount = context.getLinesCount()
     const newX: number = x + offset
 
     if (newX < 0) {
       if (y - 1 >= 0) {
-        const { textLength } = context.fetchData([TextEditorRequest.NewWithPayload('textLength', TextEditorRequestPayload.NewWithY(y - 1))])
+        const textLength = context.getLineLength(y - 1)
         return { x: textLength, y: y - 1 }
       } else {
         return { x: 0, y }

@@ -1,17 +1,13 @@
 import { ITextArea } from '../visualization/ITextArea'
 import { CommandTextCursorSetPosition } from '../command-pipeline/commands/CommandTextCursorSetPosition'
 import { IInputEventManager } from './IInputEventManager'
-import { CommandContentPaste } from '../command-pipeline/commands/CommandContentPaste'
 import { InputEventHandler } from './InputEventHandler'
 import { ICommandDispatcher } from '../command-pipeline/ICommandDispatcher'
-import { NodeRepresentation } from '../core/TextRepresentation/NodeRepresentation'
 import { IPoint } from '../common/IPoint'
-import { TextEditorRequest } from '../common/TextEditorRequest'
 
 class InputEventManager implements IInputEventManager {
   private readonly _textArea: ITextArea
   private readonly _commandDispatcher: ICommandDispatcher
-  private _savedContent: NodeRepresentation[]
 
   constructor (textArea: ITextArea, commandDispatcher: ICommandDispatcher) {
     this._textArea = textArea
@@ -19,11 +15,11 @@ class InputEventManager implements IInputEventManager {
   }
 
   triggerEventCopy (): void {
-    this._savedContent = this._commandDispatcher.fetchData([new TextEditorRequest('selectedContent')]).selectedContent
+    // this._commandDispatcher.doCommand(new CommandContentCopy())
   }
 
   triggerEventPaste (): void {
-    this._commandDispatcher.doCommand(new CommandContentPaste(true, this._savedContent))
+    // this._commandDispatcher.doCommand(new CommandContentPaste(true))
   }
 
   triggerEventChangeTextCursorPosition (displayPoint: IPoint): void {

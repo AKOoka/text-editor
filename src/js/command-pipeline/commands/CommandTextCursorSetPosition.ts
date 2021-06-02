@@ -1,8 +1,6 @@
 import { BaseCommand } from './BaseCommand'
 import { ITextEditor } from '../../core/ITextEditor'
 import { IPoint } from '../../common/IPoint'
-import { TextEditorRequest } from '../../common/TextEditorRequest'
-import { TextEditorRequestPayload } from '../../common/TextEditorRequestPayload'
 
 class CommandTextCursorSetPosition extends BaseCommand {
   private _point: IPoint
@@ -13,11 +11,9 @@ class CommandTextCursorSetPosition extends BaseCommand {
   }
 
   _getNewPosition (context: ITextEditor, position: IPoint): IPoint {
-    const { textCursorY } = context.fetchData([new TextEditorRequest('textCursorY')])
-    const { textLineCount, textLength } = context.fetchData([
-      new TextEditorRequest('textLineCount'),
-      TextEditorRequest.NewWithPayload('textLength', TextEditorRequestPayload.NewWithY(textCursorY))
-    ])
+    const textCursorY = context.getTextCursorY()
+    const textLineCount = context.getLinesCount()
+    const textLength = context.getLineLength(textCursorY)
     let newX: number = 0
     let newY: number = 0
 
@@ -41,14 +37,14 @@ class CommandTextCursorSetPosition extends BaseCommand {
   }
 
   do (context: ITextEditor): void {
-    const { textCursorPosition } = context.fetchData([new TextEditorRequest('textCursorPosition')])
+    const textCursorPosition = context.getTextCursorPosition()
     context.setTextCursorPosition(this._getNewPosition(context, this._point))
     this._point = textCursorPosition
     context.updateTextCursorPosition()
   }
 
   undo (context: ITextEditor): void {
-    const { textCursorPosition } = context.fetchData([new TextEditorRequest('textCursorPosition')])
+    const textCursorPosition = context.getTextCursorPosition()
     context.setTextCursorPosition(this._getNewPosition(context, this._point))
     this._point = textCursorPosition
     context.updateTextCursorPosition()

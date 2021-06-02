@@ -1,7 +1,5 @@
 import { ITextEditor } from '../../core/ITextEditor'
 import { BaseCommand } from './BaseCommand'
-import { TextEditorRequest } from '../../common/TextEditorRequest'
-import { TextEditorRequestPayload } from '../../common/TextEditorRequestPayload'
 import { Range } from '../../common/Range'
 import { NodeRepresentation } from '../../core/TextRepresentation/NodeRepresentation'
 
@@ -18,15 +16,14 @@ class CommandTextDelete extends BaseCommand {
   }
 
   do (context: ITextEditor): void {
-    const { x, y } = context.fetchData([new TextEditorRequest('textCursorPosition')]).textCursorPosition
-    const { textLength, textLineCount, selectedContent } = context.fetchData([
-      TextEditorRequest.NewWithPayload('textLength', TextEditorRequestPayload.NewWithY(y)),
-      new TextEditorRequest('textLineCount'),
-      TextEditorRequest.NewWithPayload('selectedContent', TextEditorRequestPayload.NewWithSelections([
-        { rangeX: new Range(x + this._leftOffset, x + this._rightOffset), rangeY: new Range(y, y) }
-      ]))
+    const { x, y } = context.getTextCursorPosition()
+    const textLength = context.getLineLength(y)
+    const textLineCount = context.getLinesCount()
+
+    this._deletedContent = context.getContentInSelections([
+      { rangeX: new Range(x + this._leftOffset, x + this._rightOffset), rangeY: new Range(y, y) }
     ])
-    this._deletedContent = selectedContent
+
     if (textLength === 0) {
       if (textLineCount === 1) {
         return
@@ -34,9 +31,7 @@ class CommandTextDelete extends BaseCommand {
 
       context.deleteLinesInRange(new Range(y, y + 1 <= textLineCount ? y + 1 : textLineCount))
       if (this._leftOffset < 0) {
-        const newTextLength: number = context.fetchData([
-          TextEditorRequest.NewWithPayload('textLength', TextEditorRequestPayload.NewWithY(y + this._leftOffset))
-        ]).textLength
+        const newTextLength = context.getLineLength(y + this._leftOffset)
         context.setTextCursorPosition({ x: newTextLength, y: y + this._leftOffset })
       }
     } else {
@@ -48,7 +43,7 @@ class CommandTextDelete extends BaseCommand {
   }
 
   undo (context: ITextEditor): void {
-    const { x, y } = context.fetchData([new TextEditorRequest('textCursorPosition')]).textCursorPosition
+    const { x, y } = context.getTextCursorPosition()
     context.addContent({ x, y }, this._deletedContent)
     context.setTextCursorX(x - this._leftOffset)
     // if (this._lineDeleted) {}

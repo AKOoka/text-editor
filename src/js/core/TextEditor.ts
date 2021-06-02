@@ -1,34 +1,32 @@
 import { ITextEditor } from './ITextEditor'
 import { Range } from '../common/Range'
 import { TextStyleType } from '../common/TextStyleType'
-import { TextCursor } from './TextCursor'
-import { TextRepresentation } from './TextRepresentation/TextRepresentation'
+import { TextEditorTextCursor } from './TextEditorTextCursor'
+import { TextEditorRepresentation } from './TextRepresentation/TextEditorRepresentation'
 import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubscriber'
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
 import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
 import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscriber'
-import { TextEditorResponse } from '../common/TextEditorResponse'
 import { NodeRepresentation } from './TextRepresentation/NodeRepresentation'
 import { IPoint } from '../common/IPoint'
 import { ISelection } from '../common/ISelection'
-import { TextEditorRequest } from '../common/TextEditorRequest'
 
 class TextEditor implements ITextEditor {
-  private readonly _textCursor: TextCursor
-  private readonly _textRepresentation: TextRepresentation
+  private readonly _textCursor: TextEditorTextCursor
+  private readonly _representation: TextEditorRepresentation
   private readonly _activeTextStylesSubscribers: IActiveTextStylesSubscriber[]
   private readonly _context: HTMLElement
 
   constructor () {
-    this._textCursor = new TextCursor()
-    this._textRepresentation = new TextRepresentation()
+    this._textCursor = new TextEditorTextCursor()
+    this._representation = new TextEditorRepresentation()
     this._activeTextStylesSubscribers = []
     this._context = document.createElement('div')
     this._context.classList.add('text-editor')
   }
 
   init (): void {
-    this._textRepresentation.addNewLines(new Range(0, 1))
+    this._representation.addNewLines(new Range(0, 1))
     this._textCursor.y = 0
     this.updateTextRepresentation()
     this.updateTextCursorPosition()
@@ -39,15 +37,15 @@ class TextEditor implements ITextEditor {
   }
 
   addText (point: IPoint, text: string): void {
-    this._textRepresentation.addTextInLine(point, text)
+    this._representation.addTextInLine(point, text)
   }
 
   addContent (point: IPoint, content: NodeRepresentation[]): void {
-    this._textRepresentation.addContent(point, content)
+    this._representation.addContent(point, content)
   }
 
   addTextStyleInSelections (selections: ISelection[], textStyleType: TextStyleType): void {
-    this._textRepresentation.addTextStylesInSelections(selections, textStyleType)
+    this._representation.addTextStylesInSelections(selections, textStyleType)
   }
 
   addTextCursorSelections (selections: ISelection[]): void {
@@ -66,27 +64,27 @@ class TextEditor implements ITextEditor {
   }
 
   addNewLinesInRange (rangeY: Range): void {
-    this._textRepresentation.addNewLines(rangeY)
+    this._representation.addNewLines(rangeY)
   }
 
   deleteTextInRange (y: number, rangeX: Range): void {
-    this._textRepresentation.deleteTextInLine(y, rangeX)
+    this._representation.deleteTextInLine(y, rangeX)
   }
 
   deleteTextInSelections (selections: ISelection[]): void {
-    this._textRepresentation.deleteTextInSelections(selections)
+    this._representation.deleteTextInSelections(selections)
   }
 
   deleteConcreteTextStylesInSelections (selections: ISelection[], textStyleType: TextStyleType): void {
-    this._textRepresentation.deleteConcreteTextStyleInSelections(selections, textStyleType)
+    this._representation.deleteConcreteTextStyleInSelections(selections, textStyleType)
   }
 
   deleteAllTextStylesInSelections (selections: ISelection[]): void {
-    this._textRepresentation.deleteAllTextStylesInSelections(selections)
+    this._representation.deleteAllTextStylesInSelections(selections)
   }
 
   deleteLinesInRange (rangeY: Range): void {
-    this._textRepresentation.deleteLines(rangeY)
+    this._representation.deleteLines(rangeY)
   }
 
   deleteTextCursorSelections (): void {
@@ -114,7 +112,7 @@ class TextEditor implements ITextEditor {
   }
 
   subscribeForTextRepresentation (subscriber: ITextRepresentationSubscriber): void {
-    this._textRepresentation.subscribe(subscriber)
+    this._representation.subscribe(subscriber)
   }
 
   subscribeForActiveStyles (subscriber: IActiveTextStylesSubscriber): void {
@@ -132,46 +130,42 @@ class TextEditor implements ITextEditor {
   updateTextRepresentation (): void {
     // maybe delegate observer functionality to this class instead of textRepresentation
     // same for textCursor
-    this._textRepresentation.notifySubscribers()
+    this._representation.notifySubscribers()
   }
 
   updateActiveStyles (): void {
-    const activeTextStyles: TextStyleType[] = this._textRepresentation.getTextStylesInSelections(this._textCursor.selections)
+    const activeTextStyles: TextStyleType[] = this._representation.getTextStylesInSelections(this._textCursor.selections)
     for (const subscriber of this._activeTextStylesSubscribers) {
       subscriber.updateActiveTextStyles(activeTextStyles)
     }
   }
 
-  fetchData (requests: TextEditorRequest[]): TextEditorResponse {
-    const response: TextEditorResponse = new TextEditorResponse()
+  getTextCursorX (): number {
+    return this._textCursor.x
+  }
 
-    for (const { type, payload } of requests) {
-      switch (type) {
-        case 'textCursorX':
-          response.textCursorX = this._textCursor.x
-          break
-        case 'textCursorY':
-          response.textCursorY = this._textCursor.y
-          break
-        case 'textCursorPosition':
-          response.textCursorPosition = this._textCursor.position
-          break
-        case 'textLength':
-          response.textLength = this._textRepresentation.getTextLengthInLine(payload.y)
-          break
-        case 'textSelections':
-          response.textSelections = [...this._textCursor.selections]
-          break
-        case 'textLineCount':
-          response.textLineCount = this._textRepresentation.getLinesCount()
-          break
-        case 'selectedContent':
-          response.selectedContent = this._textRepresentation.getContentInSelections(payload.selections)
-          break
-      }
-    }
+  getTextCursorY (): number {
+    return this._textCursor.y
+  }
 
-    return response
+  getTextCursorPosition (): IPoint {
+    return this._textCursor.position
+  }
+
+  getLineLength (lineY: number): number {
+    return this._representation.getTextLengthInLine(lineY)
+  }
+
+  getLinesCount (): number {
+    return this._representation.getLinesCount()
+  }
+
+  getTextCursorSelections (): ISelection[] {
+    return this._textCursor.selections
+  }
+
+  getContentInSelections (selections: ISelection[]): NodeRepresentation[] {
+    return this._representation.getContentInSelections(selections)
   }
 }
 

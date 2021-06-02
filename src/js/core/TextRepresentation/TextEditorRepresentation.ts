@@ -2,14 +2,14 @@ import { Range } from '../../common/Range'
 import { ITextRepresentationSubscriber } from '../../common/ITextRepresentationSubscriber'
 import { INode } from './Nodes/INode'
 import { TextStyleType } from '../../common/TextStyleType'
-import { TextRepresentationAction } from './TextRepresentationAction'
 import { NodeLineContainer } from './Nodes/NodeLineContainer'
-import { TextRepresentationChange } from './TextRepresentationChange'
 import { NodeRepresentation } from './NodeRepresentation'
 import { ISelection } from '../../common/ISelection'
 import { IPoint } from '../../common/IPoint'
 import { PositionNode } from './Nodes/PositionNode'
 import { RangeNode } from './Nodes/RangeNode'
+import { TextEditorRepresentationUpdateManager } from './TextEditorRepresentationUpdateManager'
+import { ITextEditorRepresentationUpdateLine } from './ITextEditorRepresentationUpdateLine'
 
 interface ILineTextOffset {
   offsetPosition: number
@@ -24,25 +24,25 @@ interface ICallbackPayload {
   rangeNode: RangeNode
 }
 
-class TextRepresentation {
+class TextEditorRepresentation {
   private readonly _subscribers: ITextRepresentationSubscriber[]
   private _textLines: INode[]
   private _linePositionOffset: Map<number, number>
   private _lineTextOffset: Map<number, ILineTextOffset[]>
-  private _changes: Map<INode, [number, TextRepresentationAction]>
+  private _updateManager: TextEditorRepresentationUpdateManager
 
   constructor () {
     this._textLines = []
     this._subscribers = []
     this._linePositionOffset = new Map()
     this._lineTextOffset = new Map()
-    this._changes = new Map()
+    this._updateManager = new TextEditorRepresentationUpdateManager()
   }
 
   private _reset (): void {
     this._linePositionOffset = new Map()
     this._lineTextOffset = new Map()
-    this._changes = new Map()
+    this._updateManager = new TextEditorRepresentationUpdateManager()
   }
 
   private _getOffsetY (y: number): number {
@@ -92,7 +92,8 @@ class TextRepresentation {
     for (const { rangeX, rangeY } of selections) {
       let lineOffset = this._getOffsetY(rangeY.start)
       let line = this._textLines[rangeY.start + lineOffset]
-      this._changes.set(line, [lineOffset + rangeY.start, TextRepresentationAction.CHANGE])
+      // this._updateManager.set(line, [lineOffset + rangeY.start, TextEditorRepresentationUpdateAction.CHANGE])
+      this._updateManager.addUpdateChange(rangeY.start, lineOffset, )
 
       if (rangeY.width === 0) {
         changeCallback({
@@ -113,13 +114,15 @@ class TextRepresentation {
         lineOffset = this._getOffsetY(i)
         line = this._textLines[i + lineOffset]
         changeCallback({ line, rangeNode: new RangeNode(0, 0, line.getSize()) })
-        this._changes.set(line, [lineOffset + i, TextRepresentationAction.CHANGE])
+        // this._updateManager.set(line, [lineOffset + i, TextEditorRepresentationUpdateAction.CHANGE])
+        this._updateManager.addUpdateLineChange(i, lineOffset, )
       }
 
       lineOffset = this._getOffsetY(rangeY.end)
       line = this._textLines[rangeY.end + lineOffset]
       changeCallback({ line, rangeNode: new RangeNode(0, 0, rangeX.end + this._getOffsetX(rangeY.end, rangeX.end)) })
-      this._changes.set(line, [lineOffset + rangeY.end, TextRepresentationAction.CHANGE])
+      // this._updateManager.set(line, [lineOffset + rangeY.end, TextEditorRepresentationUpdateAction.CHANGE])
+      this._updateManager.addUpdateLineChange(rangeY.end, lineOffset, )
     }
   }
 
@@ -177,7 +180,7 @@ class TextRepresentation {
     this._setOffsetY(rangeY.start + rangeY.width + 1, rangeY.width)
 
     for (let i = 0; i < rangeY.width; i++) {
-      this._changes.set(newLines[i], [offsetY + i + rangeY.start + i + 1, TextRepresentationAction.ADD])
+      this._updateManager.addUpdateLineAdd(rangeY.start + i, offsetY)
     }
   }
 
@@ -185,8 +188,8 @@ class TextRepresentation {
     const lineOffset = this._getOffsetY(rangeY.start)
     const deletedLines = this._textLines.splice(rangeY.start + lineOffset, rangeY.width)
     this._setOffsetY(rangeY.start - rangeY.width - 1, -rangeY.width)
-    for (const deletedLine of deletedLines) {
-      this._changes.set(deletedLine, [lineOffset + rangeY.start, TextRepresentationAction.REMOVE])
+    for (let i = 0; i < deletedLines.length; i++) {
+      this._updateManager.addUpdateLineDelete(rangeY.start + i, lineOffset)
     }
   }
 
@@ -195,7 +198,8 @@ class TextRepresentation {
     const line = this._textLines[point.y + lineOffset]
     line.addText(new PositionNode(0, point.x + this._getOffsetX(point.y, point.x)), text)
     this._setOffsetX(point.y, point.x, text.length)
-    this._changes.set(line, [lineOffset + point.y, TextRepresentationAction.CHANGE])
+    // this._updateManager.set(line, [lineOffset + point.y, TextEditorRepresentationUpdateAction.CHANGE])
+    this._updateManager.addUpdateLineChange(point.y, lineOffset, )
   }
 
   deleteTextInLine (y: number, rangeX: Range): void {
@@ -211,7 +215,8 @@ class TextRepresentation {
       )
     )
     this._setOffsetX(y, rangeX.start, rangeX.width)
-    this._changes.set(line, [offsetY + y, TextRepresentationAction.CHANGE])
+    // this._updateManager.set(line, [offsetY + y, TextEditorRepresentationUpdateAction.CHANGE])
+    this._updateManager.addUpdateLineChange(y, offsetY, )
   }
 
   deleteTextInSelections (selections: ISelection[]): void {
@@ -248,7 +253,8 @@ class TextRepresentation {
       point.x,
       content.reduce((previousValue, currentValue) => previousValue + currentValue.size, 0)
     )
-    this._changes.set(line, [lineOffset + point.y, TextRepresentationAction.CHANGE])
+    // this._updateManager.set(line, [lineOffset + point.y, TextEditorRepresentationUpdateAction.CHANGE])
+    this._updateManager.addUpdateLineChange(point.y, lineOffset, )
   }
 
   addTextStylesInSelections (selections: ISelection[], textStyleType: TextStyleType): void {
@@ -277,23 +283,12 @@ class TextRepresentation {
   }
 
   notifySubscribers (): void {
-    const lineChanges: TextRepresentationChange[] = []
-
-    for (const [line, [position, action]] of this._changes.entries()) {
-      const textRepresentationChange = new TextRepresentationChange()
-      textRepresentationChange.nodeRepresentation = line.getRepresentation()
-      textRepresentationChange.position = position
-      textRepresentationChange.action = action
-
-      lineChanges.push(textRepresentationChange)
-    }
-
     for (const sub of this._subscribers) {
-      sub.updateTextRepresentation(lineChanges)
+      sub.updateTextRepresentation(this._updateManager.getUpdates())
     }
 
     this._reset()
   }
 }
 
-export { TextRepresentation }
+export { TextEditorRepresentation }

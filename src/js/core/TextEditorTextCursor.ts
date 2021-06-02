@@ -3,7 +3,7 @@ import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelections
 import { ISelection } from '../common/ISelection'
 import { IPoint } from '../common/IPoint'
 
-class TextCursor {
+class TextEditorTextCursor {
   private _position: IPoint
   private _selections: ISelection[]
   private readonly _positionSubscribers: ITextCursorPositionSubscriber[]
@@ -76,4 +76,4 @@ class TextCursor {
   }
 }
 
-export { TextCursor }
+export { TextEditorTextCursor }

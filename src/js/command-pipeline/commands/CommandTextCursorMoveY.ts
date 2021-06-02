@@ -1,6 +1,5 @@
 import { ITextEditor } from '../../core/ITextEditor'
 import { BaseCommand } from './BaseCommand'
-import { TextEditorRequest } from '../../common/TextEditorRequest'
 
 class CommandTextCursorMoveY extends BaseCommand {
   private readonly _offset: number
@@ -11,8 +10,8 @@ class CommandTextCursorMoveY extends BaseCommand {
   }
 
   _getNewY (context: ITextEditor, offset: number): number {
-    const { textCursorY } = context.fetchData([new TextEditorRequest('textCursorY')])
-    const { textLineCount } = context.fetchData([new TextEditorRequest('textLineCount')])
+    const textCursorY = context.getTextCursorY()
+    const textLineCount = context.getLinesCount()
     const newY: number = textCursorY + offset
     if (newY < 0) {
       return 0

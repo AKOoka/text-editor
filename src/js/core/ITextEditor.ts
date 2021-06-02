@@ -3,12 +3,10 @@ import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubs
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
 import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
 import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscriber'
-import { TextEditorResponse } from '../common/TextEditorResponse'
 import { NodeRepresentation } from './TextRepresentation/NodeRepresentation'
 import { ISelection } from '../common/ISelection'
 import { IPoint } from '../common/IPoint'
 import { Range } from '../common/Range'
-import { TextEditorRequest } from '../common/TextEditorRequest'
 
 export interface ITextEditor {
   init: () => void
@@ -35,5 +33,11 @@ export interface ITextEditor {
   updateTextCursorSelections: () => void
   updateTextRepresentation: () => void
   updateActiveStyles: () => void
-  fetchData: (requests: TextEditorRequest[]) => TextEditorResponse
+  getTextCursorX: () => number
+  getTextCursorY: () => number
+  getTextCursorPosition: () => IPoint
+  getLineLength: (lineY: number) => number
+  getLinesCount: () => number
+  getTextCursorSelections: () => ISelection[]
+  getContentInSelections: (selections: ISelection[]) => NodeRepresentation[]
 }

@@ -1,72 +1,57 @@
 import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubscriber'
 import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
-import { TextRepresentationAction } from '../core/TextRepresentation/TextRepresentationAction'
-import { TextRepresentationChange } from '../core/TextRepresentation/TextRepresentationChange'
 import { TextAreaTextSelectionPool } from './TextAreaTextSelectionPool'
-import { TextAreaTextPool } from './TextAreaTextPool'
 import { MeasureHtmlTool } from './MeasureHtmlTool'
-import { NodeRepresentation } from '../core/TextRepresentation/NodeRepresentation'
-import { NodeType } from '../core/TextRepresentation/Nodes/NodeType'
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
 import { TextAreaLayerText } from './TextAreaLayerText'
 import { TextAreaLayerUi } from './TextAreaLayerUi'
 import { ITextArea } from './ITextArea'
 import { IPoint } from '../common/IPoint'
 import { ISelection } from '../common/ISelection'
+import { ITextEditorRepresentationUpdateLine } from '../core/TextRepresentation/ITextEditorRepresentationUpdateLine'
+import { HtmlCreator } from './HtmlCreator'
+import { NodeRepresentationType } from '../common/NodeRepresentationType'
+import { TextEditorRepresentationUpdateType } from '../core/TextRepresentation/TextEditorRepresentationUpdateType'
+
+type TextAreaUpdateFunction = (change: ITextEditorRepresentationUpdateLine) => void
 
 class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorPositionSubscriber, ITextCursorSelectionsSubscriber {
   private readonly _context: HTMLElement
   private readonly _measureHtmlTool: MeasureHtmlTool
+  private readonly _htmlCreator: HtmlCreator
   private readonly _textSelectionPool: TextAreaTextSelectionPool
-  private readonly _textPool: TextAreaTextPool
   private readonly _layerText: TextAreaLayerText
   private readonly _layerUi: TextAreaLayerUi
   private readonly _layerInteractive: HTMLElement
+  private readonly _updateFunction: Record<TextEditorRepresentationUpdateType, TextAreaUpdateFunction>
 
   constructor () {
     this._context = document.createElement('div')
     this._context.classList.add('text-area')
     this._measureHtmlTool = new MeasureHtmlTool()
-    this._textPool = new TextAreaTextPool(1)
+    this._htmlCreator = new HtmlCreator()
     this._textSelectionPool = new TextAreaTextSelectionPool(1)
     this._layerText = new TextAreaLayerText()
     this._layerUi = new TextAreaLayerUi()
     this._layerUi.addTextCursor()
     this._layerInteractive = document.createElement('div')
     this._layerInteractive.classList.add('text-area_layer-interactive')
+    this._updateFunction = this._createUpdateFunctions()
 
     this._context.append(this._layerText.getContext(), this._layerUi.getContext(), this._layerInteractive)
   }
 
-  private _generateHtmlNode (nodeRepresentation: NodeRepresentation): HTMLElement {
-    let node: HTMLElement
-
-    switch (nodeRepresentation.type) {
-      case NodeType.TEXT:
-        node = this._textPool.getNode()
-        node.append(nodeRepresentation.text)
-        return node
-      case NodeType.TEXT_STYLE:
-        node = this._textPool.getNode()
-        node.classList.add(`${nodeRepresentation.textStyle}`)
-        node.append(nodeRepresentation.text)
-        return node
-      case NodeType.CONTAINER_STYLE:
-        node = this._textPool.getNode()
-        node.classList.add(`${nodeRepresentation.textStyle}`)
-        for (const child of nodeRepresentation.children) {
-          node.append(this._generateHtmlNode(child))
-        }
-        return node
-      case NodeType.CONTAINER_LINE:
-        node = this._textPool.getTextLine()
-        node.classList.add('text-line')
-        for (const child of nodeRepresentation.children) {
-          node.append(this._generateHtmlNode(child))
-        }
-        return node
-      default:
-        throw new Error("TextArea can't handle NodeRepresentation type")
+  private _createUpdateFunctions (): Record<TextEditorRepresentationUpdateType, TextAreaUpdateFunction> {
+    return {
+      [TextEditorRepresentationUpdateType.LineAdd] (change: ITextEditorRepresentationUpdateLine): void {
+        this._layerText.insertTextLine(change.y, this._htmlCreator.createHtmlElement(NodeRepresentationType.LINE))
+      },
+      [TextEditorRepresentationUpdateType.LineDelete] (change: ITextEditorRepresentationUpdateLine): void {
+        this._layerText.removeTextLine(change.y)
+      },
+      [TextEditorRepresentationUpdateType.LineChange] (change: ITextEditorRepresentationUpdateLine): void {
+        // this._layerText.changeTextLine(y, routeToChange)
+      }
     }
   }
 
@@ -138,21 +123,9 @@ class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorP
     }
   }
 
-  updateTextRepresentation (changes: TextRepresentationChange[]): void {
+  updateTextRepresentation (changes: ITextEditorRepresentationUpdateLine[]): void {
     for (const change of changes) {
-      switch (change.action) {
-        case TextRepresentationAction.REMOVE:
-          this._layerText.removeTextLine(change.position)
-          break
-        case TextRepresentationAction.ADD:
-          this._layerText.insertTextLine(change.position, this._generateHtmlNode(change.nodeRepresentation))
-          break
-        case TextRepresentationAction.CHANGE:
-          this._layerText.changeTextLine(change.position, this._generateHtmlNode(change.nodeRepresentation))
-          break
-        default:
-          throw new Error("TextArea can't handle TextRepresentation action")
-      }
+      this._updateFunction[change.type](change)
     }
   }
 }
