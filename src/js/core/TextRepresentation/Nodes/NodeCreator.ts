@@ -50,7 +50,7 @@ export class NodeCreator {
   private _createNodes (copies: INodeCopy[]): INode[] {
     let nodes: INode[] = []
     for (const copy of copies) {
-      nodes = nodes.concat(this._nodeCreateFunctions[copy.nodeType](copy.nodeProps))
+      nodes = nodes.concat(this._nodeCreateFunctions[copy.type](copy.props))
     }
     return nodes
   }

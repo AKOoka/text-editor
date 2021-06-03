@@ -1,12 +1,12 @@
 import { BaseCommand } from './BaseCommand'
 import { ITextEditor } from '../../core/ITextEditor'
-import { NodeRepresentation } from '../../core/TextRepresentation/NodeRepresentation'
 import { Range } from '../../common/Range'
+import { INodeCopy } from '../../core/TextRepresentation/Nodes/INode'
 
 class CommandContentPaste extends BaseCommand {
-  private readonly _content: NodeRepresentation[]
+  private readonly _content: INodeCopy[]
 
-  constructor (toBeSaved: true, content: NodeRepresentation[]) {
+  constructor (toBeSaved: true, content: INodeCopy[]) {
     super(toBeSaved)
     this._content = content
   }

@@ -57,6 +57,10 @@ abstract class BaseNodeContainer implements INode {
       childStartOffset += childNodeSize
     }
 
+    for (const { mergePosition, mergedNodes } of this._nodeMerger.mergeResults) {
+      newChildNodes.splice(mergePosition, 2, ...mergedNodes)
+    }
+
     return newChildNodes
   }
 

@@ -3,16 +3,16 @@ import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubs
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
 import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
 import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscriber'
-import { NodeRepresentation } from './TextRepresentation/NodeRepresentation'
 import { ISelection } from '../common/ISelection'
 import { IPoint } from '../common/IPoint'
 import { Range } from '../common/Range'
+import { INodeCopy } from './TextRepresentation/Nodes/INode'
 
 export interface ITextEditor {
   init: () => void
   getContext: () => HTMLElement
   addText: (point: IPoint, text: string) => void
-  addContent: (point: IPoint, content: NodeRepresentation[]) => void
+  addContent: (point: IPoint, content: INodeCopy[]) => void
   addTextStyleInSelections: (selections: ISelection[], textStyleType: TextStyleType) => void
   addTextCursorSelections: (selections: ISelection[]) => void
   addNewLinesInRange: (rangeY: Range) => void
@@ -39,5 +39,5 @@ export interface ITextEditor {
   getLineLength: (lineY: number) => number
   getLinesCount: () => number
   getTextCursorSelections: () => ISelection[]
-  getContentInSelections: (selections: ISelection[]) => NodeRepresentation[]
+  getContentInSelections: (selections: ISelection[]) => INodeCopy[]
 }

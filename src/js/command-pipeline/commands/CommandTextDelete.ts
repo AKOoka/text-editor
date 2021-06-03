@@ -1,12 +1,12 @@
 import { ITextEditor } from '../../core/ITextEditor'
 import { BaseCommand } from './BaseCommand'
 import { Range } from '../../common/Range'
-import { NodeRepresentation } from '../../core/TextRepresentation/NodeRepresentation'
+import { INodeCopy } from '../../core/TextRepresentation/Nodes/INode'
 
 class CommandTextDelete extends BaseCommand {
   private readonly _leftOffset: number
   private readonly _rightOffset: number
-  private _deletedContent: NodeRepresentation[]
+  private _deletedContent: INodeCopy[]
   // private _lineDeleted: boolean
 
   constructor (toBeSaved: boolean, leftOffset: number, rightOffset: number) {

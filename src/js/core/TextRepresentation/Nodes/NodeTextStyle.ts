@@ -98,15 +98,18 @@ class NodeTextStyle extends BaseNode {
 
   getContent (): INodeCopy[] {
     return [{
-      nodeType: NodeType.TEXT_STYLE,
-      nodeProps: { text: this._text, textStyle: this._textStyle }
+      type: NodeType.TEXT_STYLE,
+      size: this._text.length,
+      props: { text: this._text, textStyle: this._textStyle }
     }]
   }
 
   getContentInRange (range: RangeNode): INodeCopy[] {
+    const text = this._text.slice(range.start, range.end)
     return [{
-      nodeType: NodeType.TEXT_STYLE,
-      nodeProps: { text: this._text.slice(range.start, range.end), textStyle: this._textStyle }
+      type: NodeType.TEXT_STYLE,
+      size: text.length,
+      props: { text, textStyle: this._textStyle }
     }]
   }
 

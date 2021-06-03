@@ -173,22 +173,20 @@ class NodeStyleContainer extends BaseNodeContainer {
   }
 
   getContent (): INodeCopy[] {
+    const children = super.getContent()
     return [{
-      nodeType: NodeType.CONTAINER_LINE,
-      nodeProps: {
-        textStyle: this._textStyle,
-        children: super.getContent()
-      }
+      type: NodeType.CONTAINER_LINE,
+      size: children.reduce((p, c) => p + c.size, 0),
+      props: { textStyle: this._textStyle, children }
     }]
   }
 
   getContentInRange (range: RangeNode): INodeCopy[] {
+    const children = super.getContentInRange(range)
     return [{
-      nodeType: NodeType.CONTAINER_STYLE,
-      nodeProps: {
-        textStyle: this._textStyle,
-        children: super.getContentInRange(range)
-      }
+      type: NodeType.CONTAINER_STYLE,
+      size: children.reduce((p, c) => p + c.size, 0),
+      props: { textStyle: this._textStyle, children }
     }]
   }
 

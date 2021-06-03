@@ -8,10 +8,13 @@ import { TextAreaLayerUi } from './TextAreaLayerUi'
 import { ITextArea } from './ITextArea'
 import { IPoint } from '../common/IPoint'
 import { ISelection } from '../common/ISelection'
-import { ITextEditorRepresentationUpdateLine } from '../core/TextRepresentation/ITextEditorRepresentationUpdateLine'
 import { HtmlCreator } from './HtmlCreator'
-import { NodeRepresentationType } from '../common/NodeRepresentationType'
-import { TextEditorRepresentationUpdateType } from '../core/TextRepresentation/TextEditorRepresentationUpdateType'
+import {
+  ITextEditorRepresentationUpdateLine,
+  TextEditorRepresentationUpdateLineType
+} from '../core/TextRepresentation/TextEditorRepresentationUpdateManager'
+import { NodeRepresentation, NodeRepresentationType } from '../core/TextRepresentation/NodeRepresentation'
+import { TextEditorRepresentationUpdateNodeType } from '../core/TextRepresentation/NodeUpdatesManager'
 
 type TextAreaUpdateFunction = (change: ITextEditorRepresentationUpdateLine) => void
 
@@ -23,7 +26,7 @@ class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorP
   private readonly _layerText: TextAreaLayerText
   private readonly _layerUi: TextAreaLayerUi
   private readonly _layerInteractive: HTMLElement
-  private readonly _updateFunction: Record<TextEditorRepresentationUpdateType, TextAreaUpdateFunction>
+  private readonly _updateFunction: Record<TextEditorRepresentationUpdateLineType, TextAreaUpdateFunction>
 
   constructor () {
     this._context = document.createElement('div')
@@ -41,16 +44,44 @@ class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorP
     this._context.append(this._layerText.getContext(), this._layerUi.getContext(), this._layerInteractive)
   }
 
-  private _createUpdateFunctions (): Record<TextEditorRepresentationUpdateType, TextAreaUpdateFunction> {
+  private _createUpdateFunctions (): Record<TextEditorRepresentationUpdateLineType, TextAreaUpdateFunction> {
     return {
-      [TextEditorRepresentationUpdateType.LineAdd] (change: ITextEditorRepresentationUpdateLine): void {
-        this._layerText.insertTextLine(change.y, this._htmlCreator.createHtmlElement(NodeRepresentationType.LINE))
-      },
-      [TextEditorRepresentationUpdateType.LineDelete] (change: ITextEditorRepresentationUpdateLine): void {
-        this._layerText.removeTextLine(change.y)
-      },
-      [TextEditorRepresentationUpdateType.LineChange] (change: ITextEditorRepresentationUpdateLine): void {
-        // this._layerText.changeTextLine(y, routeToChange)
+      [TextEditorRepresentationUpdateLineType.ADD]: this._addLine,
+      [TextEditorRepresentationUpdateLineType.DELETE]: this._deleteLine,
+      [TextEditorRepresentationUpdateLineType.CHANGE]: this._changeLine
+    }
+  }
+
+  private _addLine (change: ITextEditorRepresentationUpdateLine): void {
+    this._layerText.insertTextLine(change.y, this._htmlCreator.createHtmlElement(NodeRepresentationType.LINE))
+  }
+
+  private _deleteLine (change: ITextEditorRepresentationUpdateLine): void {
+    this._layerText.deleteTextLine(change.y)
+  }
+
+  private _changeLine (change: {
+    y: number
+    type: TextEditorRepresentationUpdateLineType
+    nodeUpdates: Array<{
+      route: number[]
+      type: TextEditorRepresentationUpdateNodeType
+      content: NodeRepresentation[]
+    }>
+  }): void {
+    for (const { type, content, route } of change.nodeUpdates) {
+      switch (type) {
+        case TextEditorRepresentationUpdateNodeType.ADD:
+          for (let i = 0; i < content.length; i++) {
+            route[route.length - 1] = route[route.length - 1] + i
+            this._layerText.addNode(change.y, route, this._htmlCreator.createHtmlFromNodeRepresentation(content[i]))
+          }
+          break
+        case TextEditorRepresentationUpdateNodeType.DELETE:
+          this._layerText.deleteNode(change.y, route)
+          break
+        case TextEditorRepresentationUpdateNodeType.CHANGE:
+          this._layerText.changeNode(change.y, route, content.map(c => this._htmlCreator.createHtmlFromNodeRepresentation(c)))
       }
     }
   }

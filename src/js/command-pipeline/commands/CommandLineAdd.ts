@@ -1,11 +1,11 @@
 import { ITextEditor } from '../../core/ITextEditor'
 import { BaseCommand } from './BaseCommand'
 import { Range } from '../../common/Range'
-import { NodeRepresentation } from '../../core/TextRepresentation/NodeRepresentation'
+import { INodeCopy } from '../../core/TextRepresentation/Nodes/INode'
 
 class CommandLineAdd extends BaseCommand {
   private readonly _count: number
-  private _content: NodeRepresentation[]
+  private _content: INodeCopy[]
 
   constructor (count: number, toBeSaved: boolean) {
     super(toBeSaved)

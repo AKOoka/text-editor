@@ -1,4 +1,5 @@
-import { NodeUpdatesManager } from './NodeUpdatesManager'
+import { INodeUpdate, NodeUpdatesManager } from './NodeUpdatesManager'
+import { LineUpdates } from './LineUpdates'
 
 export enum TextEditorRepresentationUpdateLineType {
   ADD,
@@ -7,60 +8,51 @@ export enum TextEditorRepresentationUpdateLineType {
 }
 
 export interface ITextEditorRepresentationUpdateLine {
-  type: TextEditorRepresentationUpdateLineType
   y: number
-  nodeUpdateManager?: NodeUpdatesManager
+  type: TextEditorRepresentationUpdateLineType
+  nodeUpdates?: INodeUpdate[]
 }
 
 class TextEditorRepresentationUpdateManager {
-  private readonly _updates: Map<number, ITextEditorRepresentationUpdateLine[]>
+  private readonly _updates: Map<number, LineUpdates>
 
   constructor () {
     this._updates = new Map()
   }
 
   addUpdateLineDelete (y: number, offset: number): void {
-    this._updates.set(
-      y,
-      [{ type: TextEditorRepresentationUpdateLineType.DELETE, y: y + offset }]
-    )
+    this._updates.set(y, new LineUpdates(offset, [{ type: TextEditorRepresentationUpdateLineType.DELETE }]))
   }
 
   addUpdateLineAdd (y: number, offset: number): void {
-    const u: ITextEditorRepresentationUpdateLine[] | undefined = this._updates.get(y)
-    const update: ITextEditorRepresentationUpdateLine = {
-      type: TextEditorRepresentationUpdateLineType.ADD,
-      y: y + offset
-    }
-
+    const u: LineUpdates | undefined = this._updates.get(y)
     if (u === undefined) {
-      this._updates.set(y, [update])
+      this._updates.set(y, new LineUpdates(offset, [{ type: TextEditorRepresentationUpdateLineType.ADD }]))
       return
     }
-    u.push(update)
+    u.addUpdate({ type: TextEditorRepresentationUpdateLineType.ADD })
   }
 
-  addUpdateLineChange (y: number, offset: number, routeToNodeUpdate: number[]): void {
-    const u: ITextEditorRepresentationUpdateLine[] | undefined = this._updates.get(y)
-    const update: ITextEditorRepresentationUpdateLine = {
-      type: TextEditorRepresentationUpdateLineType.CHANGE,
-      y: y + offset,
-      routeToNodeUpdate
-    }
+  addUpdateLineChange (y: number, offset: number, nodeUpdatesManager: NodeUpdatesManager): void {
+    const u: LineUpdates | undefined = this._updates.get(y)
 
     if (u === undefined) {
-      this._updates.set(y, [update])
+      this._updates.set(y, new LineUpdates(offset, [{ type: TextEditorRepresentationUpdateLineType.CHANGE, nodeUpdatesManager }]))
       return
     }
-    u.push(update)
+    u.addUpdate({ type: TextEditorRepresentationUpdateLineType.CHANGE, nodeUpdatesManager })
   }
 
   getUpdates (): ITextEditorRepresentationUpdateLine[] {
-    const a = []
-    for (const update of this._updates.values()) {
-      a.push(...update)
+    let lineUpdates: ITextEditorRepresentationUpdateLine[] = []
+    for (const [y, updates] of this._updates.entries()) {
+      const position: number = y + updates.offset
+      lineUpdates = lineUpdates.concat(
+        updates.updates.map(u => { return { y: position, type: u.type, updates: u.nodeUpdatesManager?.nodeUpdates } })
+      )
     }
-    return a
+
+    return lineUpdates
   }
 }
 

@@ -53,15 +53,18 @@ class NodeText extends BaseNode {
 
   getContent (): INodeCopy[] {
     return [{
-      nodeType: NodeType.TEXT,
-      nodeProps: { text: this._text }
+      type: NodeType.TEXT,
+      size: this._text.length,
+      props: { text: this._text }
     }]
   }
 
   getContentInRange (range: RangeNode): INodeCopy[] {
+    const text = this._text.slice(range.start, range.end)
     return [{
-      nodeType: NodeType.TEXT,
-      nodeProps: { text: this._text.slice(range.start, range.end) }
+      type: NodeType.TEXT,
+      size: text.length,
+      props: { text }
     }]
   }
 

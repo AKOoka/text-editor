@@ -6,7 +6,7 @@ export enum TextEditorRepresentationUpdateNodeType {
   DELETE
 }
 
-interface INodeUpdate {
+export interface INodeUpdate {
   route: number[]
   type: TextEditorRepresentationUpdateNodeType
   content?: NodeRepresentation[]

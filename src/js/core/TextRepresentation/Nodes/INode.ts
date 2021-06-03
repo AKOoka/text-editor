@@ -26,8 +26,9 @@ export interface INodeContainerStyleProps extends INodeCopyProps {
 }
 
 export interface INodeCopy<Props extends INodeCopyProps = INodeCopyProps> {
-  nodeType: NodeType
-  nodeProps: Props
+  type: NodeType
+  size: number
+  props: Props
 }
 
 export interface INode {
