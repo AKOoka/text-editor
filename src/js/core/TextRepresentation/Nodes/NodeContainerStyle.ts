@@ -5,9 +5,10 @@ import { NodeRepresentation, NodeRepresentationType } from '../NodeRepresentatio
 import { PositionNode } from './PositionNode'
 import { RangeNode } from './RangeNode'
 import { NodeType } from './NodeType'
-import { NodeUpdatesManager, TextEditorRepresentationUpdateNodeType } from '../NodeUpdatesManager'
+import { NodeUpdatesManager } from './NodeUpdatesManager'
+import { CreatedContent } from './CreatedContent'
 
-class NodeStyleContainer extends BaseNodeContainer {
+class NodeContainerStyle extends BaseNodeContainer {
   private readonly _textStyle: TextStyleType
 
   constructor (childNodes: INode[], textStyle: TextStyleType) {
@@ -16,13 +17,21 @@ class NodeStyleContainer extends BaseNodeContainer {
     this._representation.representationType = NodeRepresentationType.TEXT
   }
 
+  getStyle (): TextStyleType {
+    return this._textStyle
+  }
+
+  getNodeType (): NodeType {
+    return NodeType.CONTAINER_STYLE
+  }
+
   addText (position: PositionNode, text: string, nodeUpdateManager: NodeUpdatesManager): void {
     let startOffset: number = position.offset
 
     for (let i = 0; i < this._childNodes.length; i++) {
       if (position.childNodeInPosition(startOffset, this._childNodes[i].getSize())) {
         nodeUpdateManager.addPath(i)
-        this._childNodes[i].addText(new PositionNode(startOffset, position.initPosition), text, nodeUpdateManager)
+        this._childNodes[i].addText(position.reset(startOffset, position.initPosition), text, nodeUpdateManager)
         this._size += text.length
         nodeUpdateManager.endPath()
         return
@@ -38,8 +47,8 @@ class NodeStyleContainer extends BaseNodeContainer {
       nodeUpdatesManager.endPath()
       return [this]
     } else if (range.nodeInsideRange(this.getSize())) {
-      const newNode = new NodeStyleContainer([this], textStyle)
-      nodeUpdatesManager.addNodeUpdate(TextEditorRepresentationUpdateNodeType.CHANGE, [newNode.getRepresentation()])
+      const newNode = new NodeContainerStyle([this], textStyle)
+      nodeUpdatesManager.nodeChange([newNode])
       nodeUpdatesManager.endPath()
       return [newNode]
     }
@@ -48,28 +57,21 @@ class NodeStyleContainer extends BaseNodeContainer {
       (range, childNode, textStyleType) => childNode.addTextStyle(range, textStyleType, nodeUpdatesManager)
     this._childNodes = this._updateChildNodesInRange<TextStyleType>(childNodeInRange, range, textStyle, nodeUpdatesManager)
 
-    nodeUpdatesManager.endPath()
     return [this]
   }
 
   deleteAllTextStyles (range: RangeNode, nodeUpdatesManager: NodeUpdatesManager): INode[] {
     if (range.nodeInsideRange(this.getSize())) {
-      nodeUpdatesManager.savePositionInRoute()
-      let offset: number = 0
-      for (const childNode of this._childNodes) {
-        childNode.deleteAllTextStyles(new RangeNode(offset, range.start, range.end), nodeUpdatesManager)
-        offset += childNode.getSize()
-      }
-      nodeUpdatesManager.mergeUpdatesFromSavedPosition()
+      const newNode = this._nodeMerger.mergeNodesToNodeText(this._childNodes)
+      nodeUpdatesManager.nodeChange([this])
       nodeUpdatesManager.endPath()
-      return this._childNodes
+      return [newNode]
     }
 
     const childNodeInRange: ChildNodeInRangeCallback<null> =
       (range, childNode) => childNode.deleteAllTextStyles(range, nodeUpdatesManager)
     this._childNodes = this._updateChildNodesInRange<null>(childNodeInRange, range, null, nodeUpdatesManager)
 
-    nodeUpdatesManager.endPath()
     return [this]
   }
 
@@ -115,7 +117,7 @@ class NodeStyleContainer extends BaseNodeContainer {
       } else if (range.rangeInsideNode(this.getSize())) {
         const leftNodeIndexInRange: number = this._findLeftNodeIndexInRange(range)
         const rightNodeIndexInRange: number = this._findRightNodeIndexInRange(range)
-        const rightNodeStyleContainer: INode = new NodeStyleContainer(
+        const rightNodeStyleContainer: INode = new NodeContainerStyle(
           this._childNodes.slice(rightNodeIndexInRange), this._textStyle
         )
         const nodesWithoutStyleContainer: INode[] = this._childNodes.slice(leftNodeIndexInRange, rightNodeIndexInRange)
@@ -133,7 +135,7 @@ class NodeStyleContainer extends BaseNodeContainer {
         newNodes = nodesWithoutStyleContainer.concat([this])
       }
 
-      nodeUpdateManager.addNodeUpdate(TextEditorRepresentationUpdateNodeType.CHANGE, newNodes.map(n => n.getRepresentation()))
+      nodeUpdateManager.nodeChange(newNodes)
       nodeUpdateManager.endPath()
 
       return newNodes
@@ -142,8 +144,6 @@ class NodeStyleContainer extends BaseNodeContainer {
     const childNodeInRange: ChildNodeInRangeCallback<TextStyleType> =
       (range, childNode, textStyle) => childNode.deleteConcreteTextStyle(range, textStyle, nodeUpdateManager)
     this._childNodes = this._updateChildNodesInRange<TextStyleType>(childNodeInRange, range, textStyle, nodeUpdateManager)
-
-    nodeUpdateManager.endPath()
 
     return [this]
   }
@@ -165,11 +165,14 @@ class NodeStyleContainer extends BaseNodeContainer {
     return []
   }
 
-  addContent (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyleType[], nodeUpdatesManager: NodeUpdatesManager): INode[] {
+  addContent (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyleType[], nodeUpdatesManager: NodeUpdatesManager): CreatedContent {
     parentTextStyles.push(this._textStyle)
-    super.addContent(position, content, parentTextStyles, nodeUpdatesManager)
+    const { nodes, nodeStyles } = super.addContent(position, content, parentTextStyles, nodeUpdatesManager)
+    for (const style of nodeStyles) {
+      this._childStyles.add(style)
+    }
     nodeUpdatesManager.endPath()
-    return [this]
+    return { nodes, nodeStyles }
   }
 
   getContent (): INodeCopy[] {
@@ -195,6 +198,16 @@ class NodeStyleContainer extends BaseNodeContainer {
     representation.addStyleInstruction(this._textStyle)
     return representation
   }
+
+  deleteText (range: RangeNode, nodeUpdatesManager: NodeUpdatesManager): boolean {
+    if (range.nodeInsideRange(this.getSize())) {
+      nodeUpdatesManager.nodeDelete(this)
+      nodeUpdatesManager.endPath()
+      return true
+    }
+
+    return super.deleteText(range, nodeUpdatesManager)
+  }
 }
 
-export { NodeStyleContainer }
+export { NodeContainerStyle }

@@ -14,7 +14,7 @@ import {
   TextEditorRepresentationUpdateLineType
 } from '../core/TextRepresentation/TextEditorRepresentationUpdateManager'
 import { NodeRepresentation, NodeRepresentationType } from '../core/TextRepresentation/NodeRepresentation'
-import { TextEditorRepresentationUpdateNodeType } from '../core/TextRepresentation/NodeUpdatesManager'
+import { TextEditorRepresentationUpdateNodeType } from '../core/TextRepresentation/Nodes/NodeUpdatesManager'
 
 type TextAreaUpdateFunction = (change: ITextEditorRepresentationUpdateLine) => void
 

@@ -1,4 +1,4 @@
-import { INodeUpdate, NodeUpdatesManager } from './NodeUpdatesManager'
+import { INodeUpdate, NodeUpdatesManager } from './Nodes/NodeUpdatesManager'
 import { LineUpdates } from './LineUpdates'
 
 export enum TextEditorRepresentationUpdateLineType {

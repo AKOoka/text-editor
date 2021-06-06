@@ -29,10 +29,11 @@ class RangeNode {
     return this._end
   }
 
-  reset (offset: number, start: number, end: number): void {
+  reset (offset: number, start: number, end: number): RangeNode {
     this._offset = offset
     this._start = start
     this._end = end
+    return this
   }
 
   childNodeInRange (nodeOffset: number, nodeSize: number): boolean {

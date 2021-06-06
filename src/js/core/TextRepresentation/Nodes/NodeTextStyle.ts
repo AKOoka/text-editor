@@ -1,13 +1,14 @@
 import { INode, INodeCopy } from './INode'
 import { TextStyleType } from '../../../common/TextStyleType'
-import { NodeStyleContainer } from './NodeStyleContainer'
+import { NodeContainerStyle } from './NodeContainerStyle'
 import { NodeText } from './NodeText'
 import { BaseNode } from './BaseNode'
 import { NodeRepresentation, NodeRepresentationType } from '../NodeRepresentation'
 import { RangeNode } from './RangeNode'
 import { PositionNode } from './PositionNode'
-import { NodeUpdatesManager, TextEditorRepresentationUpdateNodeType } from '../NodeUpdatesManager'
+import { NodeUpdatesManager } from './NodeUpdatesManager'
 import { NodeType } from './NodeType'
+import { CreatedContent } from './CreatedContent'
 
 class NodeTextStyle extends BaseNode {
   private readonly _textStyle: TextStyleType
@@ -18,20 +19,28 @@ class NodeTextStyle extends BaseNode {
     this._representation.representationType = NodeRepresentationType.TEXT
   }
 
+  getNodeType (): NodeType {
+    return NodeType.TEXT_STYLE
+  }
+
+  getStyle (): TextStyleType {
+    return this._textStyle
+  }
+
   addTextStyle (range: RangeNode, textStyle: TextStyleType, nodeUpdatesManager: NodeUpdatesManager): INode[] {
     let newNodes: INode[] = []
 
     if (textStyle === this._textStyle) {
       return [this]
     } else if (range.nodeInsideRange(this.getSize())) {
-      newNodes = [new NodeStyleContainer([this], textStyle)]
+      newNodes = [new NodeContainerStyle([this], textStyle)]
     } else if (range.rangeInsideNode(this.getSize())) {
       const middleNodeTextStyle = new NodeTextStyle(this._text.slice(range.start, range.end), this._textStyle)
       const endNodeTextStyle = new NodeTextStyle(this._text.slice(range.end), this._textStyle)
       this._text = this._text.slice(0, range.start)
       newNodes = [
         this,
-        new NodeStyleContainer([middleNodeTextStyle], textStyle),
+        new NodeContainerStyle([middleNodeTextStyle], textStyle),
         endNodeTextStyle
       ]
     } else if (range.nodeStartInRange(this.getSize())) {
@@ -39,18 +48,18 @@ class NodeTextStyle extends BaseNode {
       this._text = this._text.slice(0, range.start)
       newNodes = [
         this,
-        new NodeStyleContainer([newNodeTextStyle], textStyle)
+        new NodeContainerStyle([newNodeTextStyle], textStyle)
       ]
     } else if (range.nodeEndInRange(this.getSize())) {
       const newNodeTextStyle = new NodeTextStyle(this._text.slice(0, range.end), this._textStyle)
       this._text = this._text.slice(range.end)
       newNodes = [
-        new NodeStyleContainer([newNodeTextStyle], textStyle),
+        new NodeContainerStyle([newNodeTextStyle], textStyle),
         this
       ]
     }
 
-    nodeUpdatesManager.addNodeUpdate(TextEditorRepresentationUpdateNodeType.CHANGE, newNodes.map(n => n.getRepresentation()))
+    nodeUpdatesManager.nodeChange(newNodes)
     nodeUpdatesManager.endPath()
 
     return newNodes
@@ -76,7 +85,7 @@ class NodeTextStyle extends BaseNode {
       newNodes = [textNode, this]
     }
 
-    nodeUpdatesManager.addNodeUpdate(TextEditorRepresentationUpdateNodeType.CHANGE, newNodes.map(n => n.getRepresentation()))
+    nodeUpdatesManager.nodeChange(newNodes)
     nodeUpdatesManager.endPath()
 
     return newNodes
@@ -84,6 +93,7 @@ class NodeTextStyle extends BaseNode {
 
   deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType, nodeUpdatesManager: NodeUpdatesManager): INode[] {
     if (textStyle !== this._textStyle) {
+      nodeUpdatesManager.endPath()
       return [this]
     }
     return this.deleteAllTextStyles(range, nodeUpdatesManager)
@@ -119,21 +129,22 @@ class NodeTextStyle extends BaseNode {
     return representation
   }
 
-  addContent (position: PositionNode, content: INodeCopy[], parentTextStyle: TextStyleType[], nodeUpdatesManager: NodeUpdatesManager): INode[] {
+  addContent (position: PositionNode, content: INodeCopy[], parentTextStyle: TextStyleType[], nodeUpdatesManager: NodeUpdatesManager): CreatedContent {
     parentTextStyle.push(this._textStyle)
-    const newNode = new NodeStyleContainer(
-      [
-        new NodeText(this._text.slice(0, position.position)),
-        ...this._nodeCreator.createNodeFromCopies(content, parentTextStyle),
-        new NodeText(this._text.slice(position.position))
-      ],
-      this._textStyle
-    )
 
-    nodeUpdatesManager.addNodeUpdate(TextEditorRepresentationUpdateNodeType.CHANGE, [newNode.getRepresentation()])
+    const { nodes, nodeStyles } = super.addContent(position, content, parentTextStyle, nodeUpdatesManager)
+    let newNodes: INode[] = []
+
+    if (parentTextStyle.includes(this._textStyle)) {
+      newNodes = [new NodeContainerStyle(nodes, this._textStyle)]
+    } else {
+      newNodes = nodes
+    }
+    nodeStyles.push(this._textStyle)
+    nodeUpdatesManager.nodeChange(newNodes)
     nodeUpdatesManager.endPath()
 
-    return [newNode]
+    return { nodes: newNodes, nodeStyles }
   }
 }
 

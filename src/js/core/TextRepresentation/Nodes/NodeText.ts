@@ -5,13 +5,22 @@ import { BaseNode } from './BaseNode'
 import { NodeRepresentationType } from '../NodeRepresentation'
 import { RangeNode } from './RangeNode'
 import { PositionNode } from './PositionNode'
-import { NodeUpdatesManager, TextEditorRepresentationUpdateNodeType } from '../NodeUpdatesManager'
 import { NodeType } from './NodeType'
+import { NodeUpdatesManager } from './NodeUpdatesManager'
+import { CreatedContent } from './CreatedContent'
 
 class NodeText extends BaseNode {
   constructor (text: string) {
     super(text)
     this._representation.representationType = NodeRepresentationType.TEXT
+  }
+
+  getNodeType (): NodeType {
+    return NodeType.TEXT
+  }
+
+  getStyle (): null {
+    return null
   }
 
   addTextStyle (range: RangeNode, textStyleType: TextStyleType, nodeUpdatesManager: NodeUpdatesManager): INode[] {
@@ -33,17 +42,19 @@ class NodeText extends BaseNode {
       newNodes = [new NodeTextStyle(this._text.slice(0, range.end), textStyleType), this]
     }
 
-    nodeUpdatesManager.addNodeUpdate(TextEditorRepresentationUpdateNodeType.CHANGE, newNodes.map(n => n.getRepresentation()))
+    nodeUpdatesManager.nodeChange(newNodes)
     nodeUpdatesManager.endPath()
 
     return newNodes
   }
 
-  deleteAllTextStyles (): INode[] {
+  deleteAllTextStyles (_: RangeNode, nodeUpdatesManager: NodeUpdatesManager): INode[] {
+    nodeUpdatesManager.endPath()
     return [this]
   }
 
-  deleteConcreteTextStyle (): INode[] {
+  deleteConcreteTextStyle (_: RangeNode, __: TextStyleType, nodeUpdatesManager: NodeUpdatesManager): INode[] {
+    nodeUpdatesManager.endPath()
     return [this]
   }
 
@@ -68,17 +79,12 @@ class NodeText extends BaseNode {
     }]
   }
 
-  addContent (position: PositionNode, content: INodeCopy[], parentTextStyle: TextStyleType[], nodeUpdatesManager: NodeUpdatesManager): INode[] {
-    const newNodes: INode[] = [
-      new NodeText(this._text.slice(0, position.position)),
-      ...this._nodeCreator.createNodeFromCopies(content, parentTextStyle)
-    ]
-    nodeUpdatesManager.addNodeUpdate(
-      TextEditorRepresentationUpdateNodeType.CHANGE,
-      [newNodes[0].getRepresentation(), ...newNodes.map(c => c.getRepresentation())]
-    )
+  addContent (position: PositionNode, content: INodeCopy[], parentTextStyle: TextStyleType[], nodeUpdatesManager: NodeUpdatesManager): CreatedContent {
+    const createdContent = super.addContent(position, content, parentTextStyle, nodeUpdatesManager)
+    nodeUpdatesManager.nodeChange(createdContent.nodes)
     nodeUpdatesManager.endPath()
-    return newNodes
+
+    return createdContent
   }
 }
 

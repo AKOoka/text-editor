@@ -1,4 +1,4 @@
-import { NodeUpdatesManager } from './NodeUpdatesManager'
+import { NodeUpdatesManager } from './Nodes/NodeUpdatesManager'
 import { TextEditorRepresentationUpdateLineType } from './TextEditorRepresentationUpdateManager'
 
 interface ILineUpdate {

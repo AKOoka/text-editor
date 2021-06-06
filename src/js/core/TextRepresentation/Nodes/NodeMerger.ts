@@ -1,109 +1,146 @@
-import {
-  INode,
-  INodeContainerStyleProps,
-  INodeCopy,
-  INodeTextCopyProps,
-  INodeTextStyleCopyProps
-} from './INode'
+import { INode } from './INode'
 import { NodeType } from './NodeType'
 import { NodeText } from './NodeText'
 import { NodeTextStyle } from './NodeTextStyle'
-import { NodeStyleContainer } from './NodeStyleContainer'
-import { NodeCreator } from './NodeCreator'
+import { NodeContainerStyle } from './NodeContainerStyle'
+import { NodeUpdatesManager } from './NodeUpdatesManager'
+import { BaseNode } from './BaseNode'
+import { BaseNodeContainer } from './BaseNodeContainer'
 
-interface IMergeResult {
-  mergePosition: number
-  mergedNodes: INode[]
-}
-
-type MergingNodes = [INodeCopy, INodeCopy]
+type MergingNodes = [INode, INode]
 
 type MergeFunction = (mergingNodes: MergingNodes) => INode[]
 
 export class NodeMerger {
-  private _nodeToMerge: INode | null
-  private _mergePosition: number
-  private _mergeResults: IMergeResult[]
+  private _mergePositions: number[]
   private readonly _mergeFunctions: Record<NodeType, MergeFunction>
-  private readonly _nodeCreator: NodeCreator
 
   constructor () {
-    this._mergeResults = []
     this._mergeFunctions = {
-      [NodeType.TEXT]: this._mergeTextNode,
-      [NodeType.TEXT_STYLE]: this._mergeTextStyleNode,
-      [NodeType.CONTAINER_STYLE]: this._mergeContainerStyle,
+      [NodeType.TEXT]: this._mergeTextNodes,
+      [NodeType.TEXT_STYLE]: this._mergeTextStyleNodes,
+      [NodeType.CONTAINER_STYLE]: this._mergeContainerStyles,
       [NodeType.CONTAINER_LINE] () { throw new Error("can't merge line") }
     }
-    this._nodeCreator = new NodeCreator()
   }
 
-  get mergeResults (): IMergeResult[] {
-    return this._mergeResults
+  private _mergeTextNodes (mergingNodes: [NodeText, NodeText]): INode[] {
+    return [new NodeText(mergingNodes[0].getText() + mergingNodes[1].getText())]
   }
 
-  private _mergeTextNode (mergingNodes: [INodeCopy<INodeTextCopyProps>, INodeCopy<INodeTextCopyProps>]): INode[] {
-    return [new NodeText(mergingNodes[0].props.text + mergingNodes[1].props.text)]
-  }
-
-  private _mergeTextStyleNode (mergingNodes: [INodeCopy<INodeTextStyleCopyProps>, INodeCopy<INodeTextCopyProps>]): INode[] {
+  private _mergeTextStyleNodes (mergingNodes: [NodeTextStyle, NodeTextStyle]): INode[] {
     return [
       new NodeTextStyle(
-        mergingNodes[0].props.text + mergingNodes[1].props.text,
-        mergingNodes[0].props.textStyle
+        mergingNodes[0].getText() + mergingNodes[1].getText(),
+        mergingNodes[0].getStyle()
       )
     ]
   }
 
-  private _mergeContainerStyle (mergingNodes: [INodeCopy<INodeContainerStyleProps>, INodeCopy]): INode[] {
+  private _mergeContainerStyles (mergingNodes: [NodeContainerStyle, INode]): INode[] {
     const [leftCopy, rightCopy] = mergingNodes
-    const childNodes: INode[] = this._nodeCreator.createNodeFromCopies(leftCopy.props.children).concat(this._nodeCreator.createNodeFromCopies([rightCopy]))
-    return [new NodeStyleContainer(childNodes, leftCopy.props.textStyle)]
+    const newChildren = leftCopy.getChildNodes()
+    if (rightCopy instanceof BaseNode) {
+      newChildren.push(new NodeText(rightCopy.getText()))
+    } else if (rightCopy instanceof NodeContainerStyle) {
+      newChildren.push(...rightCopy.getChildNodes())
+    }
+    return [new NodeContainerStyle(newChildren, leftCopy.getStyle())]
   }
 
-  private _mergeNodes (mergingNodes: [INodeCopy, INodeCopy]): INode[] {
-    const [leftCopy, rightCopy] = mergingNodes
-    if (rightCopy.type === NodeType.TEXT) {
-      return this._mergeFunctions[leftCopy.type](mergingNodes)
-    } else if (rightCopy.type === NodeType.CONTAINER_STYLE && leftCopy.props.textStyle !== rightCopy.props.textStyle) {
-      return this._mergeFunctions[rightCopy.type]([rightCopy, leftCopy])
-    } else if (rightCopy.type === NodeType.TEXT_STYLE && leftCopy.type === NodeType.TEXT) {
-      return this._mergeFunctions[rightCopy.type]([rightCopy, leftCopy])
+  private _mergeNodes (mergingNodes: [INode, INode]): INode[] {
+    const [leftNode, rightNode] = mergingNodes
+
+    if (leftNode.getStyle() === rightNode.getStyle()) {
+      return this._mergeFunctions[leftNode.getNodeType()](mergingNodes)
+    } else if (leftNode.getNodeType() === NodeType.TEXT) {
+      return this._mergeFunctions[rightNode.getNodeType()]([rightNode, leftNode])
+    } else if (rightNode.getNodeType() === NodeType.TEXT) {
+      return this._mergeFunctions[leftNode.getNodeType()](mergingNodes)
     }
 
-    throw new Error(`can't merge ${leftCopy.type} with ${rightCopy.type}`)
+    throw new Error(`can't merge ${leftNode.getNodeType()} with ${rightNode.getNodeType()}`)
   }
 
-  addFirstMergeNode (position: number, node: INode): void {
-    this._mergePosition = position
-    this._nodeToMerge = node
+  private _isValidPosition (position: number): boolean {
+    return position !== 0 && this._mergePositions[this._mergePositions.length - 1] !== position
   }
 
-  addSecondMergeNode (node: INode): void {
-    if (this._nodeToMerge === null) {
-      return
+  private _getTextFromContainer (container: BaseNodeContainer): string {
+    let text: string = ''
+
+    for (const child of container.getChildNodes()) {
+      if (child instanceof BaseNodeContainer) {
+        text += this._getTextFromContainer(child)
+      } else if (child instanceof BaseNode) {
+        text += child.getText()
+      }
     }
 
-    const leftCopy = this._nodeToMerge.getContent()[0]
-    const rightCopy = node.getContent()[0]
+    return text
+  }
 
-    if (
-      (leftCopy.type !== NodeType.TEXT && rightCopy.type !== NodeType.TEXT) &&
-      (leftCopy.props.textStyle !== rightCopy.props.textStyle)
-    ) {
-      this._mergeResults.push({ mergePosition: this._mergePosition, mergedNodes: [this._nodeToMerge, node] })
-    } else {
-      this._mergeResults.push({
-        mergePosition: this._mergePosition,
-        mergedNodes: this._mergeNodes([leftCopy, rightCopy])
-      })
+  mergeNodesToNodeText (nodes: INode[]): NodeText {
+    let text = ''
+
+    for (const node of nodes) {
+      if (node instanceof BaseNodeContainer) {
+        text += this._getTextFromContainer(node)
+      } else if (node instanceof BaseNode) {
+        text += node.getText()
+      }
     }
 
-    this._nodeToMerge = null
+    return new NodeText(text)
+  }
+
+  savePositionDelete (position: number): void {
+    if (this._isValidPosition(position)) {
+      this._mergePositions.push(position - 1, position)
+    }
+  }
+
+  savePositionChange (changeStart: number, changeEnd: number): void {
+    if (this._isValidPosition(changeStart)) {
+      this._mergePositions.push(changeStart - 1, changeStart)
+      this._mergePositions.push(changeEnd, changeEnd + 1)
+    }
+  }
+
+  savePositionAdd (addStart: number, addEnd: number): void {
+    if (this._isValidPosition(addStart)) {
+      this._mergePositions.push(addStart - 1, addStart)
+      this._mergePositions.push(addEnd, addEnd + 1)
+    }
+  }
+
+  mergeNodesOnSavedPositions (nodes: INode[], nodeUpdatesManager: NodeUpdatesManager): INode[] {
+    const mergedNodes: INode[] = []
+    const nodesToMerge: INode[] =
+      this._mergePositions[this._mergePositions.length - 1] >= nodes.length
+        ? nodes.slice(0, -1)
+        : nodes
+
+    for (let i = 1; i < nodesToMerge.length; i++) {
+      const leftNode: INode = nodesToMerge[i - 1]
+      const rightNode: INode = nodesToMerge[i]
+      const mergeResult = this._mergeNodes([leftNode, rightNode])
+      if (mergeResult.length === 1) {
+        nodeUpdatesManager.addPath(i - 1)
+        nodeUpdatesManager.nodeChange([leftNode])
+        nodeUpdatesManager.endPath()
+
+        nodeUpdatesManager.addPath(i)
+        nodeUpdatesManager.nodeDelete(rightNode)
+        nodeUpdatesManager.endPath()
+      }
+      mergedNodes.push(...mergeResult)
+    }
+
+    return mergedNodes
   }
 
   clear (): void {
-    this._mergeResults = []
-    this._nodeToMerge = null
+    this._mergePositions = []
   }
 }

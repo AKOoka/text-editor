@@ -1,14 +1,15 @@
 import { Range } from '../../common/Range'
 import { ITextRepresentationSubscriber } from '../../common/ITextRepresentationSubscriber'
-import { INode, INodeCopy } from './Nodes/INode'
+import { INodeCopy } from './Nodes/INode'
 import { TextStyleType } from '../../common/TextStyleType'
-import { NodeLineContainer } from './Nodes/NodeLineContainer'
+import { NodeContainerLine } from './Nodes/NodeContainerLine'
 import { ISelection } from '../../common/ISelection'
 import { IPoint } from '../../common/IPoint'
 import { PositionNode } from './Nodes/PositionNode'
 import { RangeNode } from './Nodes/RangeNode'
 import { TextEditorRepresentationUpdateManager } from './TextEditorRepresentationUpdateManager'
-import { NodeUpdatesManager } from './NodeUpdatesManager'
+import { NodeUpdatesManager } from './Nodes/NodeUpdatesManager'
+import { ITextEditorRepresentationLine } from './ITextEditorRepresentationLine'
 
 interface ILineTextOffset {
   offsetPosition: number
@@ -19,19 +20,19 @@ type ChangeCallback = (payload: IChangeCallbackPayload) => void
 type GetInfoCallback<Info> = (payload: IGetInfoCallbackPayload) => Info[]
 
 interface IChangeCallbackPayload {
-  line: INode
+  line: ITextEditorRepresentationLine
   rangeNode: RangeNode
   nodeUpdatesManager: NodeUpdatesManager
 }
 
 interface IGetInfoCallbackPayload {
-  line: INode
+  line: ITextEditorRepresentationLine
   rangeNode: RangeNode
 }
 
 class TextEditorRepresentation {
   private readonly _subscribers: ITextRepresentationSubscriber[]
-  private _textLines: INode[]
+  private _textLines: ITextEditorRepresentationLine[]
   private _linePositionOffset: Map<number, number>
   private _lineTextOffset: Map<number, ILineTextOffset[]>
   private _updateManager: TextEditorRepresentationUpdateManager
@@ -136,7 +137,7 @@ class TextEditorRepresentation {
     const info: Info[] = []
 
     for (const { rangeX, rangeY } of selections) {
-      let line: INode = this._textLines[rangeY.start + this._getOffsetY(rangeY.start)]
+      let line: ITextEditorRepresentationLine = this._textLines[rangeY.start + this._getOffsetY(rangeY.start)]
       if (rangeY.width === 0) {
         info.push(...getInfoCallback({
           line,
@@ -173,11 +174,11 @@ class TextEditorRepresentation {
   }
 
   addNewLines (rangeY: Range): void {
-    const newLines: INode[] = []
+    const newLines: ITextEditorRepresentationLine[] = []
     const offsetY: number = this._getOffsetY(rangeY.start)
     const insertPosition: number = rangeY.start + offsetY + 1
     for (let i = 0; i < rangeY.width; i++) {
-      newLines.push(new NodeLineContainer([]))
+      newLines.push(new NodeContainerLine())
     }
     this._textLines = this._textLines
       .slice(0, insertPosition)
@@ -203,7 +204,7 @@ class TextEditorRepresentation {
     const nodeUpdatesManager = new NodeUpdatesManager()
     const lineOffset = this._getOffsetY(point.y)
     const line = this._textLines[point.y + lineOffset]
-    line.addText(new PositionNode(0, point.x + this._getOffsetX(point.y, point.x)), text, nodeUpdatesManager)
+    line.addText(new PositionNode(0, point.x + this._getOffsetX(point.y, point.x)), text)
     this._setOffsetX(point.y, point.x, text.length)
     this._updateManager.addUpdateLineChange(point.y, lineOffset, nodeUpdatesManager)
   }
@@ -212,15 +213,14 @@ class TextEditorRepresentation {
     const nodeUpdatesManager = new NodeUpdatesManager()
     const offsetY: number = this._getOffsetY(y)
     const lineY = y + offsetY
-    const line: INode = this._textLines[lineY]
+    const line: ITextEditorRepresentationLine = this._textLines[lineY]
 
     line.deleteText(
       new RangeNode(
         0,
         rangeX.start + this._getOffsetX(y, rangeX.start),
         rangeX.end + this._getOffsetX(y, rangeX.end)
-      ),
-      nodeUpdatesManager
+      )
     )
     this._setOffsetX(y, rangeX.start, rangeX.width)
     this._updateManager.addUpdateLineChange(y, offsetY, nodeUpdatesManager)
@@ -255,7 +255,7 @@ class TextEditorRepresentation {
     const nodeUpdatesManager = new NodeUpdatesManager()
     const lineOffset = this._getOffsetY(point.y)
     const line = this._textLines[point.y + lineOffset]
-    line.addContent(new PositionNode(0, point.x + this._getOffsetX(point.y, point.x)), content, [], nodeUpdatesManager)
+    line.addContent(new PositionNode(0, point.x + this._getOffsetX(point.y, point.x)), content)
     this._setOffsetX(
       point.y,
       point.x,
@@ -267,21 +267,21 @@ class TextEditorRepresentation {
   addTextStylesInSelections (selections: ISelection[], textStyleType: TextStyleType): void {
     this._makeChangesInSelections(
       selections,
-      ({ line, rangeNode, nodeUpdatesManager }) => line.addTextStyle(rangeNode, textStyleType, nodeUpdatesManager)
+      ({ line, rangeNode }) => line.addTextStyle(rangeNode, textStyleType)
     )
   }
 
   deleteAllTextStylesInSelections (selections: ISelection[]): void {
     this._makeChangesInSelections(
       selections,
-      ({ line, rangeNode, nodeUpdatesManager }) => line.deleteAllTextStyles(rangeNode, nodeUpdatesManager)
+      ({ line, rangeNode }) => line.deleteAllTextStyles(rangeNode)
     )
   }
 
   deleteConcreteTextStyleInSelections (selections: ISelection[], textStyleType: TextStyleType): void {
     this._makeChangesInSelections(
       selections,
-      ({ line, rangeNode, nodeUpdatesManager }) => line.deleteConcreteTextStyle(rangeNode, textStyleType, nodeUpdatesManager)
+      ({ line, rangeNode }) => line.deleteConcreteTextStyle(rangeNode, textStyleType)
     )
   }
 

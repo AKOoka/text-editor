@@ -19,9 +19,10 @@ class PositionNode {
     return this._position
   }
 
-  reset (position: number, offset: number): void {
+  reset (offset: number, position: number): PositionNode {
     this._position = position
     this._offset = offset
+    return this
   }
 
   nodeInPosition (offset: number, nodeSize: number): boolean {

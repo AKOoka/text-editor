@@ -1,5 +1,5 @@
 /* global test, expect, beforeEach */
-import { NodeStyleContainer } from '../TextRepresentation/Nodes/NodeStyleContainer'
+import { NodeContainerStyle } from '../TextRepresentation/Nodes/NodeContainerStyle'
 import { NodeText } from '../TextRepresentation/Nodes/NodeText'
 import { NodeTextStyle } from '../TextRepresentation/Nodes/NodeTextStyle'
 
@@ -18,7 +18,7 @@ test('add text style from start to end', () => {
       _textStyle: 'underline'
     }
   ])
-  expect(result[0]).toBeInstanceOf(NodeStyleContainer)
+  expect(result[0]).toBeInstanceOf(NodeContainerStyle)
   expect(result[0]._childNodes[0]).toBeInstanceOf(NodeTextStyle)
 })
 
@@ -32,7 +32,7 @@ test('add text style from start to middle', () => {
     },
     { _textStyle: 'bold', _text: 'em' }
   ])
-  expect(result[0]).toBeInstanceOf(NodeStyleContainer)
+  expect(result[0]).toBeInstanceOf(NodeContainerStyle)
   expect(result[0]._childNodes[0]).toBeInstanceOf(NodeTextStyle)
   expect(result[1]).toBeInstanceOf(NodeTextStyle)
 })
@@ -49,7 +49,7 @@ test('add text style from middle to end', () => {
   ])
   expect(result[0]).toBeInstanceOf(NodeTextStyle)
   expect(result[1]._childNodes[0]).toBeInstanceOf(NodeTextStyle)
-  expect(result[1]).toBeInstanceOf(NodeStyleContainer)
+  expect(result[1]).toBeInstanceOf(NodeContainerStyle)
 })
 
 test('add text style in middle', () => {
@@ -65,7 +65,7 @@ test('add text style in middle', () => {
   ])
   expect(result[0]).toBeInstanceOf(NodeTextStyle)
   expect(result[1]._childNodes[0]).toBeInstanceOf(NodeTextStyle)
-  expect(result[1]).toBeInstanceOf(NodeStyleContainer)
+  expect(result[1]).toBeInstanceOf(NodeContainerStyle)
   expect(result[2]).toBeInstanceOf(NodeTextStyle)
 })
 

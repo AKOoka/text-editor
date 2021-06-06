@@ -1,10 +1,10 @@
 /* global test, expect, beforeEach */
 
-import { NodeLineContainer } from '../TextRepresentation/Nodes/NodeLineContainer'
+import { NodeContainerLine } from '../TextRepresentation/Nodes/NodeContainerLine'
 import { NodeText } from '../TextRepresentation/Nodes/NodeText'
 import { NodeTextStyle } from '../TextRepresentation/Nodes/NodeTextStyle'
 
-let nodeContainer = new NodeLineContainer([])
+let nodeContainer = new NodeContainerLine([])
 const defaultText = 'lorem'
 
 function childNodesMatchTo (matchObject) {
@@ -17,7 +17,7 @@ function instanceOfChildNodes (types) {
 }
 
 beforeEach(() => {
-  nodeContainer = new NodeLineContainer([new NodeText(defaultText)])
+  nodeContainer = new NodeContainerLine([new NodeText(defaultText)])
 })
 
 test('add text to middle', () => {
@@ -65,7 +65,7 @@ test('delete all text', () => {
 
 test('delete middle node', () => {
   // nodeContainer._childNodes.push(new NodeText('ipsum'), new NodeText('foo'))
-  nodeContainer = new NodeLineContainer([
+  nodeContainer = new NodeContainerLine([
     new NodeText(defaultText), new NodeText('ipsum'), new NodeText('foo')
   ])
   const result = nodeContainer.deleteText(0, defaultText.length, defaultText.length + 'ipsum'.length)
