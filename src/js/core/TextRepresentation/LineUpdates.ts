@@ -1,29 +1,19 @@
-import { NodeUpdatesManager } from './Nodes/NodeUpdatesManager'
 import { TextEditorRepresentationUpdateLineType } from './TextEditorRepresentationUpdateManager'
-
-interface ILineUpdate {
-  type: TextEditorRepresentationUpdateLineType
-  nodeUpdatesManager?: NodeUpdatesManager
-}
 
 export class LineUpdates {
   private readonly _offset: number
-  private readonly _updates: ILineUpdate[]
+  private readonly _type: TextEditorRepresentationUpdateLineType
 
-  constructor (offset: number, update: ILineUpdate[] = []) {
+  constructor (offset: number, type: TextEditorRepresentationUpdateLineType) {
     this._offset = offset
-    this._updates = update
+    this._type = type
   }
 
   get offset (): number {
     return this._offset
   }
 
-  get updates (): ILineUpdate[] {
-    return this._updates
-  }
-
-  addUpdate (update: ILineUpdate): void {
-    this._updates.push(update)
+  get type (): TextEditorRepresentationUpdateLineType {
+    return this._type
   }
 }

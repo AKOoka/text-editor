@@ -1,6 +1,6 @@
 import { RangeNode } from './Nodes/RangeNode'
 import { TextStyleType } from '../../common/TextStyleType'
-import { NodeRepresentation } from './NodeRepresentation'
+import { NodeRepresentation } from './Nodes/NodeRepresentation'
 import { PositionNode } from './Nodes/PositionNode'
 import { INodeCopy } from './Nodes/INode'
 import { INodeUpdate } from './Nodes/NodeUpdatesManager'

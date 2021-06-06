@@ -3,7 +3,7 @@ import { RangeNode } from './RangeNode'
 import { PositionNode } from './PositionNode'
 import { NodeUpdatesManager } from './NodeUpdatesManager'
 import { NodeType } from './NodeType'
-import { NodeRepresentation } from '../NodeRepresentation'
+import { NodeRepresentation } from './NodeRepresentation'
 import { CreatedContent } from './CreatedContent'
 
 export interface INodeCopyProps {

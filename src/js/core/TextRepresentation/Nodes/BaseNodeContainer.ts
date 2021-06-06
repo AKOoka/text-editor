@@ -1,6 +1,6 @@
 import { INode, INodeCopy } from './INode'
 import { TextStyleType } from '../../../common/TextStyleType'
-import { NodeRepresentation } from '../NodeRepresentation'
+import { NodeRepresentation } from './NodeRepresentation'
 import { RangeNode } from './RangeNode'
 import { PositionNode } from './PositionNode'
 import { NodeUpdatesManager } from './NodeUpdatesManager'
@@ -30,6 +30,7 @@ abstract class BaseNodeContainer implements INode {
     this._size = 0
     this._representation = new NodeRepresentation()
     this._nodeCreator = new NodeCreator()
+    this._nodeMerger = new NodeMerger()
 
     for (const childNode of this._childNodes) {
       this._size += childNode.getSize()
@@ -78,6 +79,23 @@ abstract class BaseNodeContainer implements INode {
 
   getSize (): number {
     return this._size
+  }
+
+  addText (position: PositionNode, text: string, nodeUpdateManager: NodeUpdatesManager): void {
+    let startOffset: number = position.offset
+
+    for (let i = 0; i < this._childNodes.length; i++) {
+      if (position.nodeInPosition(startOffset, this._childNodes[i].getSize())) {
+        nodeUpdateManager.addPath(i)
+        this._childNodes[i].addText(position.reset(startOffset, position.initPosition), text, nodeUpdateManager)
+        this._size += text.length
+        nodeUpdateManager.endPath()
+        return
+      }
+      startOffset += this._childNodes[i].getSize()
+    }
+
+    throw new Error("can't add text to node container")
   }
 
   deleteText (range: RangeNode, nodeUpdatesManager: NodeUpdatesManager): boolean {
@@ -178,7 +196,6 @@ abstract class BaseNodeContainer implements INode {
   abstract getNodeType (): NodeType
   abstract getStyle (): TextStyleType | null
   abstract getTextStylesInRange (range: RangeNode): TextStyleType[]
-  abstract addText (position: PositionNode, text: string, nodeUpdatesManager: NodeUpdatesManager): void
   abstract addTextStyle (range: RangeNode, textStyle: TextStyleType, nodeUpdatesManager: NodeUpdatesManager): INode[]
   abstract deleteAllTextStyles (range: RangeNode, nodeUpdatesManager: NodeUpdatesManager): INode[]
   abstract deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType, nodeUpdatesManager: NodeUpdatesManager): INode[]

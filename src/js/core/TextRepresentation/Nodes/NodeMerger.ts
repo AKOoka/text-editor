@@ -16,6 +16,7 @@ export class NodeMerger {
   private readonly _mergeFunctions: Record<NodeType, MergeFunction>
 
   constructor () {
+    this._mergePositions = []
     this._mergeFunctions = {
       [NodeType.TEXT]: this._mergeTextNodes,
       [NodeType.TEXT_STYLE]: this._mergeTextStyleNodes,

@@ -1,4 +1,4 @@
-import { NodeRepresentation } from '../NodeRepresentation'
+import { NodeRepresentation } from './NodeRepresentation'
 import { INode } from './INode'
 
 export enum TextEditorRepresentationUpdateNodeType {
@@ -17,7 +17,6 @@ export interface INodeUpdate {
 export interface INodeUpdateAdd extends INodeUpdate{
   route: number[]
   type: TextEditorRepresentationUpdateNodeType
-  added: boolean
   content: NodeRepresentation
 }
 
@@ -29,7 +28,6 @@ export interface INodeUpdateDelete extends INodeUpdate {
 export interface INodeUpdateChange extends INodeUpdate {
   route: number[]
   type: TextEditorRepresentationUpdateNodeType
-  added: boolean
   content: NodeRepresentation
 }
 
@@ -55,26 +53,30 @@ class NodeUpdatesManager {
   }
 
   nodeAdd (node: INode): void {
-    this._nodeUpdates.set(node, { route: this._route, type: TextEditorRepresentationUpdateNodeType.ADD, added: true, content: node.getRepresentation() })
+    this._nodeUpdates.set(node, { route: [...this._route], type: TextEditorRepresentationUpdateNodeType.ADD, added: true, content: node.getRepresentation() })
   }
 
   nodeDelete (node: INode): void {
-    this._nodeUpdates.set(node, { route: this._route, type: TextEditorRepresentationUpdateNodeType.DELETE })
+    const update = this._nodeUpdates.get(node)
+    if (update !== undefined && update.added === true) {
+      this._nodeUpdates.delete(node)
+    }
+    this._nodeUpdates.set(node, { route: [...this._route], type: TextEditorRepresentationUpdateNodeType.DELETE })
   }
 
   nodeChange (nodes: INode[]): void {
     const update = this._nodeUpdates.get(nodes[0])
     if (update !== undefined && update.added === true) {
       this._nodeUpdates.set(nodes[0], {
-        route: this._route,
+        route: [...this._route],
         added: update.added,
         type: TextEditorRepresentationUpdateNodeType.ADD,
         content: nodes[0].getRepresentation()
       })
     } else {
       this._nodeUpdates.set(nodes[0], {
-        route: this._route,
-        added: false,
+        route: [...this._route],
+        added: true,
         type: TextEditorRepresentationUpdateNodeType.CHANGE,
         content: nodes[0].getRepresentation()
       })
@@ -83,7 +85,7 @@ class NodeUpdatesManager {
     for (let i = 1; i < nodes.length; i++) {
       this._route[this._route.length - 1]++
       this._nodeUpdates.set(nodes[i], {
-        route: this._route,
+        route: [...this._route],
         added: true,
         type: TextEditorRepresentationUpdateNodeType.ADD,
         content: nodes[i].getRepresentation()

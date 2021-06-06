@@ -1,6 +1,6 @@
 import { INode, INodeCopy } from './INode'
 import { TextStyleType } from '../../../common/TextStyleType'
-import { NodeRepresentation, NodeRepresentationType } from '../NodeRepresentation'
+import { NodeRepresentation, NodeRepresentationType } from './NodeRepresentation'
 import { RangeNode } from './RangeNode'
 import { PositionNode } from './PositionNode'
 import { NodeCreator } from './NodeCreator'

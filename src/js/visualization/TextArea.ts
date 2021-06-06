@@ -13,10 +13,16 @@ import {
   ITextEditorRepresentationUpdateLine,
   TextEditorRepresentationUpdateLineType
 } from '../core/TextRepresentation/TextEditorRepresentationUpdateManager'
-import { NodeRepresentation, NodeRepresentationType } from '../core/TextRepresentation/NodeRepresentation'
-import { TextEditorRepresentationUpdateNodeType } from '../core/TextRepresentation/Nodes/NodeUpdatesManager'
+import { NodeRepresentationType } from '../core/TextRepresentation/Nodes/NodeRepresentation'
+import {
+  INodeUpdate, INodeUpdateAdd, INodeUpdateChange, INodeUpdateDelete,
+  TextEditorRepresentationUpdateNodeType
+} from '../core/TextRepresentation/Nodes/NodeUpdatesManager'
 
-type TextAreaUpdateFunction = (change: ITextEditorRepresentationUpdateLine) => void
+type TextAreaUpdateLineFunction = (change: ITextEditorRepresentationUpdateLine) => void
+type TextAreaUpdateLineFunctionRecord = Record<TextEditorRepresentationUpdateLineType, TextAreaUpdateLineFunction>
+type TextAreaUpdateNodeFunction = (y: number, change: INodeUpdate) => void
+type TextAreaUpdateNodeFunctionRecord = Record<TextEditorRepresentationUpdateNodeType, TextAreaUpdateNodeFunction>
 
 class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorPositionSubscriber, ITextCursorSelectionsSubscriber {
   private readonly _context: HTMLElement
@@ -26,7 +32,8 @@ class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorP
   private readonly _layerText: TextAreaLayerText
   private readonly _layerUi: TextAreaLayerUi
   private readonly _layerInteractive: HTMLElement
-  private readonly _updateFunction: Record<TextEditorRepresentationUpdateLineType, TextAreaUpdateFunction>
+  private readonly _lineUpdateFunctions: TextAreaUpdateLineFunctionRecord
+  private readonly _nodeUpdateFunctions: TextAreaUpdateNodeFunctionRecord
 
   constructor () {
     this._context = document.createElement('div')
@@ -39,51 +46,63 @@ class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorP
     this._layerUi.addTextCursor()
     this._layerInteractive = document.createElement('div')
     this._layerInteractive.classList.add('text-area_layer-interactive')
-    this._updateFunction = this._createUpdateFunctions()
+    this._lineUpdateFunctions = this._createUpdateLineFunctions()
+    this._nodeUpdateFunctions = this._createUpdateNodeFunctions()
 
     this._context.append(this._layerText.getContext(), this._layerUi.getContext(), this._layerInteractive)
   }
 
-  private _createUpdateFunctions (): Record<TextEditorRepresentationUpdateLineType, TextAreaUpdateFunction> {
+  private _createUpdateLineFunctions (): TextAreaUpdateLineFunctionRecord {
     return {
-      [TextEditorRepresentationUpdateLineType.ADD]: this._addLine,
-      [TextEditorRepresentationUpdateLineType.DELETE]: this._deleteLine,
-      [TextEditorRepresentationUpdateLineType.CHANGE]: this._changeLine
+      [TextEditorRepresentationUpdateLineType.ADD]: this._lineAdd.bind(this),
+      [TextEditorRepresentationUpdateLineType.DELETE]: this._lineDelete.bind(this),
+      [TextEditorRepresentationUpdateLineType.CHANGE]: this._lineChange.bind(this)
     }
   }
 
-  private _addLine (change: ITextEditorRepresentationUpdateLine): void {
-    this._layerText.insertTextLine(change.y, this._htmlCreator.createHtmlElement(NodeRepresentationType.LINE))
+  private _createUpdateNodeFunctions (): TextAreaUpdateNodeFunctionRecord {
+    return {
+      [TextEditorRepresentationUpdateNodeType.ADD]: this._nodeAdd.bind(this),
+      [TextEditorRepresentationUpdateNodeType.CHANGE]: this._nodeChange.bind(this),
+      [TextEditorRepresentationUpdateNodeType.DELETE]: this._nodeDelete.bind(this)
+    }
   }
 
-  private _deleteLine (change: ITextEditorRepresentationUpdateLine): void {
+  private _lineAdd (change: {
+    y: number
+    type: TextEditorRepresentationUpdateLineType
+    nodeUpdates: INodeUpdate[]
+  }): void {
+    this._layerText.insertTextLine(change.y, this._htmlCreator.createHtmlElement(NodeRepresentationType.LINE))
+    for (const nodeUpdate of change.nodeUpdates) {
+      this._nodeUpdateFunctions[nodeUpdate.type](change.y, nodeUpdate)
+    }
+  }
+
+  private _lineDelete (change: ITextEditorRepresentationUpdateLine): void {
     this._layerText.deleteTextLine(change.y)
   }
 
-  private _changeLine (change: {
+  private _lineChange (change: {
     y: number
     type: TextEditorRepresentationUpdateLineType
-    nodeUpdates: Array<{
-      route: number[]
-      type: TextEditorRepresentationUpdateNodeType
-      content: NodeRepresentation[]
-    }>
+    nodeUpdates: INodeUpdate[]
   }): void {
-    for (const { type, content, route } of change.nodeUpdates) {
-      switch (type) {
-        case TextEditorRepresentationUpdateNodeType.ADD:
-          for (let i = 0; i < content.length; i++) {
-            route[route.length - 1] = route[route.length - 1] + i
-            this._layerText.addNode(change.y, route, this._htmlCreator.createHtmlFromNodeRepresentation(content[i]))
-          }
-          break
-        case TextEditorRepresentationUpdateNodeType.DELETE:
-          this._layerText.deleteNode(change.y, route)
-          break
-        case TextEditorRepresentationUpdateNodeType.CHANGE:
-          this._layerText.changeNode(change.y, route, content.map(c => this._htmlCreator.createHtmlFromNodeRepresentation(c)))
-      }
+    for (const nodeUpdate of change.nodeUpdates) {
+      this._nodeUpdateFunctions[nodeUpdate.type](change.y, nodeUpdate)
     }
+  }
+
+  private _nodeChange (y: number, nodeUpdate: INodeUpdateChange): void {
+    this._layerText.changeNode(y, nodeUpdate.route, this._htmlCreator.createHtmlFromNodeRepresentation(nodeUpdate.content))
+  }
+
+  private _nodeDelete (y: number, nodeUpdate: INodeUpdateDelete): void {
+    this._layerText.deleteNode(y, nodeUpdate.route)
+  }
+
+  private _nodeAdd (y: number, nodeUpdate: INodeUpdateAdd): void {
+    this._layerText.addNode(y, nodeUpdate.route, this._htmlCreator.createHtmlFromNodeRepresentation(nodeUpdate.content))
   }
 
   getContext (): HTMLElement {
@@ -156,7 +175,7 @@ class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorP
 
   updateTextRepresentation (changes: ITextEditorRepresentationUpdateLine[]): void {
     for (const change of changes) {
-      this._updateFunction[change.type](change)
+      this._lineUpdateFunctions[change.type](change)
     }
   }
 }

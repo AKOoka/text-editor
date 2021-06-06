@@ -19,7 +19,7 @@ class CommandLineAdd extends BaseCommand {
     this._content = context.getContentInSelections([{ rangeX: new Range(x, textLength), rangeY: new Range(y, y) }])
 
     context.deleteTextInRange(y, new Range(x, textLength))
-    context.addNewLinesInRange(new Range(y, y + this._count))
+    context.addNewLinesInRange(new Range(y + 1, y + 1 + this._count))
     context.addContent({ x: 0, y: y + this._count }, this._content)
     context.setTextCursorPosition({ x: 0, y: y + this._count })
     context.updateTextRepresentation()

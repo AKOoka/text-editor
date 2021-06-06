@@ -1,7 +1,7 @@
 import { INode, INodeCopy } from './INode'
 import { TextStyleType } from '../../../common/TextStyleType'
 import { BaseNodeContainer, ChildNodeInRangeCallback } from './BaseNodeContainer'
-import { NodeRepresentation, NodeRepresentationType } from '../NodeRepresentation'
+import { NodeRepresentation, NodeRepresentationType } from './NodeRepresentation'
 import { PositionNode } from './PositionNode'
 import { RangeNode } from './RangeNode'
 import { NodeType } from './NodeType'
@@ -23,23 +23,6 @@ class NodeContainerStyle extends BaseNodeContainer {
 
   getNodeType (): NodeType {
     return NodeType.CONTAINER_STYLE
-  }
-
-  addText (position: PositionNode, text: string, nodeUpdateManager: NodeUpdatesManager): void {
-    let startOffset: number = position.offset
-
-    for (let i = 0; i < this._childNodes.length; i++) {
-      if (position.childNodeInPosition(startOffset, this._childNodes[i].getSize())) {
-        nodeUpdateManager.addPath(i)
-        this._childNodes[i].addText(position.reset(startOffset, position.initPosition), text, nodeUpdateManager)
-        this._size += text.length
-        nodeUpdateManager.endPath()
-        return
-      }
-      startOffset += this._childNodes[i].getSize()
-    }
-
-    throw new Error("can't add text to node style container")
   }
 
   addTextStyle (range: RangeNode, textStyle: TextStyleType, nodeUpdatesManager: NodeUpdatesManager): INode[] {

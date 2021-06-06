@@ -2,7 +2,7 @@ import {
   InstructionProps,
   NodeRepresentation, NodeRepresentationInstructionId,
   NodeRepresentationType
-} from '../core/TextRepresentation/NodeRepresentation'
+} from '../core/TextRepresentation/Nodes/NodeRepresentation'
 
 type baseCreationFunction = () => HTMLElement
 type InstructionFunction = (base: HTMLElement, props: InstructionProps) => void

@@ -47,8 +47,8 @@ class TextAreaLayerText extends BaseTextAreaLayer {
     currentNode.insertBefore(node, currentNode.children[routeToNode[routeToNode.length - 1]])
   }
 
-  changeNode (y: number, routeToNode: number[], nodes: HTMLElement[]): void {
-    this._getChildNodeFromRoute(y, routeToNode).replaceWith(...nodes)
+  changeNode (y: number, routeToNode: number[], node: HTMLElement): void {
+    this._getChildNodeFromRoute(y, routeToNode).replaceWith(node)
   }
 }
 

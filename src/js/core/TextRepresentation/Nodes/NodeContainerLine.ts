@@ -1,15 +1,15 @@
 import { INode, INodeCopy } from './INode'
-import { NodeText } from './NodeText'
 import { TextStyleType } from '../../../common/TextStyleType'
 import { NodeContainerStyle } from './NodeContainerStyle'
 import { BaseNodeContainer, ChildNodeInRangeCallback } from './BaseNodeContainer'
 import { PositionNode } from './PositionNode'
 import { RangeNode } from './RangeNode'
-import { NodeRepresentationType } from '../NodeRepresentation'
+import { NodeRepresentationType } from './NodeRepresentation'
 import { INodeUpdate, NodeUpdatesManager } from './NodeUpdatesManager'
 import { ITextEditorRepresentationLine } from '../ITextEditorRepresentationLine'
 import { CreatedContent } from './CreatedContent'
 import { NodeType } from './NodeType'
+import { NodeText } from './NodeText'
 
 class NodeContainerLine extends BaseNodeContainer implements ITextEditorRepresentationLine {
   private readonly _nodeUpdatesManager: NodeUpdatesManager
@@ -18,6 +18,14 @@ class NodeContainerLine extends BaseNodeContainer implements ITextEditorRepresen
     super(childNodes)
     this._representation.representationType = NodeRepresentationType.LINE
     this._nodeUpdatesManager = new NodeUpdatesManager()
+
+    if (childNodes.length === 0) {
+      const newNode = new NodeText('')
+      this._nodeUpdatesManager.addPath(0)
+      this._childNodes.push(newNode)
+      this._nodeUpdatesManager.nodeAdd(newNode)
+      this._nodeUpdatesManager.endPath()
+    }
   }
 
   getNodeType (): NodeType {
@@ -35,24 +43,7 @@ class NodeContainerLine extends BaseNodeContainer implements ITextEditorRepresen
   }
 
   addText (position: PositionNode, text: string): void {
-    let startOffset: number = position.offset
-    this._size += text.length
-
-    for (let i = 0; i < this._childNodes.length; i++) {
-      if (position.childNodeInPosition(startOffset, this._childNodes[i].getSize())) {
-        this._nodeUpdatesManager.addPath(i)
-        this._childNodes[i].addText(position.reset(startOffset, position.initPosition), text, this._nodeUpdatesManager)
-        this._nodeUpdatesManager.endPath()
-        return
-      }
-      startOffset += this._childNodes[i].getSize()
-    }
-
-    const newNode: INode = new NodeText(text)
-    this._nodeUpdatesManager.addPath(this._childNodes.length)
-    this._nodeUpdatesManager.nodeAdd(newNode)
-    this._nodeUpdatesManager.endPath()
-    this._childNodes.push(newNode)
+    super.addText(position, text, this._nodeUpdatesManager)
   }
 
   addTextStyle (range: RangeNode, textStyle: TextStyleType): INode[] {
