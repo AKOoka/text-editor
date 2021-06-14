@@ -6,7 +6,6 @@ import { NodeRepresentationType } from './NodeRepresentation'
 import { RangeNode } from './RangeNode'
 import { PositionNode } from './PositionNode'
 import { NodeType } from './NodeType'
-import { NodeUpdatesManager } from './NodeUpdatesManager'
 import { CreatedContent } from './CreatedContent'
 
 class NodeText extends BaseNode {
@@ -23,7 +22,7 @@ class NodeText extends BaseNode {
     return null
   }
 
-  addTextStyle (range: RangeNode, textStyleType: TextStyleType, nodeUpdatesManager: NodeUpdatesManager): INode[] {
+  addTextStyle (range: RangeNode, textStyleType: TextStyleType): INode[] {
     let newNodes: INode[] = []
 
     if (range.nodeInsideRange(this.getSize())) {
@@ -42,19 +41,14 @@ class NodeText extends BaseNode {
       newNodes = [new NodeTextStyle(this._text.slice(0, range.end), textStyleType), this]
     }
 
-    nodeUpdatesManager.nodeChange(newNodes)
-    nodeUpdatesManager.endPath()
-
     return newNodes
   }
 
-  deleteAllTextStyles (_: RangeNode, nodeUpdatesManager: NodeUpdatesManager): INode[] {
-    nodeUpdatesManager.endPath()
+  deleteAllTextStyles (_: RangeNode): INode[] {
     return [this]
   }
 
-  deleteConcreteTextStyle (_: RangeNode, __: TextStyleType, nodeUpdatesManager: NodeUpdatesManager): INode[] {
-    nodeUpdatesManager.endPath()
+  deleteConcreteTextStyle (_: RangeNode, __: TextStyleType): INode[] {
     return [this]
   }
 
@@ -79,12 +73,8 @@ class NodeText extends BaseNode {
     }]
   }
 
-  addContent (position: PositionNode, content: INodeCopy[], parentTextStyle: TextStyleType[], nodeUpdatesManager: NodeUpdatesManager): CreatedContent {
-    const createdContent = super.addContent(position, content, parentTextStyle, nodeUpdatesManager)
-    nodeUpdatesManager.nodeChange(createdContent.nodes)
-    nodeUpdatesManager.endPath()
-
-    return createdContent
+  addContent (position: PositionNode, content: INodeCopy[], parentTextStyle: TextStyleType[]): CreatedContent {
+    return super.addContent(position, content, parentTextStyle)
   }
 }
 

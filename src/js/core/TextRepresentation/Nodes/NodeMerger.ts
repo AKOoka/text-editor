@@ -3,7 +3,6 @@ import { NodeType } from './NodeType'
 import { NodeText } from './NodeText'
 import { NodeTextStyle } from './NodeTextStyle'
 import { NodeContainerStyle } from './NodeContainerStyle'
-import { NodeUpdatesManager } from './NodeUpdatesManager'
 import { BaseNode } from './BaseNode'
 import { BaseNodeContainer } from './BaseNodeContainer'
 
@@ -104,6 +103,8 @@ export class NodeMerger {
   savePositionChange (changeStart: number, changeEnd: number): void {
     if (this._isValidPosition(changeStart)) {
       this._mergePositions.push(changeStart - 1, changeStart)
+    }
+    if (this._isValidPosition(changeEnd)) {
       this._mergePositions.push(changeEnd, changeEnd + 1)
     }
   }
@@ -111,30 +112,24 @@ export class NodeMerger {
   savePositionAdd (addStart: number, addEnd: number): void {
     if (this._isValidPosition(addStart)) {
       this._mergePositions.push(addStart - 1, addStart)
+    }
+    if (this._isValidPosition(addEnd)) {
       this._mergePositions.push(addEnd, addEnd + 1)
     }
   }
 
-  mergeNodesOnSavedPositions (nodes: INode[], nodeUpdatesManager: NodeUpdatesManager): INode[] {
+  mergeNodesOnSavedPositions (nodes: INode[]): INode[] {
+    if (this._mergePositions.length <= 1) {
+      return nodes
+    }
+
     const mergedNodes: INode[] = []
-    const nodesToMerge: INode[] =
-      this._mergePositions[this._mergePositions.length - 1] >= nodes.length
-        ? nodes.slice(0, -1)
-        : nodes
+    const nodesToMerge: INode[] = nodes
 
     for (let i = 1; i < nodesToMerge.length; i++) {
       const leftNode: INode = nodesToMerge[i - 1]
       const rightNode: INode = nodesToMerge[i]
       const mergeResult = this._mergeNodes([leftNode, rightNode])
-      if (mergeResult.length === 1) {
-        nodeUpdatesManager.addPath(i - 1)
-        nodeUpdatesManager.nodeChange([leftNode])
-        nodeUpdatesManager.endPath()
-
-        nodeUpdatesManager.addPath(i)
-        nodeUpdatesManager.nodeDelete(rightNode)
-        nodeUpdatesManager.endPath()
-      }
       mergedNodes.push(...mergeResult)
     }
 

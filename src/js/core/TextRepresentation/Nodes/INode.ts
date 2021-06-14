@@ -1,7 +1,6 @@
 import { TextStyleType } from '../../../common/TextStyleType'
 import { RangeNode } from './RangeNode'
 import { PositionNode } from './PositionNode'
-import { NodeUpdatesManager } from './NodeUpdatesManager'
 import { NodeType } from './NodeType'
 import { NodeRepresentation } from './NodeRepresentation'
 import { CreatedContent } from './CreatedContent'
@@ -40,10 +39,10 @@ export interface INode {
   getContentInRange: (range: RangeNode) => INodeCopy[]
   getTextStylesInRange: (range: RangeNode) => TextStyleType[]
   getRepresentation: () => NodeRepresentation
-  addText: (position: PositionNode, text: string, nodeUpdatesManager: NodeUpdatesManager) => void
-  addContent: (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyleType[], nodeUpdatesManager: NodeUpdatesManager) => CreatedContent
-  addTextStyle: (range: RangeNode, textStyle: TextStyleType, nodeUpdatesManager: NodeUpdatesManager) => INode[]
-  deleteText: (range: RangeNode, nodeUpdatesManager: NodeUpdatesManager) => boolean
-  deleteAllTextStyles: (range: RangeNode, nodeUpdatesManager: NodeUpdatesManager) => INode[]
-  deleteConcreteTextStyle: (range: RangeNode, textStyle: TextStyleType, nodeUpdatesManager: NodeUpdatesManager) => INode[]
+  addText: (position: PositionNode, text: string) => void
+  addContent: (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyleType[]) => CreatedContent
+  addTextStyle: (range: RangeNode, textStyle: TextStyleType) => INode[]
+  deleteText: (range: RangeNode) => boolean
+  deleteAllTextStyles: (range: RangeNode) => INode[]
+  deleteConcreteTextStyle: (range: RangeNode, textStyle: TextStyleType) => INode[]
 }

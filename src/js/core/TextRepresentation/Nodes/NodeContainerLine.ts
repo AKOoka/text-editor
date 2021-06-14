@@ -5,27 +5,16 @@ import { BaseNodeContainer, ChildNodeInRangeCallback } from './BaseNodeContainer
 import { PositionNode } from './PositionNode'
 import { RangeNode } from './RangeNode'
 import { NodeRepresentationType } from './NodeRepresentation'
-import { INodeUpdate, NodeUpdatesManager } from './NodeUpdatesManager'
+import { INodeUpdate } from './NodeUpdatesManager'
 import { ITextEditorRepresentationLine } from '../ITextEditorRepresentationLine'
 import { CreatedContent } from './CreatedContent'
 import { NodeType } from './NodeType'
 import { NodeText } from './NodeText'
 
 class NodeContainerLine extends BaseNodeContainer implements ITextEditorRepresentationLine {
-  private readonly _nodeUpdatesManager: NodeUpdatesManager
-
   constructor (childNodes: INode[] = []) {
     super(childNodes)
     this._representation.representationType = NodeRepresentationType.LINE
-    this._nodeUpdatesManager = new NodeUpdatesManager()
-
-    if (childNodes.length === 0) {
-      const newNode = new NodeText('')
-      this._nodeUpdatesManager.addPath(0)
-      this._childNodes.push(newNode)
-      this._nodeUpdatesManager.nodeAdd(newNode)
-      this._nodeUpdatesManager.endPath()
-    }
   }
 
   getNodeType (): NodeType {
@@ -37,32 +26,41 @@ class NodeContainerLine extends BaseNodeContainer implements ITextEditorRepresen
   }
 
   getUpdates (): INodeUpdate[] {
-    const updates = this._nodeUpdatesManager.nodeUpdates
-    this._nodeUpdatesManager.clear()
-    return updates
+    return []
   }
 
   addText (position: PositionNode, text: string): void {
-    super.addText(position, text, this._nodeUpdatesManager)
+    if (this._childNodes.length === 0) {
+      const newNode = new NodeText('')
+      this._childNodes.push(newNode)
+    }
+    super.addText(position, text)
   }
 
   addTextStyle (range: RangeNode, textStyle: TextStyleType): INode[] {
     if (range.nodeInsideRange(this.getSize())) {
       this._childNodes = [new NodeContainerStyle(this._childNodes, textStyle)]
-      this._nodeUpdatesManager.nodeChange([this])
-      this._nodeUpdatesManager.endPath()
       return [this]
     }
 
     const childNodeInRangeCallback: ChildNodeInRangeCallback<TextStyleType> =
-      (rangeNode, childNode, textStyleType) => childNode.addTextStyle(rangeNode, textStyleType, this._nodeUpdatesManager)
-    this._childNodes = this._updateChildNodesInRange<TextStyleType>(childNodeInRangeCallback, range, textStyle, this._nodeUpdatesManager)
+      (rangeNode, childNode, textStyleType) => childNode.addTextStyle(rangeNode, textStyleType)
+    this._childNodes = this._updateChildNodesInRange<TextStyleType>(childNodeInRangeCallback, range, textStyle)
 
     return [this]
   }
 
   addContent (position: PositionNode, content: INodeCopy[]): CreatedContent {
-    const createdContent = super.addContent(position, content, [], this._nodeUpdatesManager)
+    if (this._childNodes.length === 0) {
+      const { nodes, nodeStyles } = this._nodeCreator.createNodeFromCopies(content, [])
+      for (const node of nodes) {
+        this._childNodes.push(node)
+        this._size += node.getSize()
+      }
+      nodeStyles.forEach(c => this._childStyles.add(c))
+      return { nodes, nodeStyles }
+    }
+    const createdContent = super.addContent(position, content, [])
     for (const style of createdContent.nodeStyles) {
       this._childStyles.add(style)
     }
@@ -75,16 +73,16 @@ class NodeContainerLine extends BaseNodeContainer implements ITextEditorRepresen
     }
 
     const childNodeInRange: ChildNodeInRangeCallback<null> =
-      (range, childNode) => childNode.deleteAllTextStyles(range, this._nodeUpdatesManager)
-    this._childNodes = this._updateChildNodesInRange<null>(childNodeInRange, range, null, this._nodeUpdatesManager)
+      (range, childNode) => childNode.deleteAllTextStyles(range)
+    this._childNodes = this._updateChildNodesInRange<null>(childNodeInRange, range, null)
 
     return [this]
   }
 
   deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType): INode[] {
     const childNodeInRange: ChildNodeInRangeCallback<TextStyleType> =
-      (range, childNode, textStyleType) => childNode.deleteConcreteTextStyle(range, textStyleType, this._nodeUpdatesManager)
-    this._childNodes = this._updateChildNodesInRange<TextStyleType>(childNodeInRange, range, textStyle, this._nodeUpdatesManager)
+      (range, childNode, textStyleType) => childNode.deleteConcreteTextStyle(range, textStyleType)
+    this._childNodes = this._updateChildNodesInRange<TextStyleType>(childNodeInRange, range, textStyle)
 
     return [this]
   }
@@ -93,12 +91,11 @@ class NodeContainerLine extends BaseNodeContainer implements ITextEditorRepresen
     if (range.nodeInsideRange(this.getSize())) {
       this._childNodes = []
       this._childStyles.clear()
-      this._nodeUpdatesManager.nodeChange([this])
-      this._nodeUpdatesManager.endPath()
+      this._size = 0
       return true
     }
 
-    return super.deleteText(range, this._nodeUpdatesManager)
+    return super.deleteText(range)
   }
 
   getTextStylesInRange (range: RangeNode): TextStyleType[] {

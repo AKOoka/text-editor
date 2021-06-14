@@ -8,7 +8,7 @@ import { IPoint } from '../../common/IPoint'
 import { PositionNode } from './Nodes/PositionNode'
 import { RangeNode } from './Nodes/RangeNode'
 import {
-  ITextEditorRepresentationUpdate,
+  ITextEditorRepresentationUpdateLine,
   TextEditorRepresentationUpdateLineType,
   TextEditorRepresentationUpdateManager
 } from './TextEditorRepresentationUpdateManager'
@@ -284,14 +284,14 @@ class TextEditorRepresentation {
   }
 
   notifySubscribers (): void {
-    const updates: ITextEditorRepresentationUpdate[] = []
+    const updates: ITextEditorRepresentationUpdateLine[] = []
     for (const { y, type } of this._updateManager.getUpdates()) {
       switch (type) {
         case TextEditorRepresentationUpdateLineType.ADD:
-          updates.push({ y, type, nodeUpdates: this._textLines[y].getUpdates() })
+          updates.push({ y, type, nodeLineRepresentation: this._textLines[y].getRepresentation() })
           break
         case TextEditorRepresentationUpdateLineType.CHANGE:
-          updates.push({ y, type, nodeUpdates: this._textLines[y].getUpdates() })
+          updates.push({ y, type, nodeLineRepresentation: this._textLines[y].getRepresentation() })
           break
         case TextEditorRepresentationUpdateLineType.DELETE:
           updates.push({ y, type })

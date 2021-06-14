@@ -5,7 +5,6 @@ import { NodeRepresentation, NodeRepresentationType } from './NodeRepresentation
 import { PositionNode } from './PositionNode'
 import { RangeNode } from './RangeNode'
 import { NodeType } from './NodeType'
-import { NodeUpdatesManager } from './NodeUpdatesManager'
 import { CreatedContent } from './CreatedContent'
 
 class NodeContainerStyle extends BaseNodeContainer {
@@ -25,35 +24,30 @@ class NodeContainerStyle extends BaseNodeContainer {
     return NodeType.CONTAINER_STYLE
   }
 
-  addTextStyle (range: RangeNode, textStyle: TextStyleType, nodeUpdatesManager: NodeUpdatesManager): INode[] {
+  addTextStyle (range: RangeNode, textStyle: TextStyleType): INode[] {
     if (textStyle === this._textStyle) {
-      nodeUpdatesManager.endPath()
       return [this]
     } else if (range.nodeInsideRange(this.getSize())) {
       const newNode = new NodeContainerStyle([this], textStyle)
-      nodeUpdatesManager.nodeChange([newNode])
-      nodeUpdatesManager.endPath()
       return [newNode]
     }
 
     const childNodeInRange: ChildNodeInRangeCallback<TextStyleType> =
-      (range, childNode, textStyleType) => childNode.addTextStyle(range, textStyleType, nodeUpdatesManager)
-    this._childNodes = this._updateChildNodesInRange<TextStyleType>(childNodeInRange, range, textStyle, nodeUpdatesManager)
+      (range, childNode, textStyleType) => childNode.addTextStyle(range, textStyleType)
+    this._childNodes = this._updateChildNodesInRange<TextStyleType>(childNodeInRange, range, textStyle)
 
     return [this]
   }
 
-  deleteAllTextStyles (range: RangeNode, nodeUpdatesManager: NodeUpdatesManager): INode[] {
+  deleteAllTextStyles (range: RangeNode): INode[] {
     if (range.nodeInsideRange(this.getSize())) {
       const newNode = this._nodeMerger.mergeNodesToNodeText(this._childNodes)
-      nodeUpdatesManager.nodeChange([this])
-      nodeUpdatesManager.endPath()
       return [newNode]
     }
 
     const childNodeInRange: ChildNodeInRangeCallback<null> =
-      (range, childNode) => childNode.deleteAllTextStyles(range, nodeUpdatesManager)
-    this._childNodes = this._updateChildNodesInRange<null>(childNodeInRange, range, null, nodeUpdatesManager)
+      (range, childNode) => childNode.deleteAllTextStyles(range)
+    this._childNodes = this._updateChildNodesInRange<null>(childNodeInRange, range, null)
 
     return [this]
   }
@@ -90,7 +84,7 @@ class NodeContainerStyle extends BaseNodeContainer {
     throw new Error("couldn't find right node to split NodeStyleContainer")
   }
 
-  deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType, nodeUpdateManager: NodeUpdatesManager): INode[] {
+  deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType): INode[] {
     if (textStyle === this._textStyle) {
       // temporary solution - NEED TO REFACTOR
       let newNodes: INode[] = []
@@ -118,15 +112,12 @@ class NodeContainerStyle extends BaseNodeContainer {
         newNodes = nodesWithoutStyleContainer.concat([this])
       }
 
-      nodeUpdateManager.nodeChange(newNodes)
-      nodeUpdateManager.endPath()
-
       return newNodes
     }
 
     const childNodeInRange: ChildNodeInRangeCallback<TextStyleType> =
-      (range, childNode, textStyle) => childNode.deleteConcreteTextStyle(range, textStyle, nodeUpdateManager)
-    this._childNodes = this._updateChildNodesInRange<TextStyleType>(childNodeInRange, range, textStyle, nodeUpdateManager)
+      (range, childNode, textStyle) => childNode.deleteConcreteTextStyle(range, textStyle)
+    this._childNodes = this._updateChildNodesInRange<TextStyleType>(childNodeInRange, range, textStyle)
 
     return [this]
   }
@@ -148,13 +139,12 @@ class NodeContainerStyle extends BaseNodeContainer {
     return []
   }
 
-  addContent (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyleType[], nodeUpdatesManager: NodeUpdatesManager): CreatedContent {
+  addContent (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyleType[]): CreatedContent {
     parentTextStyles.push(this._textStyle)
-    const { nodes, nodeStyles } = super.addContent(position, content, parentTextStyles, nodeUpdatesManager)
+    const { nodes, nodeStyles } = super.addContent(position, content, parentTextStyles)
     for (const style of nodeStyles) {
       this._childStyles.add(style)
     }
-    nodeUpdatesManager.endPath()
     return { nodes, nodeStyles }
   }
 
@@ -182,14 +172,12 @@ class NodeContainerStyle extends BaseNodeContainer {
     return representation
   }
 
-  deleteText (range: RangeNode, nodeUpdatesManager: NodeUpdatesManager): boolean {
+  deleteText (range: RangeNode): boolean {
     if (range.nodeInsideRange(this.getSize())) {
-      nodeUpdatesManager.nodeDelete(this)
-      nodeUpdatesManager.endPath()
       return true
     }
 
-    return super.deleteText(range, nodeUpdatesManager)
+    return super.deleteText(range)
   }
 }
 

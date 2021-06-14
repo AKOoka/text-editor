@@ -31,10 +31,10 @@ class HtmlCreator {
 
   private _createInstructionFunctions (): Record<NodeRepresentationInstructionId, InstructionFunction> {
     return {
-      [NodeRepresentationInstructionId.TEXT]: this._readTextInstruction,
-      [NodeRepresentationInstructionId.CONTAINER]: this._readContainerInstruction,
-      [NodeRepresentationInstructionId.STYLE]: this._readStyleInstruction,
-      [NodeRepresentationInstructionId.STYLE_WITH_VALUE]: this._readStyleWithValueInstruction
+      [NodeRepresentationInstructionId.TEXT]: this._readTextInstruction.bind(this),
+      [NodeRepresentationInstructionId.CONTAINER]: this._readContainerInstruction.bind(this),
+      [NodeRepresentationInstructionId.STYLE]: this._readStyleInstruction.bind(this),
+      [NodeRepresentationInstructionId.STYLE_WITH_VALUE]: this._readStyleWithValueInstruction.bind(this)
     }
   }
 

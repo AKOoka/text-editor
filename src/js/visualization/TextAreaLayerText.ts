@@ -14,6 +14,11 @@ class TextAreaLayerText extends BaseTextAreaLayer {
     this._textLines.splice(y, 0, line)
   }
 
+  changeTextLine (y: number, line: HTMLElement): void {
+    this._textLines[y].replaceWith(line)
+    this._textLines[y] = line
+  }
+
   deleteTextLine (y: number): void {
     this._textLines[y].remove()
     this._textLines.splice(y, 1)
@@ -25,30 +30,6 @@ class TextAreaLayerText extends BaseTextAreaLayer {
 
   getAllTextLines (): HTMLElement[] {
     return this._textLines
-  }
-
-  private _getChildNodeFromRoute (y: number, route: number[]): HTMLElement {
-    let currentNode: HTMLElement = this._textLines[y]
-    for (const r of route) {
-      currentNode = currentNode.children[r] as HTMLElement
-    }
-    return currentNode
-  }
-
-  deleteNode (y: number, routeToNode: number[]): void {
-    this._getChildNodeFromRoute(y, routeToNode).remove()
-  }
-
-  addNode (y: number, routeToNode: number[], node: HTMLElement): void {
-    let currentNode = this._textLines[y]
-    for (let i = 0; i < routeToNode.length - 1; i++) {
-      currentNode = currentNode.children[routeToNode[i]] as HTMLElement
-    }
-    currentNode.insertBefore(node, currentNode.children[routeToNode[routeToNode.length - 1]])
-  }
-
-  changeNode (y: number, routeToNode: number[], node: HTMLElement): void {
-    this._getChildNodeFromRoute(y, routeToNode).replaceWith(node)
   }
 }
 

@@ -3,7 +3,6 @@ import { TextStyleType } from '../../../common/TextStyleType'
 import { NodeRepresentation } from './NodeRepresentation'
 import { RangeNode } from './RangeNode'
 import { PositionNode } from './PositionNode'
-import { NodeUpdatesManager } from './NodeUpdatesManager'
 import { NodeCreator } from './NodeCreator'
 import { NodeMerger } from './NodeMerger'
 import { NodeType } from './NodeType'
@@ -13,7 +12,6 @@ export type ChildNodeInRangeCallback<TextStyle> = (
   rangeNode: RangeNode,
   childNode: INode,
   textStyleType: TextStyle,
-  nodeUpdatesManager: NodeUpdatesManager
 ) => INode[]
 
 abstract class BaseNodeContainer implements INode {
@@ -48,8 +46,7 @@ abstract class BaseNodeContainer implements INode {
   protected _updateChildNodesInRange<TextStyle> (
     inRangeCallback: ChildNodeInRangeCallback<TextStyle>,
     rangeNode: RangeNode,
-    textStyleType: TextStyle,
-    nodeUpdatesManager: NodeUpdatesManager
+    textStyleType: TextStyle
   ): INode[] {
     let newChildNodes: INode[] = []
     let childStartOffset: number = rangeNode.offset
@@ -59,8 +56,7 @@ abstract class BaseNodeContainer implements INode {
       const childNodeSize: number = childNode.getSize()
 
       if (rangeNode.childNodeInRange(childStartOffset, childNodeSize)) {
-        nodeUpdatesManager.addPath(i)
-        const changedNodes = inRangeCallback(rangeNode.reset(childStartOffset, rangeNode.initStart, rangeNode.initEnd), childNode, textStyleType, nodeUpdatesManager)
+        const changedNodes = inRangeCallback(rangeNode.reset(childStartOffset, rangeNode.initStart, rangeNode.initEnd), childNode, textStyleType)
         this._nodeMerger.savePositionChange(i, i + changedNodes.length - 1)
         newChildNodes = newChildNodes.concat(changedNodes)
       } else {
@@ -70,9 +66,8 @@ abstract class BaseNodeContainer implements INode {
       childStartOffset += childNodeSize
     }
 
-    newChildNodes = this._nodeMerger.mergeNodesOnSavedPositions(newChildNodes, nodeUpdatesManager)
+    newChildNodes = this._nodeMerger.mergeNodesOnSavedPositions(newChildNodes)
     this._nodeMerger.clear()
-    nodeUpdatesManager.endPath()
 
     return newChildNodes
   }
@@ -81,15 +76,13 @@ abstract class BaseNodeContainer implements INode {
     return this._size
   }
 
-  addText (position: PositionNode, text: string, nodeUpdateManager: NodeUpdatesManager): void {
+  addText (position: PositionNode, text: string): void {
     let startOffset: number = position.offset
 
     for (let i = 0; i < this._childNodes.length; i++) {
       if (position.nodeInPosition(startOffset, this._childNodes[i].getSize())) {
-        nodeUpdateManager.addPath(i)
-        this._childNodes[i].addText(position.reset(startOffset, position.initPosition), text, nodeUpdateManager)
+        this._childNodes[i].addText(position.reset(startOffset, position.initPosition), text)
         this._size += text.length
-        nodeUpdateManager.endPath()
         return
       }
       startOffset += this._childNodes[i].getSize()
@@ -98,7 +91,7 @@ abstract class BaseNodeContainer implements INode {
     throw new Error("can't add text to node container")
   }
 
-  deleteText (range: RangeNode, nodeUpdatesManager: NodeUpdatesManager): boolean {
+  deleteText (range: RangeNode): boolean {
     const newChildNodes: INode[] = []
     let startOffset: number = range.offset
 
@@ -107,8 +100,7 @@ abstract class BaseNodeContainer implements INode {
       const curChildSize = this._childNodes[i].getSize()
 
       if (range.childNodeInRange(startOffset, curChildSize)) {
-        nodeUpdatesManager.addPath(i)
-        const emptyChild: boolean = childNode.deleteText(new RangeNode(startOffset, range.initStart, range.initEnd), nodeUpdatesManager)
+        const emptyChild: boolean = childNode.deleteText(new RangeNode(startOffset, range.initStart, range.initEnd))
         this._size -= curChildSize - childNode.getSize()
         if (emptyChild) {
           this._nodeMerger.savePositionDelete(i)
@@ -122,9 +114,8 @@ abstract class BaseNodeContainer implements INode {
       startOffset += curChildSize
     }
 
-    this._childNodes = this._nodeMerger.mergeNodesOnSavedPositions(newChildNodes, nodeUpdatesManager)
+    this._childNodes = this._nodeMerger.mergeNodesOnSavedPositions(newChildNodes)
     this._nodeMerger.clear()
-    nodeUpdatesManager.endPath()
 
     return false
   }
@@ -149,21 +140,22 @@ abstract class BaseNodeContainer implements INode {
     return content
   }
 
-  addContent (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyleType[], nodeUpdateManger: NodeUpdatesManager): CreatedContent {
+  addContent (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyleType[]): CreatedContent {
     let startOffset: number = position.offset
     for (let i = 0; i < this._childNodes.length; i++) {
       const childNode = this._childNodes[i]
       const childNodeSize: number = childNode.getSize()
       if (position.nodeInPosition(startOffset, this._childNodes[i].getSize())) {
-        nodeUpdateManger.addPath(i)
         const { nodes, nodeStyles } = this._childNodes[i].addContent(
           position.reset(startOffset, position.initPosition),
           content,
-          parentTextStyles,
-          nodeUpdateManger
+          parentTextStyles
         )
         for (const style of nodeStyles) {
           this._childStyles.add(style)
+        }
+        for (const node of nodes) {
+          this._size += node.getSize()
         }
         this._nodeMerger.savePositionAdd(i, i + nodes.length - 1)
         this._childNodes.splice(i, 1, ...nodes)
@@ -173,32 +165,33 @@ abstract class BaseNodeContainer implements INode {
       startOffset += childNodeSize
     }
 
-    this._childNodes = this._nodeMerger.mergeNodesOnSavedPositions(this._childNodes, nodeUpdateManger)
+    this._childNodes = this._nodeMerger.mergeNodesOnSavedPositions(this._childNodes)
     return { nodes: [this], nodeStyles: [...this._childStyles.values()] }
   }
 
   getRepresentation (): NodeRepresentation {
-    const representation: NodeRepresentation = new NodeRepresentation()
     const childRepresentations: NodeRepresentation[] = []
     let size: number = 0
+
+    this._representation.clearInstructions()
 
     for (const child of this._childNodes) {
       childRepresentations.push(child.getRepresentation())
       size += child.getSize()
     }
 
-    representation.size = size
-    representation.addContainerInstruction(childRepresentations)
+    this._representation.size = size
+    this._representation.addContainerInstruction(childRepresentations)
 
-    return representation
+    return this._representation
   }
 
   abstract getNodeType (): NodeType
   abstract getStyle (): TextStyleType | null
   abstract getTextStylesInRange (range: RangeNode): TextStyleType[]
-  abstract addTextStyle (range: RangeNode, textStyle: TextStyleType, nodeUpdatesManager: NodeUpdatesManager): INode[]
-  abstract deleteAllTextStyles (range: RangeNode, nodeUpdatesManager: NodeUpdatesManager): INode[]
-  abstract deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType, nodeUpdatesManager: NodeUpdatesManager): INode[]
+  abstract addTextStyle (range: RangeNode, textStyle: TextStyleType): INode[]
+  abstract deleteAllTextStyles (range: RangeNode): INode[]
+  abstract deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType): INode[]
 }
 
 export { BaseNodeContainer }

@@ -1,5 +1,5 @@
 import { LineUpdates } from './LineUpdates'
-import { INodeUpdate } from './Nodes/NodeUpdatesManager'
+import { NodeRepresentation } from './Nodes/NodeRepresentation'
 
 export enum TextEditorRepresentationUpdateLineType {
   ADD,
@@ -10,12 +10,24 @@ export enum TextEditorRepresentationUpdateLineType {
 export interface ITextEditorRepresentationUpdateLine {
   y: number
   type: TextEditorRepresentationUpdateLineType
+  nodeLineRepresentation?: NodeRepresentation
 }
 
-export interface ITextEditorRepresentationUpdate {
+export interface ITextEditorRepresentationUpdateLineDelete extends ITextEditorRepresentationUpdateLine {
   y: number
   type: TextEditorRepresentationUpdateLineType
-  nodeUpdates?: INodeUpdate[]
+}
+
+export interface ITextEditorRepresentationUpdateLineAdd extends ITextEditorRepresentationUpdateLine {
+  y: number
+  type: TextEditorRepresentationUpdateLineType
+  nodeLineRepresentation: NodeRepresentation
+}
+
+export interface ITextEditorRepresentationUpdateLineChange extends ITextEditorRepresentationUpdateLine {
+  y: number
+  type: TextEditorRepresentationUpdateLineType
+  nodeLineRepresentation: NodeRepresentation
 }
 
 class TextEditorRepresentationUpdateManager {
@@ -43,8 +55,8 @@ class TextEditorRepresentationUpdateManager {
     }
   }
 
-  getUpdates (): ITextEditorRepresentationUpdateLine[] {
-    const lineUpdates: ITextEditorRepresentationUpdateLine[] = []
+  getUpdates (): ITextEditorRepresentationUpdateLineDelete[] {
+    const lineUpdates: ITextEditorRepresentationUpdateLineDelete[] = []
     for (const [y, update] of this._lineUpdates.entries()) {
       lineUpdates.push({ y: y + update.offset, type: update.type })
     }

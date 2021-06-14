@@ -1,5 +1,5 @@
-import { NodeRepresentation } from './NodeRepresentation'
 import { INode } from './INode'
+import { NodeRepresentation } from './NodeRepresentation'
 
 export enum TextEditorRepresentationUpdateNodeType {
   CHANGE,

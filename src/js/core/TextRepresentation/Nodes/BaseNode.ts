@@ -4,7 +4,6 @@ import { NodeRepresentation, NodeRepresentationType } from './NodeRepresentation
 import { RangeNode } from './RangeNode'
 import { PositionNode } from './PositionNode'
 import { NodeCreator } from './NodeCreator'
-import { NodeUpdatesManager } from './NodeUpdatesManager'
 import { NodeType } from './NodeType'
 import { NodeText } from './NodeText'
 import { CreatedContent } from './CreatedContent'
@@ -36,27 +35,16 @@ abstract class BaseNode implements INode {
     return this._text.length
   }
 
-  addText (position: PositionNode, text: string, nodeUpdateManager: NodeUpdatesManager): void {
+  addText (position: PositionNode, text: string): void {
     this._text = this._text.slice(0, position.position) + text + this._text.slice(position.position)
-    nodeUpdateManager.nodeChange([this])
-    nodeUpdateManager.endPath()
   }
 
-  deleteText (range: RangeNode, nodeUpdateManager: NodeUpdatesManager): boolean {
+  deleteText (range: RangeNode): boolean {
     this._text = this._text.slice(0, range.start) + this._text.slice(range.end)
-
-    if (this._text.length === 0) {
-      nodeUpdateManager.nodeDelete(this)
-      nodeUpdateManager.endPath()
-      return true
-    } else {
-      nodeUpdateManager.nodeChange([this])
-      nodeUpdateManager.endPath()
-      return false
-    }
+    return this._text.length === 0
   }
 
-  addContent (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyleType[], _: NodeUpdatesManager): CreatedContent {
+  addContent (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyleType[]): CreatedContent {
     let newNodes: INode[] = []
     const { nodes, nodeStyles } = this._nodeCreator.createNodeFromCopies(content, parentTextStyles)
     if (position.position === 0) {
@@ -79,9 +67,9 @@ abstract class BaseNode implements INode {
   abstract getContent (): INodeCopy[]
   abstract getContentInRange (range: RangeNode): INodeCopy[]
   abstract getTextStylesInRange (range: RangeNode): TextStyleType[]
-  abstract addTextStyle (range: RangeNode, textStyle: TextStyleType, nodeUpdateManager: NodeUpdatesManager): INode[]
-  abstract deleteAllTextStyles (range: RangeNode, nodeUpdateManager: NodeUpdatesManager): INode[]
-  abstract deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType, nodeUpdateManager: NodeUpdatesManager): INode[]
+  abstract addTextStyle (range: RangeNode, textStyle: TextStyleType): INode[]
+  abstract deleteAllTextStyles (range: RangeNode): INode[]
+  abstract deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType): INode[]
 }
 
 export { BaseNode }

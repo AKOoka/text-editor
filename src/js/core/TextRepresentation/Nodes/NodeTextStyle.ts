@@ -6,7 +6,6 @@ import { BaseNode } from './BaseNode'
 import { NodeRepresentation, NodeRepresentationType } from './NodeRepresentation'
 import { RangeNode } from './RangeNode'
 import { PositionNode } from './PositionNode'
-import { NodeUpdatesManager } from './NodeUpdatesManager'
 import { NodeType } from './NodeType'
 import { CreatedContent } from './CreatedContent'
 
@@ -27,7 +26,7 @@ class NodeTextStyle extends BaseNode {
     return this._textStyle
   }
 
-  addTextStyle (range: RangeNode, textStyle: TextStyleType, nodeUpdatesManager: NodeUpdatesManager): INode[] {
+  addTextStyle (range: RangeNode, textStyle: TextStyleType): INode[] {
     let newNodes: INode[] = []
 
     if (textStyle === this._textStyle) {
@@ -59,13 +58,10 @@ class NodeTextStyle extends BaseNode {
       ]
     }
 
-    nodeUpdatesManager.nodeChange(newNodes)
-    nodeUpdatesManager.endPath()
-
     return newNodes
   }
 
-  deleteAllTextStyles (range: RangeNode, nodeUpdatesManager: NodeUpdatesManager): INode[] {
+  deleteAllTextStyles (range: RangeNode): INode[] {
     let newNodes: INode[] = []
 
     if (range.nodeInsideRange(this.getSize())) {
@@ -85,18 +81,14 @@ class NodeTextStyle extends BaseNode {
       newNodes = [textNode, this]
     }
 
-    nodeUpdatesManager.nodeChange(newNodes)
-    nodeUpdatesManager.endPath()
-
     return newNodes
   }
 
-  deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType, nodeUpdatesManager: NodeUpdatesManager): INode[] {
+  deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType): INode[] {
     if (textStyle !== this._textStyle) {
-      nodeUpdatesManager.endPath()
       return [this]
     }
-    return this.deleteAllTextStyles(range, nodeUpdatesManager)
+    return this.deleteAllTextStyles(range)
   }
 
   getTextStylesInRange (range: RangeNode): TextStyleType[] {
@@ -129,10 +121,10 @@ class NodeTextStyle extends BaseNode {
     return representation
   }
 
-  addContent (position: PositionNode, content: INodeCopy[], parentTextStyle: TextStyleType[], nodeUpdatesManager: NodeUpdatesManager): CreatedContent {
+  addContent (position: PositionNode, content: INodeCopy[], parentTextStyle: TextStyleType[]): CreatedContent {
     parentTextStyle.push(this._textStyle)
 
-    const { nodes, nodeStyles } = super.addContent(position, content, parentTextStyle, nodeUpdatesManager)
+    const { nodes, nodeStyles } = super.addContent(position, content, parentTextStyle)
     let newNodes: INode[] = []
 
     if (parentTextStyle.includes(this._textStyle)) {
@@ -141,8 +133,6 @@ class NodeTextStyle extends BaseNode {
       newNodes = nodes
     }
     nodeStyles.push(this._textStyle)
-    nodeUpdatesManager.nodeChange(newNodes)
-    nodeUpdatesManager.endPath()
 
     return { nodes: newNodes, nodeStyles }
   }
