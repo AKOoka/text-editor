@@ -18,6 +18,22 @@ export class Selection {
     return this._rangeY
   }
 
+  get startX (): number {
+    return this._rangeX.start
+  }
+
+  get startY (): number {
+    return this._rangeY.start
+  }
+
+  get endX (): number {
+    return this._rangeX.end
+  }
+
+  get endY (): number {
+    return this._rangeY.end
+  }
+
   getStartPoint (): IPoint {
     return {
       x: this._rangeX.start,

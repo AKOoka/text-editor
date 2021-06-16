@@ -31,6 +31,18 @@ class TextAreaLayerText extends BaseTextAreaLayer {
   getAllTextLines (): HTMLElement[] {
     return this._textLines
   }
+
+  getTextLengthInLine (y: number): number {
+    return this._textLines[y].innerText.length
+  }
+
+  getTextLengthInAllLines (): number[] {
+    const textLength: number[] = []
+    for (let i = 0; i < this._textLines.length; i++) {
+      textLength.push(this.getTextLengthInLine(i))
+    }
+    return textLength
+  }
 }
 
 export { TextAreaLayerText }

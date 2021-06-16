@@ -1,10 +1,17 @@
+import { Range } from '../common/Range'
+import { Selection } from '../common/Selection'
 import { BaseTextAreaLayer } from './BaseTextAreaLayer'
+import { HtmlElementPool } from './HtmlElementPool'
 import { TextAreaTextCursor } from './TextAreaTextCursor'
-import { TextAreaTextSelectionPool } from './TextAreaTextSelectionPool'
+
+export interface SelectionPart {
+  y: number
+  rangeX: Range
+}
 
 class TextAreaLayerUi extends BaseTextAreaLayer {
   private readonly _textCursor: TextAreaTextCursor
-  private readonly _textSelectionPool: TextAreaTextSelectionPool
+  private readonly _htmlElementPool: HtmlElementPool
   private _textSelection: HTMLElement[]
 
   constructor () {
@@ -12,7 +19,7 @@ class TextAreaLayerUi extends BaseTextAreaLayer {
     this._context.classList.add('text-area_layer-ui')
 
     this._textCursor = new TextAreaTextCursor()
-    this._textSelectionPool = new TextAreaTextSelectionPool(1)
+    this._htmlElementPool = new HtmlElementPool()
     this._textSelection = []
   }
 
@@ -36,45 +43,37 @@ class TextAreaLayerUi extends BaseTextAreaLayer {
     this._textCursor.setHeight(height)
   }
 
-  addTextSelection (selection: Selection): void {
-    const sel = this._textSelectionPool.updateSelections(selections)
+  splitSelectionIntoParts (selection: Selection, linesTextLength: number[]): SelectionPart[] {
+    const selectionParts: SelectionPart[] = []
 
-    for (let i = 0; i < sel.length; i++) {
-      let part = sel[i][0]
-      const left = this._measureHtmlTool.computePositionX(this._layerText.getTextLine(part.y), part.left)
-      this._layerUi.addTextSelection(part.htmlElement)
-      part.htmlElement.style.left = `${left}px`
-      part.htmlElement.style.height = `${this._measureHtmlTool.computePositionY(this._layerText.getAllTextLines(), part.y)}`
-      part.htmlElement.style.height = `${this._measureHtmlTool.computeLineHeight(this._layerText.getTextLine(part.y))}px`
-
-      if (sel[i].length === 1) {
-        part.htmlElement.style.width =
-          `${left + this._measureHtmlTool.computePositionX(this._layerText.getTextLine(part.y), part.right)}px`
-        continue
-      }
-
-      part.htmlElement.style.right = '0px'
-
-      for (let l = 1; l < sel[i].length - 1; l++) {
-        part = sel[i][l]
-        this._layerUi.addTextSelection(part.htmlElement)
-        part.htmlElement.style.left = '0px'
-        part.htmlElement.style.right = '0px'
-        part.htmlElement.style.top = `${this._measureHtmlTool.computePositionY(this._layerText.getAllTextLines(), part.y)}`
-        part.htmlElement.style.height = `${this._measureHtmlTool.computeLineHeight(this._layerText.getTextLine(part.y))}px`
-      }
-
-      part = sel[i][sel[i].length - 1]
-      this._layerUi.addTextSelection(part.htmlElement)
-      part.htmlElement.style.left = '0px'
-      part.htmlElement.style.top = `${this._measureHtmlTool.computePositionY(this._layerText.getAllTextLines(), part.y)}`
-      part.htmlElement.style.height = `${this._measureHtmlTool.computeLineHeight(this._layerText.getTextLine(part.y))}px`
-      part.htmlElement.style.width =
-        `${this._measureHtmlTool.computePositionX(this._layerText.getTextLine(part.y), part.right)}px`
+    if (selection.rangeY.width === 0) {
+      selectionParts.push({ y: selection.startY, rangeX: selection.rangeX })
+      return selectionParts
     }
 
-    this._context.append(selection)
-    this._textSelection.push(selection)
+    selectionParts.push({ y: selection.startY, rangeX: new Range(selection.startX, linesTextLength[selection.startY]) })
+
+    for (let i = selection.startY + 1; i < selection.endY; i++) {
+      selectionParts.push({ y: i, rangeX: new Range(0, linesTextLength[i]) })
+    }
+
+    selectionParts.push({ y: selection.endY, rangeX: new Range(0, selection.endX) })
+
+    return selectionParts
+  }
+
+  addSelectionPart (selectionPart: SelectionPart, lineHeight: number): void {
+    const selectionPartHtml = this._htmlElementPool.getNode()
+    const { y, rangeX: { start: left, width } } = selectionPart
+
+    selectionPartHtml.classList.add('text-selection')
+    selectionPartHtml.style.top = `${y}px`
+    selectionPartHtml.style.left = `${left}px`
+    selectionPartHtml.style.width = `${width}px`
+    selectionPartHtml.style.height = `${lineHeight}px`
+
+    this._context.append(selectionPartHtml)
+    this._textSelection.push(selectionPartHtml)
   }
 
   removeAllTextSelections (): void {

@@ -1,12 +1,14 @@
-class TextAreaTextPool {
+export class HtmlElementPool {
   private readonly _pool: HTMLElement[]
 
-  constructor (size: number) {
+  constructor (size: number = 0) {
     this._pool = []
 
     for (let i = 0; i < size; i++) {
-      this._pool.push()
+      // this._pool.push()
     }
+
+    console.log(this._pool)
   }
 
   getNode (): HTMLElement {
@@ -17,5 +19,3 @@ class TextAreaTextPool {
     return document.createElement('div')
   }
 }
-
-export { TextAreaTextPool }

@@ -15,6 +15,7 @@ import {
   ITextEditorRepresentationUpdateLineDelete,
   TextEditorRepresentationUpdateLineType
 } from '../core/TextRepresentation/TextEditorRepresentationUpdateManager'
+import { Range } from '../common/Range'
 
 type TextAreaUpdateLineFunction = (change: ITextEditorRepresentationUpdateLineDelete) => void
 type TextAreaUpdateLineFunctionRecord = Record<TextEditorRepresentationUpdateLineType, TextAreaUpdateLineFunction>
@@ -89,10 +90,25 @@ class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorP
   }
 
   updateTextCursorSelections (selections: Selection[]): void {
+    const lines = this._layerText.getAllTextLines()
+    const textLengthInAllLines = this._layerText.getTextLengthInAllLines()
     this._layerUi.removeAllTextSelections()
 
     for (const sel of selections) {
-
+      for (const part of this._layerUi.splitSelectionIntoParts(sel, textLengthInAllLines)) {
+        const { y, rangeX: { start: startX, end: endX } } = part
+        const lineHeight = this._measureHtmlTool.computeLineHeight(this._layerText.getTextLine(y))
+        this._layerUi.addSelectionPart(
+          {
+            y: this._measureHtmlTool.computePositionY(lines, y),
+            rangeX: new Range(
+              this._measureHtmlTool.computePositionX(this._layerText.getTextLine(y), startX),
+              this._measureHtmlTool.computePositionX(this._layerText.getTextLine(y), endX)
+            )
+          },
+          lineHeight
+        )
+      }
     }
   }
 
