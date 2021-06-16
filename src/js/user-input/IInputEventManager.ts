@@ -1,3 +1,4 @@
+import { BaseCommand } from '../command-pipeline/commands/BaseCommand'
 import { IPoint } from '../common/IPoint'
 import { InputEventHandler } from './InputEventManager'
 
@@ -9,6 +10,7 @@ export interface IInputEventManager {
   triggerEventSelectionMoveMouse: (mousePoint: IPoint) => void
   triggerEventSelectionEnd: () => void
   triggerEventSelectionDeleteAll: () => void
+  triggerEventDoCommand: (command: BaseCommand) => void
   showInteractiveElement: (displayPoint: IPoint, element: HTMLElement) => void
   subscribeToEvent: (event: keyof HTMLElementEventMap, eventHandler: InputEventHandler, context?: HTMLElement) => void
 }

@@ -5,6 +5,9 @@ import { InputEventHandler } from '../InputEventManager'
 import { CommandTextStyleDeleteAll } from '../../command-pipeline/commands/CommandTextStyleDeleteAll'
 import { TextStyle } from '../../common/TextStyle'
 import { TextStyleUnique } from '../../common/TextStyleUnique'
+import { UiMenuButton } from './UiMenuButton'
+import { UiMenuSelect } from './UiMenuSelect'
+import { UiMenuOptionList } from './UiMenuOptionList'
 
 interface IUiButtonConfig {
   type: string
@@ -23,7 +26,7 @@ const uiButtonConfigs: IUiButtonConfig[] = [
 
 export class UiMenu implements IActiveTextStylesSubscriber {
   private readonly _context: HTMLElement
-  private readonly _buttons: Map<TextStyle, HTMLElement>
+  private readonly _buttons: Map<TextStyle, UiMenuButton>
   private _inputEventManager: IInputEventManager
 
   constructor () {
@@ -32,23 +35,17 @@ export class UiMenu implements IActiveTextStylesSubscriber {
     this._buttons = new Map()
   }
 
-  private _createHtmlButton (popupText: string): HTMLElement {
-    const button = document.createElement('button')
-    button.classList.add('ui-button')
-    button.textContent = popupText
-    button.title = popupText
-    return button
-  }
-
   setInputEventManager (inputEventManager: IInputEventManager): void {
     this._inputEventManager = inputEventManager
 
     for (const { popupText, handler } of uiButtonConfigs) {
-      const newButton: HTMLElement = this._createHtmlButton(popupText)
+      const newButton: UiMenuButton = new UiMenuButton(popupText, popupText)
       // this._buttons.set(type, newButton)
-      this._context.append(newButton)
-      this._inputEventManager.subscribeToEvent('click', handler, newButton)
+      this._context.append(newButton.context)
+      this._inputEventManager.subscribeToEvent('click', handler, newButton.context)
     }
+
+    this._context.append(new UiMenuSelect(this._inputEventManager, 'font', 'select font', new UiMenuOptionList()).context)
   }
 
   getContext (): HTMLElement {
@@ -57,11 +54,7 @@ export class UiMenu implements IActiveTextStylesSubscriber {
 
   updateActiveTextStyles (activeTextStyles: TextStyle[]): void {
     for (const [buttonType, button] of this._buttons.entries()) {
-      if (activeTextStyles.includes(buttonType)) {
-        button.classList.add('button-active')
-        continue
-      }
-      button.classList.remove('button-active')
+      button.setActiveState(activeTextStyles.includes(buttonType))
     }
   }
 }

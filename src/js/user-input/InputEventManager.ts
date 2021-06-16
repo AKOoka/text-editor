@@ -9,6 +9,7 @@ import { CommandSelectionDeleteAll } from '../command-pipeline/commands/CommandS
 import { CommandSelectionAdd } from '../command-pipeline/commands/CommandSelectionAdd'
 import { CommandSelectionDeleteLast } from '../command-pipeline/commands/CommandSelectionDeleteLast'
 import { CommandSelectionChangeLast } from '../command-pipeline/commands/CommandSelectionChangeLast'
+import { BaseCommand } from '../command-pipeline/commands/BaseCommand'
 
 export interface InputModifiers {
   selecting: boolean
@@ -88,6 +89,10 @@ export class InputEventManager implements IInputEventManager {
     this._selections = []
     this._inputModifiers.selecting = false
     this._commandDispatcher.doCommand(new CommandSelectionDeleteAll(false))
+  }
+
+  triggerEventDoCommand (command: BaseCommand): void {
+    this._commandDispatcher.doCommand(command)
   }
 
   showInteractiveElement (displayPoint: IPoint, uiElement: HTMLElement): void {
