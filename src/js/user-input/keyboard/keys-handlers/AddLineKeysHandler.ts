@@ -1,8 +1,8 @@
-import { BaseKeyHandler } from './BaseKeyHandler'
+import { BaseKeysHandler } from './BaseKeysHandler'
 import { CommandLineAdd } from '../../../command-pipeline/commands/CommandLineAdd'
-import { IInputEventHandlerPayload } from '../../IInputEventHandlerPayload'
+import { IInputEventHandlerPayload } from '../../InputEventManager'
 
-class AddLineKeysHandler extends BaseKeyHandler {
+class AddLineKeysHandler extends BaseKeysHandler {
   handleEvent (payload: IInputEventHandlerPayload<KeyboardEvent>): void {
     switch (payload.event.key) {
       case 'Enter':

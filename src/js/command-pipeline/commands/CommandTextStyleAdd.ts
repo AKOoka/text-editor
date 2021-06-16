@@ -1,11 +1,11 @@
 import { ITextEditor } from '../../core/ITextEditor'
 import { TextStyleType } from '../../common/TextStyleType'
 import { BaseCommand } from './BaseCommand'
-import { ISelection } from '../../common/ISelection'
+import { Selection } from '../../common/Selection'
 
 class CommandTextStyleAdd extends BaseCommand {
   private readonly _style: TextStyleType
-  private _selections: ISelection[]
+  private _selections: Selection[]
 
   constructor (style: TextStyleType, toBeSaved: boolean) {
     super(toBeSaved)
@@ -16,7 +16,7 @@ class CommandTextStyleAdd extends BaseCommand {
   do (context: ITextEditor): void {
     this._selections = context.getTextCursorSelections()
     context.addTextStyleInSelections(this._selections, this._style)
-    context.deleteTextCursorSelections()
+    context.deleteAllTextCursorSelections()
     context.updateTextRepresentation()
     context.updateTextCursorPosition()
   }

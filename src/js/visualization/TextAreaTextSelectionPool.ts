@@ -1,6 +1,6 @@
 import { TextAreaTextSelection } from './TextAreaTextSelection'
 import { ITextAreaHtmlSelectionPart } from './ITextAreaHtmlSelectionPart'
-import { ISelection } from '../common/ISelection'
+import { Selection } from '../common/Selection'
 
 class TextAreaTextSelectionPool {
   private _selectionPool: TextAreaTextSelection[]
@@ -13,7 +13,7 @@ class TextAreaTextSelectionPool {
     }
   }
 
-  updateSelections (selections: ISelection[]): ITextAreaHtmlSelectionPart[][] {
+  updateSelections (selections: Selection[]): ITextAreaHtmlSelectionPart[][] {
     for (const selection of this._selectionPool) {
       selection.remove()
     }

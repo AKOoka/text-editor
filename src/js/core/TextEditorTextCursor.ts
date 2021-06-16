@@ -1,11 +1,11 @@
 import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubscriber'
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
-import { ISelection } from '../common/ISelection'
+import { Selection } from '../common/Selection'
 import { IPoint } from '../common/IPoint'
 
 class TextEditorTextCursor {
   private _position: IPoint
-  private _selections: ISelection[]
+  private _selections: Selection[]
   private readonly _positionSubscribers: ITextCursorPositionSubscriber[]
   private readonly _selectionsSubscribers: ITextCursorSelectionsSubscriber[]
 
@@ -43,15 +43,23 @@ class TextEditorTextCursor {
     console.log(`x: ${this._position.x}, y: ${this._position.y}`)
   }
 
-  get selections (): ISelection[] {
+  get selections (): Selection[] {
     return this._selections
   }
 
-  addSelections (selections: ISelection[]): void {
+  addSelections (selections: Selection[]): void {
     this._selections.push(...selections)
   }
 
-  deleteSelections (): void {
+  changeSelection (selectionIndex: number, selection: Selection): void {
+    this._selections[selectionIndex] = selection
+  }
+
+  deleteConcreteSelection (selectionIndex: number): void {
+    this._selections.splice(selectionIndex, 1)
+  }
+
+  deleteAllSelections (): void {
     this._selections = []
   }
 

@@ -3,7 +3,7 @@ import { ITextRepresentationSubscriber } from '../../common/ITextRepresentationS
 import { INodeCopy } from './Nodes/INode'
 import { TextStyleType } from '../../common/TextStyleType'
 import { NodeContainerLine } from './Nodes/NodeContainerLine'
-import { ISelection } from '../../common/ISelection'
+import { Selection } from '../../common/Selection'
 import { IPoint } from '../../common/IPoint'
 import { PositionNode } from './Nodes/PositionNode'
 import { RangeNode } from './Nodes/RangeNode'
@@ -96,7 +96,7 @@ class TextEditorRepresentation {
     line.push({ offsetPosition: x, offset })
   }
 
-  private _makeChangesInSelections (selections: ISelection[], changeCallback: ChangeCallback): void {
+  private _makeChangesInSelections (selections: Selection[], changeCallback: ChangeCallback): void {
     for (const { rangeX, rangeY } of selections) {
       let lineOffset = this._getOffsetY(rangeY.start)
       let line = this._textLines[rangeY.start + lineOffset]
@@ -131,7 +131,7 @@ class TextEditorRepresentation {
     }
   }
 
-  private _getInfoInSelections<Info> (selections: ISelection[], getInfoCallback: GetInfoCallback<Info>): Info[] {
+  private _getInfoInSelections<Info> (selections: Selection[], getInfoCallback: GetInfoCallback<Info>): Info[] {
     const info: Info[] = []
 
     for (const { rangeX, rangeY } of selections) {
@@ -221,7 +221,7 @@ class TextEditorRepresentation {
     this._updateManager.addUpdateLineChange(y, offsetY)
   }
 
-  deleteTextInSelections (selections: ISelection[]): void {
+  deleteTextInSelections (selections: Selection[]): void {
     for (const { rangeX, rangeY } of selections) {
       if (rangeY.width === 0) {
         this.deleteTextInLine(rangeY.start, rangeX)
@@ -234,13 +234,13 @@ class TextEditorRepresentation {
     }
   }
 
-  getTextStylesInSelections (selections: ISelection[]): TextStyleType[] {
+  getTextStylesInSelections (selections: Selection[]): TextStyleType[] {
     return this._getInfoInSelections(
       selections,
       ({ line, rangeNode }) => line.getTextStylesInRange(rangeNode))
   }
 
-  getContentInSelections (selections: ISelection[]): INodeCopy[] {
+  getContentInSelections (selections: Selection[]): INodeCopy[] {
     return this._getInfoInSelections<INodeCopy>(
       selections,
       ({ line, rangeNode }) => line.getContentInRange(rangeNode))
@@ -258,21 +258,21 @@ class TextEditorRepresentation {
     this._updateManager.addUpdateLineChange(point.y, lineOffset)
   }
 
-  addTextStylesInSelections (selections: ISelection[], textStyleType: TextStyleType): void {
+  addTextStylesInSelections (selections: Selection[], textStyleType: TextStyleType): void {
     this._makeChangesInSelections(
       selections,
       ({ line, rangeNode }) => line.addTextStyle(rangeNode, textStyleType)
     )
   }
 
-  deleteAllTextStylesInSelections (selections: ISelection[]): void {
+  deleteAllTextStylesInSelections (selections: Selection[]): void {
     this._makeChangesInSelections(
       selections,
       ({ line, rangeNode }) => line.deleteAllTextStyles(rangeNode)
     )
   }
 
-  deleteConcreteTextStyleInSelections (selections: ISelection[], textStyleType: TextStyleType): void {
+  deleteConcreteTextStyleInSelections (selections: Selection[], textStyleType: TextStyleType): void {
     this._makeChangesInSelections(
       selections,
       ({ line, rangeNode }) => line.deleteConcreteTextStyle(rangeNode, textStyleType)

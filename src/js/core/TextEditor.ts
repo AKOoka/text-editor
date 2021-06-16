@@ -8,7 +8,7 @@ import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelections
 import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
 import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscriber'
 import { IPoint } from '../common/IPoint'
-import { ISelection } from '../common/ISelection'
+import { Selection } from '../common/Selection'
 import { INodeCopy } from './TextRepresentation/Nodes/INode'
 
 class TextEditor implements ITextEditor {
@@ -44,42 +44,35 @@ class TextEditor implements ITextEditor {
     this._representation.addContent(point, content)
   }
 
-  addTextStyleInSelections (selections: ISelection[], textStyleType: TextStyleType): void {
+  addTextStyleInSelections (selections: Selection[], textStyleType: TextStyleType): void {
     this._representation.addTextStylesInSelections(selections, textStyleType)
   }
 
-  addTextCursorSelections (selections: ISelection[]): void {
+  addTextCursorSelections (selections: Selection[]): void {
     this._textCursor.addSelections(selections)
-    // for (const selection of selections) {
-    //   const validStartY: number = this._getValidY(selection.rangeY)
-    //   const validEndY: number = this._getValidY(selection.endY)
-    //
-    //   this._textCursor.addSelection({
-    //     x: this._getValidX(validStartY, selection.rangeX),
-    //     y: validStartY,
-    //     endX: this._getValidX(validEndY, selection.endX),
-    //     endY: validEndY
-    //   })
-    // }
   }
 
   addNewLinesInRange (rangeY: Range): void {
     this._representation.addNewLines(rangeY)
   }
 
+  changeTextCursorSelection (selectionIndex: number, selection: Selection): void {
+    this._textCursor.changeSelection(selectionIndex, selection)
+  }
+
   deleteTextInRange (y: number, rangeX: Range): void {
     this._representation.deleteTextInLine(y, rangeX)
   }
 
-  deleteTextInSelections (selections: ISelection[]): void {
+  deleteTextInSelections (selections: Selection[]): void {
     this._representation.deleteTextInSelections(selections)
   }
 
-  deleteConcreteTextStylesInSelections (selections: ISelection[], textStyleType: TextStyleType): void {
+  deleteConcreteTextStylesInSelections (selections: Selection[], textStyleType: TextStyleType): void {
     this._representation.deleteConcreteTextStyleInSelections(selections, textStyleType)
   }
 
-  deleteAllTextStylesInSelections (selections: ISelection[]): void {
+  deleteAllTextStylesInSelections (selections: Selection[]): void {
     this._representation.deleteAllTextStylesInSelections(selections)
   }
 
@@ -87,8 +80,12 @@ class TextEditor implements ITextEditor {
     this._representation.deleteLines(rangeY)
   }
 
-  deleteTextCursorSelections (): void {
-    this._textCursor.deleteSelections()
+  deleteConcreteTextCursorSelection (selectionIndex: number): void {
+    this._textCursor.deleteConcreteSelection(selectionIndex)
+  }
+
+  deleteAllTextCursorSelections (): void {
+    this._textCursor.deleteAllSelections()
   }
 
   setTextCursorX (x: number): void {
@@ -160,11 +157,11 @@ class TextEditor implements ITextEditor {
     return this._representation.getLinesCount()
   }
 
-  getTextCursorSelections (): ISelection[] {
+  getTextCursorSelections (): Selection[] {
     return this._textCursor.selections
   }
 
-  getContentInSelections (selections: ISelection[]): INodeCopy[] {
+  getContentInSelections (selections: Selection[]): INodeCopy[] {
     return this._representation.getContentInSelections(selections)
   }
 }

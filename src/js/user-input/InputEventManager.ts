@@ -1,33 +1,86 @@
 import { ITextArea } from '../visualization/ITextArea'
 import { CommandTextCursorSetPosition } from '../command-pipeline/commands/CommandTextCursorSetPosition'
 import { IInputEventManager } from './IInputEventManager'
-import { InputEventHandler } from './InputEventHandler'
 import { ICommandDispatcher } from '../command-pipeline/ICommandDispatcher'
 import { IPoint } from '../common/IPoint'
+import { Range } from '../common/Range'
+import { Selection } from '../common/Selection'
+import { CommandSelectionsDelete } from '../command-pipeline/commands/CommandSelectionsDelete'
+import { CommandSelectionAdd } from '../command-pipeline/commands/CommandSelectionAdd'
+import { CommandSelectionDeleteLast } from '../command-pipeline/commands/CommandSelectionDeleteLast'
+import { CommandSelectionChangeLast } from '../command-pipeline/commands/CommandSelectionChangeLast'
 
-class InputEventManager implements IInputEventManager {
+export interface InputModifiers {
+  selecting: boolean
+}
+
+export interface IInputEventHandlerPayload<E extends Event> {
+  event: E
+  commandDispatcher: ICommandDispatcher
+  inputModifiers: InputModifiers
+}
+
+export type InputEventHandler = (payload: IInputEventHandlerPayload<MouseEvent | KeyboardEvent>) => void
+
+export class InputEventManager implements IInputEventManager {
   private readonly _textArea: ITextArea
   private readonly _commandDispatcher: ICommandDispatcher
+  private readonly _inputModifiers: InputModifiers
+  private _selections: Selection[]
 
   constructor (textArea: ITextArea, commandDispatcher: ICommandDispatcher) {
     this._textArea = textArea
     this._commandDispatcher = commandDispatcher
+    this._inputModifiers = {
+      selecting: false
+    }
+    this._selections = []
   }
 
-  triggerEventCopy (): void {
-    // this._commandDispatcher.doCommand(new CommandContentCopy())
+  triggerEventChangeTextCursorPosition (mousePoint: IPoint): void {
+    this._commandDispatcher.doCommand(new CommandTextCursorSetPosition(false, this._textArea.convertDisplayPosition(mousePoint)))
   }
 
-  triggerEventPaste (): void {
-    // this._commandDispatcher.doCommand(new CommandContentPaste(true))
+  triggerEventSelectionStart (startPoint: IPoint): void {
+    const { x, y } = startPoint
+    const newSelection = new Selection(new Range(x, x), new Range(y, y))
+
+    this._inputModifiers.selecting = true
+    this._selections.push(newSelection)
+    this._commandDispatcher.doCommand(new CommandSelectionAdd(newSelection, false))
   }
 
-  triggerEventChangeTextCursorPosition (displayPoint: IPoint): void {
-    this._commandDispatcher.doCommand(new CommandTextCursorSetPosition(false, this._textArea.convertToTextPosition(displayPoint)))
+  triggerEventSelectionStartMouse (startMousePoint: IPoint): void {
+    this.triggerEventSelectionStart(this._textArea.convertDisplayPosition(startMousePoint))
   }
 
-  showUiElementOnInteractiveContext (displayPoint: IPoint, uiElement: HTMLElement): void {
-    this._textArea.showElementOnInteractiveLayer(displayPoint, uiElement)
+  triggerEventSelectionMove (point: IPoint): void {
+    const changedSelection = this._selections[this._selections.length - 1].resetEnd(point)
+    this._commandDispatcher.doCommand(new CommandSelectionChangeLast(changedSelection, false))
+  }
+
+  triggerEventSelectionMoveMouse (mousePoint: IPoint): void {
+    this.triggerEventSelectionMove(this._textArea.convertDisplayPosition(mousePoint))
+  }
+
+  triggerEventSelectionEnd (): void {
+    const selection: Selection = this._selections[this._selections.length - 1]
+    this._inputModifiers.selecting = false
+
+    if (selection.rangeX.width === 0 && selection.rangeY.width === 0) {
+      this._selections.pop()
+      this._commandDispatcher.doCommand(new CommandSelectionDeleteLast(false))
+    }
+  }
+
+  triggerEventSelectionsDelete (): void {
+    this._selections = []
+    this._inputModifiers.selecting = false
+    this._commandDispatcher.doCommand(new CommandSelectionsDelete(false))
+  }
+
+  showInteractiveElement (displayPoint: IPoint, uiElement: HTMLElement): void {
+    this._textArea.showInteractiveElement(displayPoint, uiElement)
   }
 
   subscribeToEvent (
@@ -42,11 +95,9 @@ class InputEventManager implements IInputEventManager {
         eventHandler({
           event: e,
           commandDispatcher: this._commandDispatcher,
-          interactiveLayer: this._textArea.getInteractiveLayerContext()
+          inputModifiers: this._inputModifiers
         })
       }
     )
   }
 }
-
-export { InputEventManager }

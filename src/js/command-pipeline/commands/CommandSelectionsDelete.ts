@@ -1,13 +1,13 @@
 import { ITextEditor } from '../../core/ITextEditor'
 import { BaseCommand } from './BaseCommand'
-import { ISelection } from '../../common/ISelection'
+import { Selection } from '../../common/Selection'
 
-class CommandSelectionsClear extends BaseCommand {
-  private _selections: ISelection[]
+export class CommandSelectionsDelete extends BaseCommand {
+  private _selections: Selection[]
 
   do (context: ITextEditor): void {
     this._selections = context.getTextCursorSelections()
-    context.deleteTextCursorSelections()
+    context.deleteAllTextCursorSelections()
     context.updateTextCursorSelections()
   }
 
@@ -16,5 +16,3 @@ class CommandSelectionsClear extends BaseCommand {
     context.updateTextCursorSelections()
   }
 }
-
-export { CommandSelectionsClear }

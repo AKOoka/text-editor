@@ -1,8 +1,8 @@
 import { CommandTextAdd } from '../../../command-pipeline/commands/CommandTextAdd'
-import { BaseKeyHandler } from './BaseKeyHandler'
-import { IInputEventHandlerPayload } from '../../IInputEventHandlerPayload'
+import { IInputEventHandlerPayload } from '../../InputEventManager'
+import { BaseKeysHandler } from './BaseKeysHandler'
 
-class TypeKeysHandler extends BaseKeyHandler {
+class TypeKeysHandler extends BaseKeysHandler {
   handleEvent (payload: IInputEventHandlerPayload<KeyboardEvent>): void {
     payload.commandDispatcher.doCommand(new CommandTextAdd(payload.event.key, false))
   }

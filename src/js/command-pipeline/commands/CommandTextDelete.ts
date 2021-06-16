@@ -2,6 +2,7 @@ import { ITextEditor } from '../../core/ITextEditor'
 import { BaseCommand } from './BaseCommand'
 import { Range } from '../../common/Range'
 import { INodeCopy } from '../../core/TextRepresentation/Nodes/INode'
+import { Selection } from '../../common/Selection'
 
 class CommandTextDelete extends BaseCommand {
   private readonly _leftOffset: number
@@ -21,7 +22,7 @@ class CommandTextDelete extends BaseCommand {
     const textLineCount = context.getLinesCount()
 
     this._deletedContent = context.getContentInSelections([
-      { rangeX: new Range(x + this._leftOffset, x + this._rightOffset), rangeY: new Range(y, y) }
+      new Selection(new Range(x + this._leftOffset, x + this._rightOffset), new Range(y, y))
     ])
 
     if (textLength === 0) {

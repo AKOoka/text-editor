@@ -1,12 +1,12 @@
-import { MouseContextualMenu } from './MouseContextualMenu'
-import { IInputEventManager } from '../IInputEventManager'
-import { IInputEventHandlerPayload } from '../IInputEventHandlerPayload'
+import { CommandSelectionsDelete } from '../../command-pipeline/commands/CommandSelectionsDelete'
 import { IPoint } from '../../common/IPoint'
+import { IInputEventManager } from '../IInputEventManager'
+import { IInputEventHandlerPayload } from '../InputEventManager'
+import { MouseContextualMenu } from './MouseContextualMenu'
 
 class Mouse {
   private _inputEventManager: IInputEventManager
   private _displayPoint: IPoint
-  private _mouseSelection: boolean
   private readonly _contextualMenu: MouseContextualMenu
 
   constructor () {
@@ -16,11 +16,17 @@ class Mouse {
 
   private _handlerMouseDown (payload: IInputEventHandlerPayload<MouseEvent>): void {
     console.log('mouse down')
-    this._inputEventManager.triggerEventChangeTextCursorPosition({ x: payload.event.x, y: payload.event.y })
+    const { event, commandDispatcher } = payload
+    this._inputEventManager.triggerEventChangeTextCursorPosition({ x: event.x, y: event.y })
 
-    this._displayPoint.x = payload.event.x
-    this._displayPoint.y = payload.event.y
-    this._mouseSelection = true
+    this._displayPoint.x = event.x
+    this._displayPoint.y = event.y
+
+    if (event.ctrlKey) {
+      commandDispatcher.doCommand(new CommandSelectionsDelete(false))
+    }
+
+    this._inputEventManager.triggerEventSelectionStartMouse(this._displayPoint)
 
     if (this._contextualMenu.isActive()) {
       this._contextualMenu.removeContext()
@@ -28,15 +34,23 @@ class Mouse {
   }
 
   private _handlerMouseMove (payload: IInputEventHandlerPayload<MouseEvent>): void {
-    if (this._mouseSelection) {
-      console.log(`mouseX: ${this._displayPoint.x}; mouseY: ${this._displayPoint.y}`, '\nevent: ', payload.event)
+    const { event, inputModifiers } = payload
+    if (inputModifiers.selecting) {
+      console.log(`mouse selection \nmouseX: ${this._displayPoint.x}; mouseY: ${this._displayPoint.y}`, '\nevent: ', event)
+      this._displayPoint.x = event.x
+      this._displayPoint.y = event.y
+      this._inputEventManager.triggerEventSelectionMoveMouse(this._displayPoint)
     }
   }
 
   private _handlerMouseUp (payload: IInputEventHandlerPayload<MouseEvent>): void {
-    this._displayPoint.x = payload.event.x
-    this._displayPoint.y = payload.event.y
-    this._mouseSelection = false
+    const { event, inputModifiers } = payload
+    if (inputModifiers.selecting) {
+      this._inputEventManager.triggerEventSelectionEnd()
+    }
+
+    this._displayPoint.x = event.x
+    this._displayPoint.y = event.y
     console.log('mouse up')
   }
 
@@ -44,7 +58,7 @@ class Mouse {
     this._displayPoint.x = payload.event.x
     this._displayPoint.y = payload.event.y
     console.log(`context menu on x: ${payload.event.x}; y: ${payload.event.y}`)
-    this._inputEventManager.showUiElementOnInteractiveContext({ x: payload.event.x, y: payload.event.y }, this._contextualMenu.getContext())
+    this._inputEventManager.showInteractiveElement({ x: payload.event.x, y: payload.event.y }, this._contextualMenu.getContext())
     this._contextualMenu.setActiveState(true)
   }
 

@@ -1,11 +1,11 @@
 import { ITextEditor } from '../../core/ITextEditor'
 import { BaseCommand } from './BaseCommand'
-import { ISelection } from '../../common/ISelection'
+import { Selection } from '../../common/Selection'
 
 class CommandSelectionAdd extends BaseCommand {
-  private readonly _selection: ISelection
+  private readonly _selection: Selection
 
-  constructor (selection: ISelection, toBeSaved: boolean) {
+  constructor (selection: Selection, toBeSaved: boolean) {
     super(toBeSaved)
     this._selection = selection
   }
@@ -16,7 +16,7 @@ class CommandSelectionAdd extends BaseCommand {
   }
 
   undo (context: ITextEditor): void {
-    context.deleteTextCursorSelections()
+    context.deleteAllTextCursorSelections()
     context.updateTextCursorSelections()
   }
 }

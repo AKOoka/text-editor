@@ -1,5 +1,5 @@
-import { InputEventHandler } from '../InputEventHandler'
 import { IInputEventManager } from '../IInputEventManager'
+import { InputEventHandler } from '../InputEventManager'
 
 class MouseContextualMenu {
   private readonly _context: HTMLElement
@@ -46,12 +46,12 @@ class MouseContextualMenu {
 
     inputEventManager.subscribeToEvent(
       'mousedown',
-      this._createButtonEventHandler(inputEventManager.triggerEventCopy.bind(inputEventManager)),
+      this._createButtonEventHandler(() => {}),
       copyButton
     )
     inputEventManager.subscribeToEvent(
       'mousedown',
-      this._createButtonEventHandler(inputEventManager.triggerEventPaste.bind(inputEventManager)),
+      this._createButtonEventHandler(() => {}),
       pasteButton
     )
   }

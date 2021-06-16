@@ -1,8 +1,8 @@
 import { CommandTextDelete } from '../../../command-pipeline/commands/CommandTextDelete'
-import { BaseKeyHandler } from './BaseKeyHandler'
-import { IInputEventHandlerPayload } from '../../IInputEventHandlerPayload'
+import { IInputEventHandlerPayload } from '../../InputEventManager'
+import { BaseKeysHandler } from './BaseKeysHandler'
 
-class DeleteKeysHandler extends BaseKeyHandler {
+class DeleteKeysHandler extends BaseKeysHandler {
   handleEvent (payload: IInputEventHandlerPayload<KeyboardEvent>): void {
     switch (payload.event.key) {
       case 'Delete':

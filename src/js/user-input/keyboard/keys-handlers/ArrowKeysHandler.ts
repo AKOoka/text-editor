@@ -1,9 +1,9 @@
 import { CommandTextCursorMoveX } from '../../../command-pipeline/commands/CommandTextCursorMoveX'
 import { CommandTextCursorMoveY } from '../../../command-pipeline/commands/CommandTextCursorMoveY'
-import { BaseKeyHandler } from './BaseKeyHandler'
-import { IInputEventHandlerPayload } from '../../IInputEventHandlerPayload'
+import { IInputEventHandlerPayload } from '../../InputEventManager'
+import { BaseKeysHandler } from './BaseKeysHandler'
 
-class ArrowKeysHandler extends BaseKeyHandler {
+class ArrowKeysHandler extends BaseKeysHandler {
   handleEvent (payload: IInputEventHandlerPayload<KeyboardEvent>): void {
     switch (payload.event.key) {
       case 'ArrowLeft':

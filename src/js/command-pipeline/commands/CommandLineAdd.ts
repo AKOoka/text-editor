@@ -2,6 +2,7 @@ import { ITextEditor } from '../../core/ITextEditor'
 import { BaseCommand } from './BaseCommand'
 import { Range } from '../../common/Range'
 import { INodeCopy } from '../../core/TextRepresentation/Nodes/INode'
+import { Selection } from '../../common/Selection'
 
 class CommandLineAdd extends BaseCommand {
   private readonly _count: number
@@ -19,7 +20,7 @@ class CommandLineAdd extends BaseCommand {
     context.addNewLinesInRange(new Range(y + 1, y + 1 + this._count))
 
     if (x < textLength) {
-      this._content = context.getContentInSelections([{ rangeX: new Range(x, textLength), rangeY: new Range(y, y) }])
+      this._content = context.getContentInSelections([new Selection(new Range(x, textLength), new Range(y, y))])
       context.deleteTextInRange(y, new Range(x, textLength))
       context.addContent({ x: 0, y: y + this._count }, this._content)
     }
