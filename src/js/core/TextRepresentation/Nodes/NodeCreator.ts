@@ -1,18 +1,16 @@
-import { NodeType } from './NodeType'
-import { INode, INodeCopy, INodeCopyProps } from './INode'
+import { CreatedContent, INode, INodeCopy, INodeCopyProps, NodeType } from './INode'
 import { NodeText } from './NodeText'
 import { NodeTextStyle } from './NodeTextStyle'
 import { NodeContainerLine } from './NodeContainerLine'
 import { NodeContainerStyle } from './NodeContainerStyle'
-import { TextStyleType } from '../../../common/TextStyleType'
-import { CreatedContent } from './CreatedContent'
+import { TextStyle } from '../../../common/TextStyle'
 
 type NodeCreateFunction = (nodeProps: INodeCopyProps) => INode[]
 
 export class NodeCreator {
   private readonly _nodeCreateFunctions: Record<NodeType, NodeCreateFunction>
-  private readonly _forbiddenStyles: Set<TextStyleType>
-  private _createNodeStyles: TextStyleType[]
+  private readonly _forbiddenStyles: Set<TextStyle>
+  private _createNodeStyles: TextStyle[]
 
   constructor () {
     this._nodeCreateFunctions = {
@@ -28,9 +26,9 @@ export class NodeCreator {
     return [new NodeText(nodeProps.text)]
   }
 
-  private _createNodeTextStyle (nodeProps: { text: string, textStyle: TextStyleType }): INode[] {
+  private _createNodeTextStyle (nodeProps: { text: string, textStyle: TextStyle }): INode[] {
     const { textStyle, text } = nodeProps
-    if (this._forbiddenStyles.has(textStyle)) {
+    if (textStyle.inside(this._forbiddenStyles.values())) {
       return this._createNodeText(nodeProps)
     }
     this._forbiddenStyles.add(textStyle)
@@ -42,10 +40,10 @@ export class NodeCreator {
     return [new NodeContainerLine(this._createNodes(nodeProps.children))]
   }
 
-  private _createContainerStyle (nodeProps: { children: INodeCopy[], textStyle: TextStyleType }): INode[] {
+  private _createContainerStyle (nodeProps: { children: INodeCopy[], textStyle: TextStyle }): INode[] {
     const { textStyle, children } = nodeProps
     const childNodes: INode[] = this._createNodes(children)
-    if (this._forbiddenStyles.has(textStyle)) {
+    if (textStyle.inside(this._forbiddenStyles.values())) {
       return childNodes
     }
     this._forbiddenStyles.add(textStyle)
@@ -61,7 +59,7 @@ export class NodeCreator {
     return nodes
   }
 
-  createNodeFromCopies (copies: INodeCopy[], forbiddenStyles: TextStyleType[] = []): CreatedContent {
+  createNodeFromCopies (copies: INodeCopy[], forbiddenStyles: TextStyle[] = []): CreatedContent {
     this._createNodeStyles = []
 
     for (const style of forbiddenStyles) {

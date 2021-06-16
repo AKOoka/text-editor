@@ -1,3 +1,5 @@
+import { TextStyle } from '../../../common/TextStyle'
+
 export enum NodeRepresentationType {
   LINE,
   TEXT,
@@ -6,13 +8,11 @@ export enum NodeRepresentationType {
 export enum NodeRepresentationInstructionId {
   TEXT,
   CONTAINER,
-  STYLE,
-  STYLE_WITH_VALUE
+  STYLE
 }
 
 export interface InstructionProps {
-  value: string | NodeRepresentation[]
-  style?: string
+  value: string | NodeRepresentation[] | TextStyle
 }
 
 export interface INodeRepresentationInstruction {
@@ -50,13 +50,8 @@ class NodeRepresentation {
     return this
   }
 
-  addStyleInstruction (style: string): NodeRepresentation {
+  addStyleInstruction (style: TextStyle): NodeRepresentation {
     this._instructions.push({ instructionType: NodeRepresentationInstructionId.STYLE, instructionProps: { value: style } })
-    return this
-  }
-
-  addStyleWithValueInstruction (style: string, styleValue: string): NodeRepresentation {
-    this._instructions.push({ instructionType: NodeRepresentationInstructionId.STYLE_WITH_VALUE, instructionProps: { value: styleValue, style } })
     return this
   }
 

@@ -1,8 +1,10 @@
-import { TextStyleType } from '../../common/TextStyleType'
 import { IActiveTextStylesSubscriber } from '../../common/IActiveTextStylesSubscriber'
 import { CommandTextStyleAdd } from '../../command-pipeline/commands/CommandTextStyleAdd'
 import { IInputEventManager } from '../IInputEventManager'
 import { InputEventHandler } from '../InputEventManager'
+import { CommandTextStyleDeleteAll } from '../../command-pipeline/commands/CommandTextStyleDeleteAll'
+import { TextStyle } from '../../common/TextStyle'
+import { TextStyleUnique } from '../../common/TextStyleUnique'
 
 interface IUiButtonConfig {
   type: string
@@ -11,18 +13,17 @@ interface IUiButtonConfig {
 }
 
 const uiButtonConfigs: IUiButtonConfig[] = [
-  { type: 'bold', popupText: 'bold', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleAdd('bold', true)) },
-  { type: 'underline', popupText: 'underline', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleAdd('underline', true)) },
-  // { type: 'add selection', popupText: 'add selection', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandSelectionAdd({ x: 0, endX: 5, y: 0, endY: 0 }, false)) },
-  // { type: 'add second selection', popupText: 'add second selection', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandSelectionAdd({ x: 2, endX: 7, y: 0, endY: 0 }, false)) },
-  // { type: 'clear selections', popupText: 'clear selections', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandSelectionsClear(false)) },
+  { type: 'bold', popupText: 'bold', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleAdd(new TextStyleUnique('font-weight', 'bold'), true)) },
+  { type: 'underline', popupText: 'underline', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleAdd(new TextStyleUnique('text-decoration', 'underline'), true)) },
+  { type: 'italic', popupText: 'italic', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleAdd(new TextStyleUnique('font-style', 'italic'), true)) },
+  { type: 'clear styles', popupText: 'clear styles', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleDeleteAll(true)) },
   { type: 'undo', popupText: 'undo', handler: ({ commandDispatcher }) => commandDispatcher.undoCommand() },
   { type: 'redo', popupText: 'redo', handler: ({ commandDispatcher }) => commandDispatcher.redoCommand() }
 ]
 
-class UiMenu implements IActiveTextStylesSubscriber {
+export class UiMenu implements IActiveTextStylesSubscriber {
   private readonly _context: HTMLElement
-  private readonly _buttons: Map<string, HTMLElement>
+  private readonly _buttons: Map<TextStyle, HTMLElement>
   private _inputEventManager: IInputEventManager
 
   constructor () {
@@ -42,9 +43,9 @@ class UiMenu implements IActiveTextStylesSubscriber {
   setInputEventManager (inputEventManager: IInputEventManager): void {
     this._inputEventManager = inputEventManager
 
-    for (const { type, popupText, handler } of uiButtonConfigs) {
+    for (const { popupText, handler } of uiButtonConfigs) {
       const newButton: HTMLElement = this._createHtmlButton(popupText)
-      this._buttons.set(type, newButton)
+      // this._buttons.set(type, newButton)
       this._context.append(newButton)
       this._inputEventManager.subscribeToEvent('click', handler, newButton)
     }
@@ -54,9 +55,9 @@ class UiMenu implements IActiveTextStylesSubscriber {
     return this._context
   }
 
-  updateActiveTextStyles (activeTextStyles: TextStyleType[]): void {
+  updateActiveTextStyles (activeTextStyles: TextStyle[]): void {
     for (const [buttonType, button] of this._buttons.entries()) {
-      if (activeTextStyles.includes(buttonType as TextStyleType)) {
+      if (activeTextStyles.includes(buttonType)) {
         button.classList.add('button-active')
         continue
       }
@@ -64,5 +65,3 @@ class UiMenu implements IActiveTextStylesSubscriber {
     }
   }
 }
-
-export { UiMenu }

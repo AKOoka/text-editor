@@ -1,12 +1,10 @@
-import { INode, INodeCopy } from './INode'
-import { TextStyleType } from '../../../common/TextStyleType'
+import { CreatedContent, INode, INodeCopy, NodeType } from './INode'
 import { NodeRepresentation, NodeRepresentationType } from './NodeRepresentation'
 import { RangeNode } from './RangeNode'
 import { PositionNode } from './PositionNode'
 import { NodeCreator } from './NodeCreator'
-import { NodeType } from './NodeType'
 import { NodeText } from './NodeText'
-import { CreatedContent } from './CreatedContent'
+import { TextStyle } from '../../../common/TextStyle'
 
 abstract class BaseNode implements INode {
   protected _text: string
@@ -44,7 +42,7 @@ abstract class BaseNode implements INode {
     return this._text.length === 0
   }
 
-  addContent (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyleType[]): CreatedContent {
+  addContent (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyle[]): CreatedContent {
     let newNodes: INode[] = []
     const { nodes, nodeStyles } = this._nodeCreator.createNodeFromCopies(content, parentTextStyles)
     if (position.position === 0) {
@@ -63,13 +61,13 @@ abstract class BaseNode implements INode {
   }
 
   abstract getNodeType (): NodeType
-  abstract getStyle (): TextStyleType | null
+  abstract getStyle (): TextStyle | null
   abstract getContent (): INodeCopy[]
   abstract getContentInRange (range: RangeNode): INodeCopy[]
-  abstract getTextStylesInRange (range: RangeNode): TextStyleType[]
-  abstract addTextStyle (range: RangeNode, textStyle: TextStyleType): INode[]
+  abstract getTextStylesInRange (range: RangeNode): TextStyle[]
+  abstract addTextStyle (range: RangeNode, textStyle: TextStyle): INode[]
   abstract deleteAllTextStyles (range: RangeNode): INode[]
-  abstract deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType): INode[]
+  abstract deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyle): INode[]
 }
 
 export { BaseNode }

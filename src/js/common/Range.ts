@@ -4,9 +4,7 @@ class Range {
   private _width: number
 
   constructor (start: number, end: number) {
-    this._start = start
-    this._end = end
-    this._width = end - start
+    this.reset(start, end)
   }
 
   get start (): number {

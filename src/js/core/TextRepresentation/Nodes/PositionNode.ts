@@ -19,6 +19,10 @@ class PositionNode {
     return this._position
   }
 
+  copy (): PositionNode {
+    return new PositionNode(this._offset, this._position)
+  }
+
   reset (offset: number, position: number): PositionNode {
     this._position = position
     this._offset = offset

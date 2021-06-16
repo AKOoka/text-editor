@@ -1,12 +1,10 @@
-import { INode, INodeCopy } from './INode'
-import { TextStyleType } from '../../../common/TextStyleType'
+import { CreatedContent, INode, INodeCopy, NodeType } from './INode'
 import { NodeRepresentation } from './NodeRepresentation'
 import { RangeNode } from './RangeNode'
 import { PositionNode } from './PositionNode'
 import { NodeCreator } from './NodeCreator'
 import { NodeMerger } from './NodeMerger'
-import { NodeType } from './NodeType'
-import { CreatedContent } from './CreatedContent'
+import { TextStyle } from '../../../common/TextStyle'
 
 export type ChildNodeInRangeCallback<TextStyle> = (
   rangeNode: RangeNode,
@@ -16,7 +14,7 @@ export type ChildNodeInRangeCallback<TextStyle> = (
 
 abstract class BaseNodeContainer implements INode {
   protected _childNodes: INode[]
-  protected _childStyles: Set<TextStyleType>
+  protected _childStyles: Set<TextStyle>
   protected _size: number
   protected _representation: NodeRepresentation
   protected _nodeCreator: NodeCreator
@@ -56,7 +54,7 @@ abstract class BaseNodeContainer implements INode {
       const childNodeSize: number = childNode.getSize()
 
       if (rangeNode.childNodeInRange(childStartOffset, childNodeSize)) {
-        const changedNodes = inRangeCallback(rangeNode.reset(childStartOffset, rangeNode.initStart, rangeNode.initEnd), childNode, textStyleType)
+        const changedNodes = inRangeCallback(rangeNode.copy().reset(childStartOffset, rangeNode.initStart, rangeNode.initEnd), childNode, textStyleType)
         this._nodeMerger.savePositionChange(i, i + changedNodes.length - 1)
         newChildNodes = newChildNodes.concat(changedNodes)
       } else {
@@ -81,7 +79,7 @@ abstract class BaseNodeContainer implements INode {
 
     for (let i = 0; i < this._childNodes.length; i++) {
       if (position.nodeInPosition(startOffset, this._childNodes[i].getSize())) {
-        this._childNodes[i].addText(position.reset(startOffset, position.initPosition), text)
+        this._childNodes[i].addText(position.copy().reset(startOffset, position.initPosition), text)
         this._size += text.length
         return
       }
@@ -140,14 +138,14 @@ abstract class BaseNodeContainer implements INode {
     return content
   }
 
-  addContent (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyleType[]): CreatedContent {
+  addContent (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyle[]): CreatedContent {
     let startOffset: number = position.offset
     for (let i = 0; i < this._childNodes.length; i++) {
       const childNode = this._childNodes[i]
       const childNodeSize: number = childNode.getSize()
       if (position.nodeInPosition(startOffset, this._childNodes[i].getSize())) {
         const { nodes, nodeStyles } = this._childNodes[i].addContent(
-          position.reset(startOffset, position.initPosition),
+          position.copy().reset(startOffset, position.initPosition),
           content,
           parentTextStyles
         )
@@ -187,11 +185,11 @@ abstract class BaseNodeContainer implements INode {
   }
 
   abstract getNodeType (): NodeType
-  abstract getStyle (): TextStyleType | null
-  abstract getTextStylesInRange (range: RangeNode): TextStyleType[]
-  abstract addTextStyle (range: RangeNode, textStyle: TextStyleType): INode[]
+  abstract getStyle (): TextStyle | null
+  abstract getTextStylesInRange (range: RangeNode): TextStyle[]
+  abstract addTextStyle (range: RangeNode, textStyle: TextStyle): INode[]
   abstract deleteAllTextStyles (range: RangeNode): INode[]
-  abstract deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType): INode[]
+  abstract deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyle): INode[]
 }
 
 export { BaseNodeContainer }

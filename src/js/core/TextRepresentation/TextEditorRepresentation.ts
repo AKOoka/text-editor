@@ -1,7 +1,6 @@
 import { Range } from '../../common/Range'
 import { ITextRepresentationSubscriber } from '../../common/ITextRepresentationSubscriber'
 import { INodeCopy } from './Nodes/INode'
-import { TextStyleType } from '../../common/TextStyleType'
 import { NodeContainerLine } from './Nodes/NodeContainerLine'
 import { Selection } from '../../common/Selection'
 import { IPoint } from '../../common/IPoint'
@@ -13,6 +12,7 @@ import {
   TextEditorRepresentationUpdateManager
 } from './TextEditorRepresentationUpdateManager'
 import { ITextEditorRepresentationLine } from './ITextEditorRepresentationLine'
+import { TextStyle } from '../../common/TextStyle'
 
 interface ILineTextOffset {
   offsetPosition: number
@@ -47,7 +47,7 @@ class TextEditorRepresentation {
     this._updateManager = new TextEditorRepresentationUpdateManager()
   }
 
-  private _reset (): void {
+  private _clear (): void {
     this._linePositionOffset = new Map()
     this._lineTextOffset = new Map()
     this._updateManager = new TextEditorRepresentationUpdateManager()
@@ -234,7 +234,7 @@ class TextEditorRepresentation {
     }
   }
 
-  getTextStylesInSelections (selections: Selection[]): TextStyleType[] {
+  getTextStylesInSelections (selections: Selection[]): TextStyle[] {
     return this._getInfoInSelections(
       selections,
       ({ line, rangeNode }) => line.getTextStylesInRange(rangeNode))
@@ -258,7 +258,7 @@ class TextEditorRepresentation {
     this._updateManager.addUpdateLineChange(point.y, lineOffset)
   }
 
-  addTextStylesInSelections (selections: Selection[], textStyleType: TextStyleType): void {
+  addTextStylesInSelections (selections: Selection[], textStyleType: TextStyle): void {
     this._makeChangesInSelections(
       selections,
       ({ line, rangeNode }) => line.addTextStyle(rangeNode, textStyleType)
@@ -272,7 +272,7 @@ class TextEditorRepresentation {
     )
   }
 
-  deleteConcreteTextStyleInSelections (selections: Selection[], textStyleType: TextStyleType): void {
+  deleteConcreteTextStyleInSelections (selections: Selection[], textStyleType: TextStyle): void {
     this._makeChangesInSelections(
       selections,
       ({ line, rangeNode }) => line.deleteConcreteTextStyle(rangeNode, textStyleType)
@@ -301,7 +301,7 @@ class TextEditorRepresentation {
       sub.updateTextRepresentation(updates)
     }
 
-    this._reset()
+    this._clear()
   }
 }
 

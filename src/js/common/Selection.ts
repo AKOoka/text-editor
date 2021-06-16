@@ -48,9 +48,9 @@ export class Selection {
     }
   }
 
-  reset (startX: number, startY: number, endX: number, endY: number): Selection {
-    this._rangeX.reset(startX, endX)
-    this._rangeY.reset(startY, endY)
+  reset (startPoint: IPoint, endPoint: IPoint): Selection {
+    this._rangeX.reset(startPoint.x, endPoint.x)
+    this._rangeY.reset(startPoint.y, endPoint.y)
     return this
   }
 

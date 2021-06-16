@@ -8,7 +8,7 @@ export interface IInputEventManager {
   triggerEventSelectionMove: (point: IPoint) => void
   triggerEventSelectionMoveMouse: (mousePoint: IPoint) => void
   triggerEventSelectionEnd: () => void
-  triggerEventSelectionsDelete: () => void
+  triggerEventSelectionDeleteAll: () => void
   showInteractiveElement: (displayPoint: IPoint, element: HTMLElement) => void
   subscribeToEvent: (event: keyof HTMLElementEventMap, eventHandler: InputEventHandler, context?: HTMLElement) => void
 }

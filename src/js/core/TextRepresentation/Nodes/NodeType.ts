@@ -1,6 +1,0 @@
-export enum NodeType {
-  CONTAINER_LINE,
-  CONTAINER_STYLE,
-  TEXT_STYLE,
-  TEXT
-}

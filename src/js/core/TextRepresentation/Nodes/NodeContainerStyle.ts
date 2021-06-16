@@ -1,22 +1,20 @@
-import { INode, INodeCopy } from './INode'
-import { TextStyleType } from '../../../common/TextStyleType'
+import { CreatedContent, INode, INodeCopy, NodeType } from './INode'
 import { BaseNodeContainer, ChildNodeInRangeCallback } from './BaseNodeContainer'
 import { NodeRepresentation, NodeRepresentationType } from './NodeRepresentation'
 import { PositionNode } from './PositionNode'
 import { RangeNode } from './RangeNode'
-import { NodeType } from './NodeType'
-import { CreatedContent } from './CreatedContent'
+import { TextStyle } from '../../../common/TextStyle'
 
 class NodeContainerStyle extends BaseNodeContainer {
-  private readonly _textStyle: TextStyleType
+  private readonly _textStyle: TextStyle
 
-  constructor (childNodes: INode[], textStyle: TextStyleType) {
+  constructor (childNodes: INode[], textStyle: TextStyle) {
     super(childNodes)
     this._textStyle = textStyle
     this._representation.representationType = NodeRepresentationType.TEXT
   }
 
-  getStyle (): TextStyleType {
+  getStyle (): TextStyle {
     return this._textStyle
   }
 
@@ -24,17 +22,17 @@ class NodeContainerStyle extends BaseNodeContainer {
     return NodeType.CONTAINER_STYLE
   }
 
-  addTextStyle (range: RangeNode, textStyle: TextStyleType): INode[] {
-    if (textStyle === this._textStyle) {
+  addTextStyle (range: RangeNode, textStyle: TextStyle): INode[] {
+    if (this._textStyle.compare(textStyle)) {
       return [this]
     } else if (range.nodeInsideRange(this.getSize())) {
       const newNode = new NodeContainerStyle([this], textStyle)
       return [newNode]
     }
 
-    const childNodeInRange: ChildNodeInRangeCallback<TextStyleType> =
+    const childNodeInRange: ChildNodeInRangeCallback<TextStyle> =
       (range, childNode, textStyleType) => childNode.addTextStyle(range, textStyleType)
-    this._childNodes = this._updateChildNodesInRange<TextStyleType>(childNodeInRange, range, textStyle)
+    this._childNodes = this._updateChildNodesInRange<TextStyle>(childNodeInRange, range, textStyle)
 
     return [this]
   }
@@ -84,8 +82,8 @@ class NodeContainerStyle extends BaseNodeContainer {
     throw new Error("couldn't find right node to split NodeStyleContainer")
   }
 
-  deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType): INode[] {
-    if (textStyle === this._textStyle) {
+  deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyle): INode[] {
+    if (this._textStyle.compare(textStyle)) {
       // temporary solution - NEED TO REFACTOR
       let newNodes: INode[] = []
 
@@ -115,18 +113,18 @@ class NodeContainerStyle extends BaseNodeContainer {
       return newNodes
     }
 
-    const childNodeInRange: ChildNodeInRangeCallback<TextStyleType> =
+    const childNodeInRange: ChildNodeInRangeCallback<TextStyle> =
       (range, childNode, textStyle) => childNode.deleteConcreteTextStyle(range, textStyle)
-    this._childNodes = this._updateChildNodesInRange<TextStyleType>(childNodeInRange, range, textStyle)
+    this._childNodes = this._updateChildNodesInRange<TextStyle>(childNodeInRange, range, textStyle)
 
     return [this]
   }
 
-  getTextStylesInRange (range: RangeNode): TextStyleType[] {
+  getTextStylesInRange (range: RangeNode): TextStyle[] {
     let startOffset: number = range.offset
 
     if (range.childNodeInRange(startOffset, this.getSize())) {
-      let textStyles: TextStyleType[] = [this._textStyle]
+      let textStyles: TextStyle[] = [this._textStyle]
 
       for (const childNode of this._childNodes) {
         textStyles = textStyles.concat(childNode.getTextStylesInRange(new RangeNode(startOffset, range.initStart, range.initEnd)))
@@ -139,7 +137,7 @@ class NodeContainerStyle extends BaseNodeContainer {
     return []
   }
 
-  addContent (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyleType[]): CreatedContent {
+  addContent (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyle[]): CreatedContent {
     parentTextStyles.push(this._textStyle)
     const { nodes, nodeStyles } = super.addContent(position, content, parentTextStyles)
     for (const style of nodeStyles) {

@@ -1,15 +1,18 @@
-import { BaseTextAreaLayer } from './BaseTextAreaLayer'
-
-class TextAreaLayerText extends BaseTextAreaLayer {
+export class TextAreaLayerText {
+  private readonly _context: HTMLElement
   private readonly _textLines: HTMLElement[]
 
   constructor () {
-    super()
+    this._context = document.createElement('pre')
     this._context.classList.add('text-area_layer-text')
     this._textLines = []
   }
 
-  insertTextLine (y: number, line: HTMLElement): void {
+  get context (): HTMLElement {
+    return this._context
+  }
+
+  addTextLine (y: number, line: HTMLElement): void {
     this._context.insertBefore(line, this._textLines[y])
     this._textLines.splice(y, 0, line)
   }
@@ -44,5 +47,3 @@ class TextAreaLayerText extends BaseTextAreaLayer {
     return textLength
   }
 }
-
-export { TextAreaLayerText }

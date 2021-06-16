@@ -45,11 +45,11 @@ class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorP
       [TextEditorRepresentationUpdateLineType.CHANGE]: this._lineChange.bind(this)
     }
 
-    this._context.append(this._layerText.getContext(), this._layerUi.getContext(), this._layerInteractive)
+    this._context.append(this._layerText.context, this._layerUi.context, this._layerInteractive)
   }
 
   private _lineAdd (change: ITextEditorRepresentationUpdateLineAdd): void {
-    this._layerText.insertTextLine(change.y, this._htmlCreator.createHtmlFromNodeRepresentation(change.nodeLineRepresentation))
+    this._layerText.addTextLine(change.y, this._htmlCreator.createHtmlFromNodeRepresentation(change.nodeLineRepresentation))
   }
 
   private _lineDelete (change: ITextEditorRepresentationUpdateLineDelete): void {

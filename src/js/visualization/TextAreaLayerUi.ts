@@ -1,6 +1,5 @@
 import { Range } from '../common/Range'
 import { Selection } from '../common/Selection'
-import { BaseTextAreaLayer } from './BaseTextAreaLayer'
 import { HtmlElementPool } from './HtmlElementPool'
 import { TextAreaTextCursor } from './TextAreaTextCursor'
 
@@ -9,18 +8,23 @@ export interface SelectionPart {
   rangeX: Range
 }
 
-class TextAreaLayerUi extends BaseTextAreaLayer {
+class TextAreaLayerUi {
+  private readonly _context: HTMLElement
   private readonly _textCursor: TextAreaTextCursor
   private readonly _htmlElementPool: HtmlElementPool
   private _textSelection: HTMLElement[]
 
   constructor () {
-    super()
+    this._context = document.createElement('div')
     this._context.classList.add('text-area_layer-ui')
 
     this._textCursor = new TextAreaTextCursor()
     this._htmlElementPool = new HtmlElementPool()
     this._textSelection = []
+  }
+
+  get context (): HTMLElement {
+    return this._context
   }
 
   removeTextCursor (): void {

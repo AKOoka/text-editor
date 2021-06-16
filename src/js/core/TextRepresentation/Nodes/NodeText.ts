@@ -1,12 +1,10 @@
-import { TextStyleType } from '../../../common/TextStyleType'
-import { INode, INodeCopy } from './INode'
+import { CreatedContent, INode, INodeCopy, NodeType } from './INode'
 import { NodeTextStyle } from './NodeTextStyle'
 import { BaseNode } from './BaseNode'
 import { NodeRepresentationType } from './NodeRepresentation'
 import { RangeNode } from './RangeNode'
 import { PositionNode } from './PositionNode'
-import { NodeType } from './NodeType'
-import { CreatedContent } from './CreatedContent'
+import { TextStyle } from '../../../common/TextStyle'
 
 class NodeText extends BaseNode {
   constructor (text: string) {
@@ -22,7 +20,7 @@ class NodeText extends BaseNode {
     return null
   }
 
-  addTextStyle (range: RangeNode, textStyleType: TextStyleType): INode[] {
+  addTextStyle (range: RangeNode, textStyleType: TextStyle): INode[] {
     let newNodes: INode[] = []
 
     if (range.nodeInsideRange(this.getSize())) {
@@ -34,11 +32,11 @@ class NodeText extends BaseNode {
         new NodeText(this._text.slice(range.end))
       ]
     } else if (range.nodeStartInRange(this.getSize())) {
-      this._text = this._text.slice(0, range.start)
       newNodes = [this, new NodeTextStyle(this._text.slice(range.start), textStyleType)]
+      this._text = this._text.slice(0, range.start)
     } else if (range.nodeEndInRange(this.getSize())) {
-      this._text = this._text.slice(range.end)
       newNodes = [new NodeTextStyle(this._text.slice(0, range.end), textStyleType), this]
+      this._text = this._text.slice(range.end)
     }
 
     return newNodes
@@ -48,11 +46,11 @@ class NodeText extends BaseNode {
     return [this]
   }
 
-  deleteConcreteTextStyle (_: RangeNode, __: TextStyleType): INode[] {
+  deleteConcreteTextStyle (_: RangeNode, __: TextStyle): INode[] {
     return [this]
   }
 
-  getTextStylesInRange (): TextStyleType[] {
+  getTextStylesInRange (): TextStyle[] {
     return []
   }
 
@@ -73,7 +71,7 @@ class NodeText extends BaseNode {
     }]
   }
 
-  addContent (position: PositionNode, content: INodeCopy[], parentTextStyle: TextStyleType[]): CreatedContent {
+  addContent (position: PositionNode, content: INodeCopy[], parentTextStyle: TextStyle[]): CreatedContent {
     return super.addContent(position, content, parentTextStyle)
   }
 }

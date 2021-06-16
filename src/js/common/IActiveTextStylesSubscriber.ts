@@ -1,5 +1,5 @@
-import { TextStyleType } from './TextStyleType'
+import { TextStyle } from './TextStyle'
 
 export interface IActiveTextStylesSubscriber {
-  updateActiveTextStyles: (activeTextStyles: TextStyleType[]) => void
+  updateActiveTextStyles: (activeTextStyles: TextStyle[]) => void
 }

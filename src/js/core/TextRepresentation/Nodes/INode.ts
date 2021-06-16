@@ -1,13 +1,11 @@
-import { TextStyleType } from '../../../common/TextStyleType'
 import { RangeNode } from './RangeNode'
 import { PositionNode } from './PositionNode'
-import { NodeType } from './NodeType'
 import { NodeRepresentation } from './NodeRepresentation'
-import { CreatedContent } from './CreatedContent'
+import { TextStyle } from '../../../common/TextStyle'
 
 export interface INodeCopyProps {
   text?: string
-  textStyle?: TextStyleType
+  textStyle?: TextStyle
   children?: INodeCopy[]
 }
 
@@ -17,12 +15,12 @@ export interface INodeTextCopyProps extends INodeCopyProps{
 
 export interface INodeTextStyleCopyProps extends INodeCopyProps{
   text: string
-  textStyle: TextStyleType
+  textStyle: TextStyle
 }
 
 export interface INodeContainerStyleProps extends INodeCopyProps {
   children: INodeCopy[]
-  textStyle: TextStyleType
+  textStyle: TextStyle
 }
 
 export interface INodeCopy<Props extends INodeCopyProps = INodeCopyProps> {
@@ -31,18 +29,30 @@ export interface INodeCopy<Props extends INodeCopyProps = INodeCopyProps> {
   props: Props
 }
 
+export interface CreatedContent {
+  nodes: INode[]
+  nodeStyles: TextStyle[]
+}
+
+export enum NodeType {
+  CONTAINER_LINE,
+  CONTAINER_STYLE,
+  TEXT_STYLE,
+  TEXT
+}
+
 export interface INode {
   getSize: () => number
-  getStyle: () => TextStyleType | null
+  getStyle: () => TextStyle | null
   getNodeType: () => NodeType
   getContent: () => INodeCopy[]
   getContentInRange: (range: RangeNode) => INodeCopy[]
-  getTextStylesInRange: (range: RangeNode) => TextStyleType[]
+  getTextStylesInRange: (range: RangeNode) => TextStyle[]
   getRepresentation: () => NodeRepresentation
   addText: (position: PositionNode, text: string) => void
-  addContent: (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyleType[]) => CreatedContent
-  addTextStyle: (range: RangeNode, textStyle: TextStyleType) => INode[]
+  addContent: (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyle[]) => CreatedContent
+  addTextStyle: (range: RangeNode, textStyle: TextStyle) => INode[]
   deleteText: (range: RangeNode) => boolean
   deleteAllTextStyles: (range: RangeNode) => INode[]
-  deleteConcreteTextStyle: (range: RangeNode, textStyle: TextStyleType) => INode[]
+  deleteConcreteTextStyle: (range: RangeNode, textStyle: TextStyle) => INode[]
 }

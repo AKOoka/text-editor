@@ -1,5 +1,4 @@
-import { INode, INodeCopy } from './INode'
-import { TextStyleType } from '../../../common/TextStyleType'
+import { CreatedContent, INode, INodeCopy, NodeType } from './INode'
 import { NodeContainerStyle } from './NodeContainerStyle'
 import { BaseNodeContainer, ChildNodeInRangeCallback } from './BaseNodeContainer'
 import { PositionNode } from './PositionNode'
@@ -7,9 +6,8 @@ import { RangeNode } from './RangeNode'
 import { NodeRepresentationType } from './NodeRepresentation'
 import { INodeUpdate } from './NodeUpdatesManager'
 import { ITextEditorRepresentationLine } from '../ITextEditorRepresentationLine'
-import { CreatedContent } from './CreatedContent'
-import { NodeType } from './NodeType'
 import { NodeText } from './NodeText'
+import { TextStyle } from '../../../common/TextStyle'
 
 class NodeContainerLine extends BaseNodeContainer implements ITextEditorRepresentationLine {
   constructor (childNodes: INode[] = []) {
@@ -37,15 +35,15 @@ class NodeContainerLine extends BaseNodeContainer implements ITextEditorRepresen
     super.addText(position, text)
   }
 
-  addTextStyle (range: RangeNode, textStyle: TextStyleType): INode[] {
+  addTextStyle (range: RangeNode, textStyle: TextStyle): INode[] {
     if (range.nodeInsideRange(this.getSize())) {
       this._childNodes = [new NodeContainerStyle(this._childNodes, textStyle)]
       return [this]
     }
 
-    const childNodeInRangeCallback: ChildNodeInRangeCallback<TextStyleType> =
+    const childNodeInRangeCallback: ChildNodeInRangeCallback<TextStyle> =
       (rangeNode, childNode, textStyleType) => childNode.addTextStyle(rangeNode, textStyleType)
-    this._childNodes = this._updateChildNodesInRange<TextStyleType>(childNodeInRangeCallback, range, textStyle)
+    this._childNodes = this._updateChildNodesInRange<TextStyle>(childNodeInRangeCallback, range, textStyle)
 
     return [this]
   }
@@ -79,10 +77,10 @@ class NodeContainerLine extends BaseNodeContainer implements ITextEditorRepresen
     return [this]
   }
 
-  deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyleType): INode[] {
-    const childNodeInRange: ChildNodeInRangeCallback<TextStyleType> =
+  deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyle): INode[] {
+    const childNodeInRange: ChildNodeInRangeCallback<TextStyle> =
       (range, childNode, textStyleType) => childNode.deleteConcreteTextStyle(range, textStyleType)
-    this._childNodes = this._updateChildNodesInRange<TextStyleType>(childNodeInRange, range, textStyle)
+    this._childNodes = this._updateChildNodesInRange<TextStyle>(childNodeInRange, range, textStyle)
 
     return [this]
   }
@@ -98,11 +96,11 @@ class NodeContainerLine extends BaseNodeContainer implements ITextEditorRepresen
     return super.deleteText(range)
   }
 
-  getTextStylesInRange (range: RangeNode): TextStyleType[] {
+  getTextStylesInRange (range: RangeNode): TextStyle[] {
     let startOffset: number = range.offset
 
     if (range.childNodeInRange(startOffset, this.getSize())) {
-      let textStyles: TextStyleType[] = []
+      let textStyles: TextStyle[] = []
 
       for (const childNode of this._childNodes) {
         textStyles = textStyles.concat(childNode.getTextStylesInRange(new RangeNode(startOffset, range.initStart, range.initEnd)))

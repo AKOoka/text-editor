@@ -1,4 +1,3 @@
-import { CommandSelectionsDelete } from '../../command-pipeline/commands/CommandSelectionsDelete'
 import { IPoint } from '../../common/IPoint'
 import { IInputEventManager } from '../IInputEventManager'
 import { IInputEventHandlerPayload } from '../InputEventManager'
@@ -15,15 +14,15 @@ class Mouse {
   }
 
   private _handlerMouseDown (payload: IInputEventHandlerPayload<MouseEvent>): void {
-    console.log('mouse down')
-    const { event, commandDispatcher } = payload
+    const { event } = payload
+    // console.log(`mouse down \nmouseX: ${event.x}; mouseY: ${event.y}`)
     this._inputEventManager.triggerEventChangeTextCursorPosition({ x: event.x, y: event.y })
 
     this._displayPoint.x = event.x
     this._displayPoint.y = event.y
 
-    if (event.ctrlKey) {
-      commandDispatcher.doCommand(new CommandSelectionsDelete(false))
+    if (!event.ctrlKey) {
+      this._inputEventManager.triggerEventSelectionDeleteAll()
     }
 
     this._inputEventManager.triggerEventSelectionStartMouse(this._displayPoint)
@@ -36,7 +35,7 @@ class Mouse {
   private _handlerMouseMove (payload: IInputEventHandlerPayload<MouseEvent>): void {
     const { event, inputModifiers } = payload
     if (inputModifiers.selecting) {
-      console.log(`mouse selection \nmouseX: ${this._displayPoint.x}; mouseY: ${this._displayPoint.y}`, '\nevent: ', event)
+      // console.log(`mouse selection \nmouseX: ${this._displayPoint.x}; mouseY: ${this._displayPoint.y}`, '\nevent: ', event)
       this._displayPoint.x = event.x
       this._displayPoint.y = event.y
       this._inputEventManager.triggerEventSelectionMoveMouse(this._displayPoint)
@@ -57,7 +56,7 @@ class Mouse {
   private _handlerContextualMenu (payload: IInputEventHandlerPayload<MouseEvent>): void {
     this._displayPoint.x = payload.event.x
     this._displayPoint.y = payload.event.y
-    console.log(`context menu on x: ${payload.event.x}; y: ${payload.event.y}`)
+    // console.log(`context menu on x: ${payload.event.x}; y: ${payload.event.y}`)
     this._inputEventManager.showInteractiveElement({ x: payload.event.x, y: payload.event.y }, this._contextualMenu.getContext())
     this._contextualMenu.setActiveState(true)
   }

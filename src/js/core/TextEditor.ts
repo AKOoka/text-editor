@@ -1,6 +1,5 @@
 import { ITextEditor } from './ITextEditor'
 import { Range } from '../common/Range'
-import { TextStyleType } from '../common/TextStyleType'
 import { TextEditorTextCursor } from './TextEditorTextCursor'
 import { TextEditorRepresentation } from './TextRepresentation/TextEditorRepresentation'
 import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubscriber'
@@ -10,6 +9,7 @@ import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscrib
 import { IPoint } from '../common/IPoint'
 import { Selection } from '../common/Selection'
 import { INodeCopy } from './TextRepresentation/Nodes/INode'
+import { TextStyle } from '../common/TextStyle'
 
 class TextEditor implements ITextEditor {
   private readonly _textCursor: TextEditorTextCursor
@@ -44,7 +44,7 @@ class TextEditor implements ITextEditor {
     this._representation.addContent(point, content)
   }
 
-  addTextStyleInSelections (selections: Selection[], textStyleType: TextStyleType): void {
+  addTextStyleInSelections (selections: Selection[], textStyleType: TextStyle): void {
     this._representation.addTextStylesInSelections(selections, textStyleType)
   }
 
@@ -68,7 +68,7 @@ class TextEditor implements ITextEditor {
     this._representation.deleteTextInSelections(selections)
   }
 
-  deleteConcreteTextStylesInSelections (selections: Selection[], textStyleType: TextStyleType): void {
+  deleteConcreteTextStylesInSelections (selections: Selection[], textStyleType: TextStyle): void {
     this._representation.deleteConcreteTextStyleInSelections(selections, textStyleType)
   }
 
@@ -131,7 +131,7 @@ class TextEditor implements ITextEditor {
   }
 
   updateActiveStyles (): void {
-    const activeTextStyles: TextStyleType[] = this._representation.getTextStylesInSelections(this._textCursor.selections)
+    const activeTextStyles: TextStyle[] = this._representation.getTextStylesInSelections(this._textCursor.selections)
     for (const subscriber of this._activeTextStylesSubscribers) {
       subscriber.updateActiveTextStyles(activeTextStyles)
     }

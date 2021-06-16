@@ -1,3 +1,4 @@
+import { TextStyle } from '../common/TextStyle'
 import {
   InstructionProps,
   NodeRepresentation, NodeRepresentationInstructionId,
@@ -12,30 +13,25 @@ class HtmlCreator {
   private readonly _instructionFunctions: Record<NodeRepresentationInstructionId, InstructionFunction>
 
   constructor () {
-    this._htmlCreationFunctions = this._createHtmlCreationFunctions()
-    this._instructionFunctions = this._createInstructionFunctions()
-  }
-
-  private _createHtmlCreationFunctions (): Record<NodeRepresentationType, baseCreationFunction> {
-    return {
-      [NodeRepresentationType.LINE] (): HTMLElement {
-        const line: HTMLElement = document.createElement('div')
-        line.classList.add('text-line')
-        return line
-      },
-      [NodeRepresentationType.TEXT] (): HTMLElement {
-        return document.createElement('span')
-      }
+    this._htmlCreationFunctions = {
+      [NodeRepresentationType.LINE]: this._createHtmlLine,
+      [NodeRepresentationType.TEXT]: this._createHtmlTextNode
     }
-  }
-
-  private _createInstructionFunctions (): Record<NodeRepresentationInstructionId, InstructionFunction> {
-    return {
+    this._instructionFunctions = {
       [NodeRepresentationInstructionId.TEXT]: this._readTextInstruction.bind(this),
       [NodeRepresentationInstructionId.CONTAINER]: this._readContainerInstruction.bind(this),
-      [NodeRepresentationInstructionId.STYLE]: this._readStyleInstruction.bind(this),
-      [NodeRepresentationInstructionId.STYLE_WITH_VALUE]: this._readStyleWithValueInstruction.bind(this)
+      [NodeRepresentationInstructionId.STYLE]: this._readStyleInstruction.bind(this)
     }
+  }
+
+  private _createHtmlLine (): HTMLElement {
+    const line: HTMLElement = document.createElement('div')
+    line.classList.add('text-line')
+    return line
+  }
+
+  private _createHtmlTextNode (): HTMLElement {
+    return document.createElement('span')
   }
 
   private _readTextInstruction (base: HTMLElement, props: { value: string }): void {
@@ -48,12 +44,8 @@ class HtmlCreator {
     }
   }
 
-  private _readStyleInstruction (base: HTMLElement, props: { value: string }): void {
-    base.classList.add(props.value)
-  }
-
-  private _readStyleWithValueInstruction (base: HTMLElement, props: { value: string, style: string }): void {
-    base.style.setProperty(props.style, props.value)
+  private _readStyleInstruction (base: HTMLElement, props: { value: TextStyle }): void {
+    base.style.setProperty(props.value.property, props.value.value)
   }
 
   createHtmlFromNodeRepresentation (nodeRepresentation: NodeRepresentation): HTMLElement {

@@ -99,7 +99,7 @@ class MeasureHtmlTool {
   }
 
   private _getTextPositionOnDisplayX (line: HTMLElement, displayX: number): number {
-    const { child, childDisplayX } = this._getChildOnDisplayX(line, displayX)
+    const { child, childX, childDisplayX } = this._getChildOnDisplayX(line, 0, displayX)
     let startDisplayX: number = childDisplayX
     this._canvasContext.font =
       child.nodeType === Node.ELEMENT_NODE
@@ -110,7 +110,7 @@ class MeasureHtmlTool {
       const textWidth: number = this._canvasContext.measureText(child.innerText[i]).width
 
       if (displayX >= startDisplayX && displayX <= startDisplayX + textWidth) {
-        return i
+        return i + childX
       }
 
       startDisplayX += textWidth
@@ -119,16 +119,19 @@ class MeasureHtmlTool {
     return child.innerText.length
   }
 
-  private _getChildOnDisplayX (parent: HTMLElement, displayX: number): { child: HTMLElement, childDisplayX: number } {
+  private _getChildOnDisplayX (parent: HTMLElement, x: number, displayX: number): { child: HTMLElement, childX: number, childDisplayX: number } {
+    let childX: number = x
     for (let i = 0; i < parent.children.length; i++) {
       const child: HTMLElement = parent.children[i] as HTMLElement
 
       if (displayX >= child.offsetLeft && displayX <= child.offsetLeft + child.offsetWidth) {
-        return this._getChildOnDisplayX(child, displayX)
+        return this._getChildOnDisplayX(child, childX, displayX)
       }
+
+      childX += child.innerText.length
     }
 
-    return { child: parent, childDisplayX: parent.offsetLeft }
+    return { child: parent, childX, childDisplayX: parent.offsetLeft }
   }
 
   normalizeDisplayPosition (displayPosition: IPoint): IPoint {

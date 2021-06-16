@@ -29,6 +29,10 @@ class RangeNode {
     return this._end
   }
 
+  copy (): RangeNode {
+    return new RangeNode(this._offset, this._start, this._end)
+  }
+
   reset (offset: number, start: number, end: number): RangeNode {
     this._offset = offset
     this._start = start
@@ -39,29 +43,33 @@ class RangeNode {
   childNodeInRange (nodeOffset: number, nodeSize: number): boolean {
     const rightEdge: number = nodeOffset + nodeSize
 
-    return (((this._start >= nodeOffset && this._start <= rightEdge) && !(this._start === rightEdge && this._end >= rightEdge)) ||
-      ((this._end >= nodeOffset && this._end <= rightEdge) && !(this._end === nodeOffset && this._start <= nodeOffset)))
+    return (
+      ((this._start >= nodeOffset && this._start <= rightEdge) && !(this._start === rightEdge && this._end >= rightEdge)) ||
+      ((this._end >= nodeOffset && this._end <= rightEdge) && !(this._end === nodeOffset && this._start <= nodeOffset)) ||
+      (this._start <= nodeOffset && this._end >= rightEdge)
+    )
   }
 
   nodeInRange (nodeSize: number): boolean {
-    return (this._start >= this._offset && this._start <= this._offset + nodeSize) ||
-           (this._end >= this._offset && this._end <= this._offset + nodeSize)
+    const rightEdge: number = this._offset + nodeSize
+    return (this._start >= this._offset && this._start <= rightEdge) ||
+           (this._end >= this._offset && this._end <= rightEdge)
   }
 
   nodeInsideRange (nodeSize: number): boolean {
-    return this._start <= 0 && this._end >= nodeSize
+    return this._start <= this._offset && this._end >= this._offset + nodeSize
   }
 
   rangeInsideNode (nodeSize: number): boolean {
-    return this._start > 0 && this._end < nodeSize
+    return this._start > this._offset && this._end < this._offset + nodeSize
   }
 
   nodeStartInRange (nodeSize: number): boolean {
-    return this._start > 0 && this._start < nodeSize
+    return this._start > this._offset && this._start < this._offset + nodeSize
   }
 
   nodeEndInRange (nodeSize: number): boolean {
-    return this._end > 0 && this._end < nodeSize
+    return this._end > this._offset && this._end < this._offset + nodeSize
   }
 }
 

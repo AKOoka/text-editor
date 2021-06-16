@@ -5,7 +5,7 @@ import { ICommandDispatcher } from '../command-pipeline/ICommandDispatcher'
 import { IPoint } from '../common/IPoint'
 import { Range } from '../common/Range'
 import { Selection } from '../common/Selection'
-import { CommandSelectionsDelete } from '../command-pipeline/commands/CommandSelectionsDelete'
+import { CommandSelectionDeleteAll } from '../command-pipeline/commands/CommandSelectionsDelete'
 import { CommandSelectionAdd } from '../command-pipeline/commands/CommandSelectionAdd'
 import { CommandSelectionDeleteLast } from '../command-pipeline/commands/CommandSelectionDeleteLast'
 import { CommandSelectionChangeLast } from '../command-pipeline/commands/CommandSelectionChangeLast'
@@ -26,6 +26,7 @@ export class InputEventManager implements IInputEventManager {
   private readonly _textArea: ITextArea
   private readonly _commandDispatcher: ICommandDispatcher
   private readonly _inputModifiers: InputModifiers
+  private _selectionAnchorPoint: IPoint
   private _selections: Selection[]
 
   constructor (textArea: ITextArea, commandDispatcher: ICommandDispatcher) {
@@ -45,6 +46,7 @@ export class InputEventManager implements IInputEventManager {
     const { x, y } = startPoint
     const newSelection = new Selection(new Range(x, x), new Range(y, y))
 
+    this._selectionAnchorPoint = startPoint
     this._inputModifiers.selecting = true
     this._selections.push(newSelection)
     this._commandDispatcher.doCommand(new CommandSelectionAdd(newSelection, false))
@@ -55,8 +57,17 @@ export class InputEventManager implements IInputEventManager {
   }
 
   triggerEventSelectionMove (point: IPoint): void {
-    const changedSelection = this._selections[this._selections.length - 1].resetEnd(point)
-    this._commandDispatcher.doCommand(new CommandSelectionChangeLast(changedSelection, false))
+    const selection = this._selections[this._selections.length - 1]
+    if (point.y === this._selectionAnchorPoint.y) {
+      if (point.x > this._selectionAnchorPoint.x) {
+        selection.reset(this._selectionAnchorPoint, point)
+      } else {
+        selection.reset(point, this._selectionAnchorPoint)
+      }
+    } else {
+      selection.resetEnd(point)
+    }
+    this._commandDispatcher.doCommand(new CommandSelectionChangeLast(selection, false))
   }
 
   triggerEventSelectionMoveMouse (mousePoint: IPoint): void {
@@ -73,10 +84,10 @@ export class InputEventManager implements IInputEventManager {
     }
   }
 
-  triggerEventSelectionsDelete (): void {
+  triggerEventSelectionDeleteAll (): void {
     this._selections = []
     this._inputModifiers.selecting = false
-    this._commandDispatcher.doCommand(new CommandSelectionsDelete(false))
+    this._commandDispatcher.doCommand(new CommandSelectionDeleteAll(false))
   }
 
   showInteractiveElement (displayPoint: IPoint, uiElement: HTMLElement): void {

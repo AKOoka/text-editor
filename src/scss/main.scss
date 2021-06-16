@@ -26,21 +26,13 @@
   width: 100%;
 }
 
-.text-area_layer-ui, .text-area_layer-interactive {
+.text-area_layer-text, .text-area_layer-ui, .text-area_layer-interactive {
   position: absolute;
   top: 0;
 }
 
-.bold-text {
-  font-weight: bold;
-}
-
-.italic-text {
-  font-style: italic;
-}
-
-.underline-text {
-  text-decoration: underline;
+.text-area_layer-text {
+  margin: 0;
 }
 
 .text-line {
