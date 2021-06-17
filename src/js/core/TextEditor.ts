@@ -29,7 +29,7 @@ class TextEditor implements ITextEditor {
     this._representation.addNewLines(new Range(0, 1))
     this._textCursor.y = 0
     this.updateTextRepresentation()
-    this.updateTextCursorPosition()
+    this.updateTextCursorPoint()
   }
 
   getContext (): HTMLElement {
@@ -96,11 +96,15 @@ class TextEditor implements ITextEditor {
     this._textCursor.y = y
   }
 
-  setTextCursorPosition (position: Point): void {
-    this._textCursor.position = position
+  setTextCursorPoint (position: Point): void {
+    this._textCursor.point = position
   }
 
-  subscribeForTextCursorPosition (subscriber: ITextCursorPositionSubscriber): void {
+  setTextCursorIsLastUpdateY (state: boolean): void {
+    this._textCursor.isLastUpdateY = state
+  }
+
+  subscribeForTextCursorPoint (subscriber: ITextCursorPositionSubscriber): void {
     this._textCursor.subscribeForPosition(subscriber)
   }
 
@@ -116,7 +120,7 @@ class TextEditor implements ITextEditor {
     this._activeTextStylesSubscribers.push(subscriber)
   }
 
-  updateTextCursorPosition (): void {
+  updateTextCursorPoint (): void {
     this._textCursor.notifyPositionSubscribers()
   }
 
@@ -141,15 +145,23 @@ class TextEditor implements ITextEditor {
     return this._textCursor.x
   }
 
+  getTextCursorSavedX (): number {
+    return this._textCursor.savedX
+  }
+
   getTextCursorY (): number {
     return this._textCursor.y
   }
 
-  getTextCursorPosition (): Point {
-    return this._textCursor.position
+  getTextCursorIsLastUpdateY (): boolean {
+    return this._textCursor.isLastUpdateY
   }
 
-  getLineLength (lineY: number): number {
+  getTextCursorPoint (): Point {
+    return this._textCursor.point
+  }
+
+  getLineSize (lineY: number): number {
     return this._representation.getTextLengthInLine(lineY)
   }
 
@@ -163,6 +175,10 @@ class TextEditor implements ITextEditor {
 
   getContentInSelections (selections: Selection[]): INodeCopy[] {
     return this._representation.getContentInSelections(selections)
+  }
+
+  saveTextCursorX (): void {
+    this._textCursor.saveX()
   }
 }
 

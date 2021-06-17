@@ -1,3 +1,4 @@
+import { Point } from '../../common/Point'
 import { ITextEditor } from '../../core/ITextEditor'
 import { BaseCommand } from './BaseCommand'
 
@@ -9,27 +10,44 @@ class CommandTextCursorMoveY extends BaseCommand {
     this._offset = offset
   }
 
-  _getNewY (context: ITextEditor, offset: number): number {
-    const textCursorY = context.getTextCursorY()
-    const textLineCount = context.getLinesCount()
-    const newY: number = textCursorY + offset
-    if (newY < 0) {
-      return 0
-    } else if (newY >= textLineCount) {
-      return textLineCount - 1
-    }
+  private _isValidY (y: number, linesCount: number): boolean {
+    return y >= 0 && y < linesCount
+  }
 
-    return newY
+  private _getValidX (x: number, lineSize: number): number {
+    if (x < 0) {
+      return 0
+    } else if (x > lineSize) {
+      return lineSize
+    } else {
+      return x
+    }
   }
 
   do (context: ITextEditor): void {
-    context.setTextCursorY(this._getNewY(context, this._offset))
-    context.updateTextCursorPosition()
+    const linesCount = context.getLinesCount()
+    const y = context.getTextCursorY()
+    let x: number
+    const newY = y + this._offset
+
+    if (!this._isValidY(newY, linesCount)) {
+      return
+    }
+
+    if (context.getTextCursorIsLastUpdateY()) {
+      x = context.getTextCursorSavedX()
+    } else {
+      x = context.getTextCursorX()
+      context.saveTextCursorX()
+      context.setTextCursorIsLastUpdateY(true)
+    }
+
+    context.setTextCursorPoint(new Point(this._getValidX(x, context.getLineSize(newY)), newY))
+    context.updateTextCursorPoint()
   }
 
   undo (context: ITextEditor): void {
-    context.setTextCursorY(this._getNewY(context, -this._offset))
-    context.updateTextCursorPosition()
+    context.updateTextCursorPoint()
   }
 }
 

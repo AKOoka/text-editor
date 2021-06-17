@@ -4,12 +4,13 @@ import { BaseKeysHandler } from './BaseKeysHandler'
 
 class DeleteKeysHandler extends BaseKeysHandler {
   handleEvent (payload: IInputEventHandlerPayload<KeyboardEvent>): void {
-    switch (payload.event.key) {
+    const { event, commandDispatcher } = payload
+    switch (event.key) {
       case 'Delete':
-        payload.commandDispatcher.doCommand(new CommandTextDelete(true, 0, 1))
+        commandDispatcher.doCommand(new CommandTextDelete(false, 0, 1))
         break
       case 'Backspace':
-        payload.commandDispatcher.doCommand(new CommandTextDelete(true, -1, 0))
+        commandDispatcher.doCommand(new CommandTextDelete(false, -1, 0))
         break
       default:
         this._nextHandler.handleEvent(payload)

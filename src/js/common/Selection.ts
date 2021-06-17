@@ -42,7 +42,13 @@ export class Selection {
     return new Point(this._rangeX.end, this._rangeY.end)
   }
 
-  reset (startPoint: Point, endPoint: Point): Selection {
+  resetWithPositions (startX: number, startY: number, endX: number, endY: number): Selection {
+    this._rangeX.reset(startX, endX)
+    this._rangeY.reset(startY, endY)
+    return this
+  }
+
+  resetWithPoints (startPoint: Point, endPoint: Point): Selection {
     this._rangeX.reset(startPoint.x, endPoint.x)
     this._rangeY.reset(startPoint.y, endPoint.y)
     return this

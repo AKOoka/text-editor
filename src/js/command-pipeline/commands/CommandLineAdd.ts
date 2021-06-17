@@ -15,9 +15,9 @@ class CommandLineAdd extends BaseCommand {
   }
 
   do (context: ITextEditor): void {
-    const textCursorPoint = context.getTextCursorPosition()
+    const textCursorPoint = context.getTextCursorPoint()
     const { x, y } = textCursorPoint
-    const textLength = context.getLineLength(y)
+    const textLength = context.getLineSize(y)
 
     context.addNewLinesInRange(new Range(y + 1, y + 1 + this._count))
 
@@ -27,14 +27,14 @@ class CommandLineAdd extends BaseCommand {
       context.addContent(textCursorPoint.reset(0, y + this._count), this._content)
     }
 
-    context.setTextCursorPosition(textCursorPoint.reset(0, y + this._count))
+    context.setTextCursorPoint(textCursorPoint.reset(0, y + this._count))
     context.updateTextRepresentation()
-    context.updateTextCursorPosition()
+    context.updateTextCursorPoint()
   }
 
   undo (context: ITextEditor): void {
     const textCursorY = context.getTextCursorY()
-    const textLength = context.getLineLength(textCursorY)
+    const textLength = context.getLineSize(textCursorY)
 
     context.deleteLinesInRange(new Range(textCursorY - this._count, textCursorY))
 
@@ -42,9 +42,9 @@ class CommandLineAdd extends BaseCommand {
       context.addContent(new Point(textLength, textCursorY - this._count), this._content)
     }
 
-    context.setTextCursorPosition(new Point(textLength, textCursorY - this._count))
+    context.setTextCursorPoint(new Point(textLength, textCursorY - this._count))
     context.updateTextRepresentation()
-    context.updateTextCursorPosition()
+    context.updateTextCursorPoint()
   }
 }
 

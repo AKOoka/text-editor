@@ -10,39 +10,54 @@ class CommandTextCursorMoveX extends BaseCommand {
     this._offset = offset
   }
 
-  _getNewX (context: ITextEditor, offset: number): Point {
-    const textCursorPosition = context.getTextCursorPosition()
+  private _isValidX (x: number, lineSize: number): boolean {
+    return x >= 0 && x <= lineSize
+  }
+
+  _getNewPoint (context: ITextEditor, offset: number): Point {
+    const textCursorPosition = context.getTextCursorPoint()
     const { x, y } = textCursorPosition
-    const textLength = context.getLineLength(y)
-    const textLineCount = context.getLinesCount()
-    const newX: number = x + offset
+    const savedX = context.getTextCursorSavedX()
+    const lineSize = context.getLineSize(y)
+    const linesCount = context.getLinesCount()
+    let newX: number
+    let newY: number = y
+
+    if (this._isValidX(savedX, lineSize) && context.getTextCursorIsLastUpdateY()) {
+      newX = savedX + offset
+    } else {
+      newX = x + offset
+    }
 
     if (newX < 0) {
       if (y - 1 >= 0) {
-        const textLength = context.getLineLength(y - 1)
-        return textCursorPosition.reset(textLength, y - 1)
+        newY = y - 1
+        newX = context.getLineSize(newY)
       } else {
-        return textCursorPosition.reset(0, y)
+        newX = 0
       }
-    } else if (newX > textLength) {
-      if (offset > 0 && y + 1 < textLineCount) {
-        textCursorPosition.reset(0, y + 1)
+    } else if (newX > lineSize) {
+      if (y + 1 < linesCount) {
+        newY = y + 1
+        newX = 0
       } else {
-        textCursorPosition.reset(textLength + offset, y)
+        newX = lineSize
       }
     }
 
-    return textCursorPosition.reset(newX, y)
+    context.setTextCursorIsLastUpdateY(false)
+
+    return textCursorPosition.reset(newX, newY)
   }
 
   do (context: ITextEditor): void {
-    context.setTextCursorPosition(this._getNewX(context, this._offset))
-    context.updateTextCursorPosition()
+    context.setTextCursorPoint(this._getNewPoint(context, this._offset))
+    context.updateTextCursorPoint()
   }
 
   undo (context: ITextEditor): void {
-    context.setTextCursorPosition(this._getNewX(context, -this._offset))
-    context.updateTextCursorPosition()
+    context.setTextCursorPoint(this._getNewPoint(context, -this._offset))
+    context.updateTextCursorPoint()
   }
 }
 

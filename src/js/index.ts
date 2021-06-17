@@ -22,8 +22,8 @@ const mouse: Mouse = new Mouse()
 textEditorContext.append(htmlUi.getContext(), textArea.getContext())
 document.body.append(textEditorContext)
 
-textEditor.subscribeForTextCursorPosition(textArea)
-textEditor.subscribeForTextCursorPosition(inputEventManager)
+textEditor.subscribeForTextCursorPoint(textArea)
+textEditor.subscribeForTextCursorPoint(inputEventManager)
 
 textEditor.subscribeForTextCursorSelections(textArea)
 

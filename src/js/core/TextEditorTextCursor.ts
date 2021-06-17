@@ -4,47 +4,68 @@ import { Selection } from '../common/Selection'
 import { Point } from '../common/Point'
 
 class TextEditorTextCursor {
-  private _position: Point
+  private _point: Point
   private _selections: Selection[]
+  private _savedX: number
+  private _isLastUpdateY: boolean
   private readonly _positionSubscribers: ITextCursorPositionSubscriber[]
   private readonly _selectionsSubscribers: ITextCursorSelectionsSubscriber[]
 
   constructor () {
-    this._position = new Point(0, 0)
+    this._point = new Point(0, 0)
     this._selections = []
+    this._savedX = 0
+    this._isLastUpdateY = false
     this._positionSubscribers = []
     this._selectionsSubscribers = []
   }
 
   get x (): number {
-    return this._position.x
+    return this._point.x
   }
 
   set x (x: number) {
-    this._position.x = x
-    // console.log(`x: ${this._position.x}, y: ${this._position.y}`)
+    this._point.x = x
+    console.log(`x: ${this._point.x}, y: ${this._point.y}`)
+  }
+
+  get savedX (): number {
+    return this._savedX
   }
 
   get y (): number {
-    return this._position.y
+    return this._point.y
   }
 
   set y (y: number) {
-    this._position.y = y
-    // console.log(`x: ${this._position.x}, y: ${this._position.y}`)
+    this._point.y = y
+    console.log(`x: ${this._point.x}, y: ${this._point.y}`)
   }
 
-  get position (): Point {
-    return this._position.copy()
+  get isLastUpdateY (): boolean {
+    return this._isLastUpdateY
   }
 
-  set position (position: Point) {
-    this._position = position
-    // console.log(`x: ${this._position.x}, y: ${this._position.y}`)
+  set isLastUpdateY (state: boolean) {
+    this._isLastUpdateY = state
+  }
+
+  get point (): Point {
+    return this._point.copy()
+  }
+
+  set point (position: Point) {
+    this._point = position
+    console.log(`x: ${this._point.x}, y: ${this._point.y}`)
   }
 
   get selections (): Selection[] {
     return this._selections
+  }
+
+  saveX (): void {
+    this._savedX = this._point.x
+    console.log(`xSaved: ${this._savedX}`)
   }
 
   addSelections (selections: Selection[]): void {
@@ -65,7 +86,7 @@ class TextEditorTextCursor {
 
   notifyPositionSubscribers (): void {
     for (const subscriber of this._positionSubscribers) {
-      subscriber.updateTextCursorPosition(this._position.copy())
+      subscriber.updateTextCursorPosition(this._point.copy())
     }
   }
 

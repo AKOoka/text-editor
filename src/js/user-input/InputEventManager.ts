@@ -1,5 +1,5 @@
 import { ITextArea } from '../visualization/ITextArea'
-import { CommandTextCursorSetPosition } from '../command-pipeline/commands/CommandTextCursorSetPosition'
+import { CommandTextCursorSetPoint } from '../command-pipeline/commands/CommandTextCursorSetPoint'
 import { IInputEventManager, InputEventHandler } from './IInputEventManager'
 import { ICommandDispatcher } from '../command-pipeline/ICommandDispatcher'
 import { Point } from '../common/Point'
@@ -16,45 +16,42 @@ export class InputEventManager implements IInputEventManager, ITextCursorPositio
   private readonly _textArea: ITextArea
   private readonly _commandDispatcher: ICommandDispatcher
   private readonly _inputModifiers: InputModifiers
+  private readonly _selection: Selection
   private _textCursorPoint: Point
   private _selectionAnchorPoint: Point
-  private _selections: Selection[]
 
   constructor (textArea: ITextArea, commandDispatcher: ICommandDispatcher) {
     this._textArea = textArea
     this._commandDispatcher = commandDispatcher
     this._inputModifiers = new InputModifiers()
-    this._selections = []
+    this._selection = new Selection(new Range(0, 0), new Range(0, 0))
   }
 
   private _selectionStart (): void {
     const { x, y } = this._textCursorPoint
-    const newSelection = new Selection(new Range(x, x), new Range(y, y))
-
+    this._selection.resetWithPositions(x, y, x, y)
     this._inputModifiers.selectingMode = true
     this._selectionAnchorPoint = this._textCursorPoint
-    this._selections.push(newSelection)
-    this._commandDispatcher.doCommand(new CommandSelectionAdd(newSelection, false))
+    this._commandDispatcher.doCommand(new CommandSelectionAdd(this._selection, false))
   }
 
   private _updateSelection (point: Point): void {
-    const selection = this._selections[this._selections.length - 1]
     if (point.y === this._selectionAnchorPoint.y) {
       if (point.x > this._selectionAnchorPoint.x) {
-        selection.reset(this._selectionAnchorPoint, point)
+        this._selection.resetWithPoints(this._selectionAnchorPoint, point)
       } else {
-        selection.reset(point, this._selectionAnchorPoint)
+        this._selection.resetWithPoints(point, this._selectionAnchorPoint)
       }
     } else if (point.y > this._selectionAnchorPoint.y) {
-      selection.reset(this._selectionAnchorPoint, point)
+      this._selection.resetWithPoints(this._selectionAnchorPoint, point)
     } else {
-      selection.reset(point, this._selectionAnchorPoint)
+      this._selection.resetWithPoints(point, this._selectionAnchorPoint)
     }
-    this._commandDispatcher.doCommand(new CommandSelectionChangeLast(selection, false))
+    this._commandDispatcher.doCommand(new CommandSelectionChangeLast(this._selection, false))
   }
 
   triggerEventChangeTextCursorPosition (mousePoint: Point): void {
-    this._commandDispatcher.doCommand(new CommandTextCursorSetPosition(false, this._textArea.convertDisplayPosition(mousePoint)))
+    this._commandDispatcher.doCommand(new CommandTextCursorSetPoint(false, this._textArea.convertDisplayPosition(mousePoint)))
   }
 
   triggerEventSelectionStartMouse (): void {
@@ -82,7 +79,6 @@ export class InputEventManager implements IInputEventManager, ITextCursorPositio
   }
 
   triggerEventSelectionDeleteAll (): void {
-    this._selections = []
     this._inputModifiers.clear()
     this._commandDispatcher.doCommand(new CommandSelectionDeleteAll(false))
   }

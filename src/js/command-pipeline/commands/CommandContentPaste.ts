@@ -12,15 +12,15 @@ class CommandContentPaste extends BaseCommand {
   }
 
   do (context: ITextEditor): void {
-    const textCursorPosition = context.getTextCursorPosition()
+    const textCursorPosition = context.getTextCursorPoint()
 
     context.addContent(textCursorPosition, this._content)
     context.updateTextRepresentation()
-    context.updateTextCursorPosition()
+    context.updateTextCursorPoint()
   }
 
   undo (context: ITextEditor): void {
-    const { x, y } = context.getTextCursorPosition()
+    const { x, y } = context.getTextCursorPoint()
 
     context.deleteTextInRange(
       y,
@@ -30,7 +30,7 @@ class CommandContentPaste extends BaseCommand {
       )
     )
     context.updateTextRepresentation()
-    context.updateTextCursorPosition()
+    context.updateTextCursorPoint()
   }
 }
 
