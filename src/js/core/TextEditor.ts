@@ -6,7 +6,7 @@ import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubs
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
 import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
 import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscriber'
-import { IPoint } from '../common/IPoint'
+import { Point } from '../common/Point'
 import { Selection } from '../common/Selection'
 import { INodeCopy } from './TextRepresentation/Nodes/INode'
 import { TextStyle } from '../common/TextStyle'
@@ -36,11 +36,11 @@ class TextEditor implements ITextEditor {
     return this._context
   }
 
-  addText (point: IPoint, text: string): void {
+  addText (point: Point, text: string): void {
     this._representation.addTextInLine(point, text)
   }
 
-  addContent (point: IPoint, content: INodeCopy[]): void {
+  addContent (point: Point, content: INodeCopy[]): void {
     this._representation.addContent(point, content)
   }
 
@@ -96,7 +96,7 @@ class TextEditor implements ITextEditor {
     this._textCursor.y = y
   }
 
-  setTextCursorPosition (position: IPoint): void {
+  setTextCursorPosition (position: Point): void {
     this._textCursor.position = position
   }
 
@@ -145,7 +145,7 @@ class TextEditor implements ITextEditor {
     return this._textCursor.y
   }
 
-  getTextCursorPosition (): IPoint {
+  getTextCursorPosition (): Point {
     return this._textCursor.position
   }
 

@@ -1,31 +1,41 @@
-import { IPoint } from '../../common/IPoint'
-import { IInputEventManager } from '../IInputEventManager'
-import { IInputEventHandlerPayload } from '../InputEventManager'
+import { Point } from '../../common/Point'
+import { IInputEventHandlerPayload, IInputEventManager } from '../IInputEventManager'
 import { MouseContextualMenu } from './MouseContextualMenu'
 
 class Mouse {
   private _inputEventManager: IInputEventManager
-  private _displayPoint: IPoint
+  private _displayPoint: Point
   private readonly _contextualMenu: MouseContextualMenu
 
   constructor () {
-    this._displayPoint = { x: 0, y: 0 }
+    this._displayPoint = new Point(0, 0)
     this._contextualMenu = new MouseContextualMenu()
   }
 
   private _handlerMouseDown (payload: IInputEventHandlerPayload<MouseEvent>): void {
-    const { event } = payload
-    // console.log(`mouse down \nmouseX: ${event.x}; mouseY: ${event.y}`)
-    this._inputEventManager.triggerEventChangeTextCursorPosition({ x: event.x, y: event.y })
+    const { event, inputModifiers } = payload
 
+    if (event.buttons === 2) {
+      return
+    }
+
+    // console.log(`mouse down \nmouseX: ${event.x}; mouseY: ${event.y}`)
     this._displayPoint.x = event.x
     this._displayPoint.y = event.y
 
-    if (!event.ctrlKey) {
+    if (inputModifiers.selectingMode && event.shiftKey) {
+      this._inputEventManager.triggerEventSelectionContinueMouse()
+    }
+
+    this._inputEventManager.triggerEventChangeTextCursorPosition(this._displayPoint)
+
+    if (inputModifiers.selectingMode && !event.ctrlKey && !event.shiftKey) {
       this._inputEventManager.triggerEventSelectionDeleteAll()
     }
 
-    this._inputEventManager.triggerEventSelectionStartMouse(this._displayPoint)
+    if (!event.shiftKey) {
+      this._inputEventManager.triggerEventSelectionStartMouse()
+    }
 
     if (this._contextualMenu.isActive()) {
       this._contextualMenu.removeContext()
@@ -34,31 +44,39 @@ class Mouse {
 
   private _handlerMouseMove (payload: IInputEventHandlerPayload<MouseEvent>): void {
     const { event, inputModifiers } = payload
-    if (inputModifiers.selecting) {
+    if (inputModifiers.selectingModeMouse) {
       // console.log(`mouse selection \nmouseX: ${this._displayPoint.x}; mouseY: ${this._displayPoint.y}`, '\nevent: ', event)
       this._displayPoint.x = event.x
       this._displayPoint.y = event.y
-      this._inputEventManager.triggerEventSelectionMoveMouse(this._displayPoint)
+
+      this._inputEventManager.triggerEventChangeTextCursorPosition(this._displayPoint)
     }
   }
 
   private _handlerMouseUp (payload: IInputEventHandlerPayload<MouseEvent>): void {
     const { event, inputModifiers } = payload
-    if (inputModifiers.selecting) {
-      this._inputEventManager.triggerEventSelectionEnd()
-    }
 
     this._displayPoint.x = event.x
     this._displayPoint.y = event.y
+
+    if (inputModifiers.selectingModeMouse) {
+      this._inputEventManager.triggerEventChangeTextCursorPosition(this._displayPoint)
+      this._inputEventManager.triggerEventSelectionEndMouse()
+    }
     console.log('mouse up')
   }
 
   private _handlerContextualMenu (payload: IInputEventHandlerPayload<MouseEvent>): void {
-    this._displayPoint.x = payload.event.x
-    this._displayPoint.y = payload.event.y
-    // console.log(`context menu on x: ${payload.event.x}; y: ${payload.event.y}`)
-    this._inputEventManager.showInteractiveElement({ x: payload.event.x, y: payload.event.y }, this._contextualMenu.getContext())
-    this._contextualMenu.setActiveState(true)
+    const { event } = payload
+    this._displayPoint.x = event.x
+    this._displayPoint.y = event.y
+    // console.log(`context menu on x: ${event.x}; y: ${event.y}`)
+    this._contextualMenu.toggleActiveState()
+    if (this._contextualMenu.isActive()) {
+      this._inputEventManager.showInteractiveElement(new Point(event.x, event.y), this._contextualMenu.getContext())
+    } else {
+      this._contextualMenu.removeContext()
+    }
   }
 
   setInputEventManager (inputEventManager: IInputEventManager): void {

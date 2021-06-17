@@ -3,7 +3,7 @@ import { ITextRepresentationSubscriber } from '../../common/ITextRepresentationS
 import { INodeCopy } from './Nodes/INode'
 import { NodeContainerLine } from './Nodes/NodeContainerLine'
 import { Selection } from '../../common/Selection'
-import { IPoint } from '../../common/IPoint'
+import { Point } from '../../common/Point'
 import { PositionNode } from './Nodes/PositionNode'
 import { RangeNode } from './Nodes/RangeNode'
 import {
@@ -197,7 +197,7 @@ class TextEditorRepresentation {
     }
   }
 
-  addTextInLine (point: IPoint, text: string): void {
+  addTextInLine (point: Point, text: string): void {
     const lineOffset = this._getOffsetY(point.y)
     const line = this._textLines[point.y + lineOffset]
     line.addText(new PositionNode(0, point.x + this._getOffsetX(point.y, point.x)), text)
@@ -246,7 +246,7 @@ class TextEditorRepresentation {
       ({ line, rangeNode }) => line.getContentInRange(rangeNode))
   }
 
-  addContent (point: IPoint, content: INodeCopy[]): void {
+  addContent (point: Point, content: INodeCopy[]): void {
     const lineOffset = this._getOffsetY(point.y)
     const line = this._textLines[point.y + lineOffset]
     line.addContent(new PositionNode(0, point.x + this._getOffsetX(point.y, point.x)), content)

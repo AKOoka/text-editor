@@ -3,6 +3,7 @@ import { BaseCommand } from './BaseCommand'
 import { Range } from '../../common/Range'
 import { INodeCopy } from '../../core/TextRepresentation/Nodes/INode'
 import { Selection } from '../../common/Selection'
+import { Point } from '../../common/Point'
 
 class CommandLineAdd extends BaseCommand {
   private readonly _count: number
@@ -14,7 +15,8 @@ class CommandLineAdd extends BaseCommand {
   }
 
   do (context: ITextEditor): void {
-    const { x, y } = context.getTextCursorPosition()
+    const textCursorPoint = context.getTextCursorPosition()
+    const { x, y } = textCursorPoint
     const textLength = context.getLineLength(y)
 
     context.addNewLinesInRange(new Range(y + 1, y + 1 + this._count))
@@ -22,10 +24,10 @@ class CommandLineAdd extends BaseCommand {
     if (x < textLength) {
       this._content = context.getContentInSelections([new Selection(new Range(x, textLength), new Range(y, y))])
       context.deleteTextInRange(y, new Range(x, textLength))
-      context.addContent({ x: 0, y: y + this._count }, this._content)
+      context.addContent(textCursorPoint.reset(0, y + this._count), this._content)
     }
 
-    context.setTextCursorPosition({ x: 0, y: y + this._count })
+    context.setTextCursorPosition(textCursorPoint.reset(0, y + this._count))
     context.updateTextRepresentation()
     context.updateTextCursorPosition()
   }
@@ -37,10 +39,10 @@ class CommandLineAdd extends BaseCommand {
     context.deleteLinesInRange(new Range(textCursorY - this._count, textCursorY))
 
     if (this._content !== null) {
-      context.addContent({ x: textLength, y: textCursorY - this._count }, this._content)
+      context.addContent(new Point(textLength, textCursorY - this._count), this._content)
     }
 
-    context.setTextCursorPosition({ x: textLength, y: textCursorY - this._count })
+    context.setTextCursorPosition(new Point(textLength, textCursorY - this._count))
     context.updateTextRepresentation()
     context.updateTextCursorPosition()
   }

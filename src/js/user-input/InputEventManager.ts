@@ -1,63 +1,43 @@
 import { ITextArea } from '../visualization/ITextArea'
 import { CommandTextCursorSetPosition } from '../command-pipeline/commands/CommandTextCursorSetPosition'
-import { IInputEventManager } from './IInputEventManager'
+import { IInputEventManager, InputEventHandler } from './IInputEventManager'
 import { ICommandDispatcher } from '../command-pipeline/ICommandDispatcher'
-import { IPoint } from '../common/IPoint'
+import { Point } from '../common/Point'
 import { Range } from '../common/Range'
 import { Selection } from '../common/Selection'
 import { CommandSelectionDeleteAll } from '../command-pipeline/commands/CommandSelectionsDelete'
 import { CommandSelectionAdd } from '../command-pipeline/commands/CommandSelectionAdd'
-import { CommandSelectionDeleteLast } from '../command-pipeline/commands/CommandSelectionDeleteLast'
 import { CommandSelectionChangeLast } from '../command-pipeline/commands/CommandSelectionChangeLast'
 import { BaseCommand } from '../command-pipeline/commands/BaseCommand'
+import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubscriber'
+import { InputModifiers } from './InputModifiers'
 
-export interface InputModifiers {
-  selecting: boolean
-}
-
-export interface IInputEventHandlerPayload<E extends Event> {
-  event: E
-  commandDispatcher: ICommandDispatcher
-  inputModifiers: InputModifiers
-}
-
-export type InputEventHandler = (payload: IInputEventHandlerPayload<MouseEvent | KeyboardEvent>) => void
-
-export class InputEventManager implements IInputEventManager {
+export class InputEventManager implements IInputEventManager, ITextCursorPositionSubscriber {
   private readonly _textArea: ITextArea
   private readonly _commandDispatcher: ICommandDispatcher
   private readonly _inputModifiers: InputModifiers
-  private _selectionAnchorPoint: IPoint
+  private _textCursorPoint: Point
+  private _selectionAnchorPoint: Point
   private _selections: Selection[]
 
   constructor (textArea: ITextArea, commandDispatcher: ICommandDispatcher) {
     this._textArea = textArea
     this._commandDispatcher = commandDispatcher
-    this._inputModifiers = {
-      selecting: false
-    }
+    this._inputModifiers = new InputModifiers()
     this._selections = []
   }
 
-  triggerEventChangeTextCursorPosition (mousePoint: IPoint): void {
-    this._commandDispatcher.doCommand(new CommandTextCursorSetPosition(false, this._textArea.convertDisplayPosition(mousePoint)))
-  }
-
-  triggerEventSelectionStart (startPoint: IPoint): void {
-    const { x, y } = startPoint
+  private _selectionStart (): void {
+    const { x, y } = this._textCursorPoint
     const newSelection = new Selection(new Range(x, x), new Range(y, y))
 
-    this._selectionAnchorPoint = startPoint
-    this._inputModifiers.selecting = true
+    this._inputModifiers.selectingMode = true
+    this._selectionAnchorPoint = this._textCursorPoint
     this._selections.push(newSelection)
     this._commandDispatcher.doCommand(new CommandSelectionAdd(newSelection, false))
   }
 
-  triggerEventSelectionStartMouse (startMousePoint: IPoint): void {
-    this.triggerEventSelectionStart(this._textArea.convertDisplayPosition(startMousePoint))
-  }
-
-  triggerEventSelectionMove (point: IPoint): void {
+  private _updateSelection (point: Point): void {
     const selection = this._selections[this._selections.length - 1]
     if (point.y === this._selectionAnchorPoint.y) {
       if (point.x > this._selectionAnchorPoint.x) {
@@ -65,29 +45,45 @@ export class InputEventManager implements IInputEventManager {
       } else {
         selection.reset(point, this._selectionAnchorPoint)
       }
+    } else if (point.y > this._selectionAnchorPoint.y) {
+      selection.reset(this._selectionAnchorPoint, point)
     } else {
-      selection.resetEnd(point)
+      selection.reset(point, this._selectionAnchorPoint)
     }
     this._commandDispatcher.doCommand(new CommandSelectionChangeLast(selection, false))
   }
 
-  triggerEventSelectionMoveMouse (mousePoint: IPoint): void {
-    this.triggerEventSelectionMove(this._textArea.convertDisplayPosition(mousePoint))
+  triggerEventChangeTextCursorPosition (mousePoint: Point): void {
+    this._commandDispatcher.doCommand(new CommandTextCursorSetPosition(false, this._textArea.convertDisplayPosition(mousePoint)))
   }
 
-  triggerEventSelectionEnd (): void {
-    const selection: Selection = this._selections[this._selections.length - 1]
-    this._inputModifiers.selecting = false
+  triggerEventSelectionStartMouse (): void {
+    this._inputModifiers.selectingModeMouse = true
+    this._selectionStart()
+  }
 
-    if (selection.rangeX.width === 0 && selection.rangeY.width === 0) {
-      this._selections.pop()
-      this._commandDispatcher.doCommand(new CommandSelectionDeleteLast(false))
+  triggerEventSelectionContinueKeyboard (): void {
+    this._inputModifiers.selectingModeKeyboard = true
+    if (!this._inputModifiers.selectingMode) {
+      this._selectionStart()
     }
+  }
+
+  triggerEventSelectionContinueMouse (): void {
+    this._inputModifiers.selectingModeMouse = true
+  }
+
+  triggerEventSelectionEndKeyboard (): void {
+    this._inputModifiers.selectingModeKeyboard = false
+  }
+
+  triggerEventSelectionEndMouse (): void {
+    this._inputModifiers.selectingModeMouse = false
   }
 
   triggerEventSelectionDeleteAll (): void {
     this._selections = []
-    this._inputModifiers.selecting = false
+    this._inputModifiers.clear()
     this._commandDispatcher.doCommand(new CommandSelectionDeleteAll(false))
   }
 
@@ -95,8 +91,15 @@ export class InputEventManager implements IInputEventManager {
     this._commandDispatcher.doCommand(command)
   }
 
-  showInteractiveElement (displayPoint: IPoint, uiElement: HTMLElement): void {
+  showInteractiveElement (displayPoint: Point, uiElement: HTMLElement): void {
     this._textArea.showInteractiveElement(displayPoint, uiElement)
+  }
+
+  updateTextCursorPosition (textCursorPoint: Point): void {
+    if (this._inputModifiers.selectingModeKeyboard || this._inputModifiers.selectingModeMouse) {
+      this._updateSelection(textCursorPoint)
+    }
+    this._textCursorPoint = textCursorPoint
   }
 
   subscribeToEvent (
@@ -111,6 +114,7 @@ export class InputEventManager implements IInputEventManager {
         eventHandler({
           event: e,
           commandDispatcher: this._commandDispatcher,
+          inputEventManager: this,
           inputModifiers: this._inputModifiers
         })
       }

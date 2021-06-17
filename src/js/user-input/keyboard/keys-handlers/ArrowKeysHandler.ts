@@ -1,22 +1,37 @@
 import { CommandTextCursorMoveX } from '../../../command-pipeline/commands/CommandTextCursorMoveX'
 import { CommandTextCursorMoveY } from '../../../command-pipeline/commands/CommandTextCursorMoveY'
-import { IInputEventHandlerPayload } from '../../InputEventManager'
+import { IInputEventHandlerPayload } from '../../IInputEventManager'
 import { BaseKeysHandler } from './BaseKeysHandler'
 
 class ArrowKeysHandler extends BaseKeysHandler {
+  private _moveTextCursor (payload: IInputEventHandlerPayload<KeyboardEvent>, moveCommand: CommandTextCursorMoveX | CommandTextCursorMoveY): void {
+    const { commandDispatcher, inputEventManager, inputModifiers, event } = payload
+    if (event.shiftKey) {
+      inputEventManager.triggerEventSelectionContinueKeyboard()
+    } else if (inputModifiers.selectingMode) {
+      inputEventManager.triggerEventSelectionDeleteAll()
+    }
+
+    commandDispatcher.doCommand(moveCommand)
+
+    if (inputModifiers.selectingModeKeyboard) {
+      inputEventManager.triggerEventSelectionEndKeyboard()
+    }
+  }
+
   handleEvent (payload: IInputEventHandlerPayload<KeyboardEvent>): void {
     switch (payload.event.key) {
       case 'ArrowLeft':
-        payload.commandDispatcher.doCommand(new CommandTextCursorMoveX(false, -1))
+        this._moveTextCursor(payload, new CommandTextCursorMoveX(false, -1))
         break
       case 'ArrowRight':
-        payload.commandDispatcher.doCommand(new CommandTextCursorMoveX(false, 1))
+        this._moveTextCursor(payload, new CommandTextCursorMoveX(false, 1))
         break
       case 'ArrowDown':
-        payload.commandDispatcher.doCommand(new CommandTextCursorMoveY(false, 1))
+        this._moveTextCursor(payload, new CommandTextCursorMoveY(false, 1))
         break
       case 'ArrowUp':
-        payload.commandDispatcher.doCommand(new CommandTextCursorMoveY(false, -1))
+        this._moveTextCursor(payload, new CommandTextCursorMoveY(false, -1))
         break
       default:
         this._nextHandler.handleEvent(payload)

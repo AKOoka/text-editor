@@ -1,7 +1,7 @@
-import { IPoint } from '../common/IPoint'
+import { Point } from '../common/Point'
 
 export interface ITextArea {
   getInteractiveLayerContext: () => HTMLElement
-  convertDisplayPosition: (displayPosition: IPoint) => IPoint
-  showInteractiveElement: (displayPosition: IPoint, element: HTMLElement) => void
+  convertDisplayPosition: (displayPosition: Point) => Point
+  showInteractiveElement: (displayPosition: Point, element: HTMLElement) => void
 }

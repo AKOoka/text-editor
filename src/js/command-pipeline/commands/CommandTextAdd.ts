@@ -1,18 +1,18 @@
 import { ITextEditor } from '../../core/ITextEditor'
 import { BaseCommand } from './BaseCommand'
 import { Range } from '../../common/Range'
-import { IPoint } from '../../common/IPoint'
+import { Point } from '../../common/Point'
 
 class CommandTextAdd extends BaseCommand {
   private readonly _text: string
-  private _position: IPoint
+  private _position: Point
 
   constructor (text: string, toBeSaved: boolean) {
     super(toBeSaved)
     this._text = text
   }
 
-  _getValidX (context: ITextEditor, position: IPoint): number {
+  _getValidX (context: ITextEditor, position: Point): number {
     const { x, y } = position
     const textLength = context.getLineLength(y)
 
@@ -29,7 +29,7 @@ class CommandTextAdd extends BaseCommand {
     const position = context.getTextCursorPosition()
     const validX = this._getValidX(context, position)
 
-    this._position = { x: validX, y: position.y }
+    this._position = position.reset(validX, position.y)
 
     context.addText(this._position, this._text)
     context.setTextCursorX(validX + this._text.length)
@@ -42,10 +42,10 @@ class CommandTextAdd extends BaseCommand {
     const { x, y } = this._position
     const xBeforeAdd = x - this._text.length
 
-    context.setTextCursorPosition({ x: xBeforeAdd, y })
-    context.deleteTextInRange(this._position.y, new Range(xBeforeAdd, x))
+    this._position.reset(xBeforeAdd, y)
 
-    this._position = context.getTextCursorPosition()
+    context.setTextCursorPosition(this._position)
+    context.deleteTextInRange(this._position.y, new Range(xBeforeAdd, x))
 
     context.updateTextRepresentation()
     context.updateTextCursorPosition()

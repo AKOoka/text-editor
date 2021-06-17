@@ -1,3 +1,5 @@
+type CompareFunction = (textStyle: TextStyle) => boolean
+
 export class TextStyle {
   private readonly _property: string
   private readonly _value: string
@@ -19,12 +21,24 @@ export class TextStyle {
     return textStyle.property === this._property
   }
 
-  inside (textStyles: IterableIterator<TextStyle>): boolean {
+  deepCompare (textStyle: TextStyle): boolean {
+    return textStyle.property === this._property && textStyle.value === this._value
+  }
+
+  private _inside (textStyles: IterableIterator<TextStyle>, compareFunction: CompareFunction): boolean {
     for (const t of textStyles) {
-      if (this.compare(t)) {
+      if (compareFunction(t)) {
         return true
       }
     }
     return false
+  }
+
+  compareInside (textStyles: IterableIterator<TextStyle>): boolean {
+    return this._inside(textStyles, this.compare.bind(this))
+  }
+
+  deepCompareInside (textStyles: IterableIterator<TextStyle>): boolean {
+    return this._inside(textStyles, this.deepCompare.bind(this))
   }
 }

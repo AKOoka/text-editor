@@ -1,4 +1,4 @@
-import { IInputEventHandlerPayload } from '../../InputEventManager'
+import { IInputEventHandlerPayload } from '../../IInputEventManager'
 import { BaseKeysHandler } from './BaseKeysHandler'
 
 const specialKeys = ['F5', 'Control', 'Shift', 'CapsLock', 'Tab']

@@ -17,7 +17,8 @@ class CommandTextDelete extends BaseCommand {
   }
 
   do (context: ITextEditor): void {
-    const { x, y } = context.getTextCursorPosition()
+    const textCursorPoint = context.getTextCursorPosition()
+    const { x, y } = textCursorPoint
     const textLength = context.getLineLength(y)
     const textLineCount = context.getLinesCount()
 
@@ -33,7 +34,7 @@ class CommandTextDelete extends BaseCommand {
       context.deleteLinesInRange(new Range(y, y + 1 <= textLineCount ? y + 1 : textLineCount))
       if (this._leftOffset < 0) {
         const newTextLength = context.getLineLength(y + this._leftOffset)
-        context.setTextCursorPosition({ x: newTextLength, y: y + this._leftOffset })
+        context.setTextCursorPosition(textCursorPoint.reset(newTextLength, y + this._leftOffset))
       }
     } else {
       context.deleteTextInRange(y, new Range(x + this._leftOffset, x + this._rightOffset))
@@ -44,8 +45,9 @@ class CommandTextDelete extends BaseCommand {
   }
 
   undo (context: ITextEditor): void {
-    const { x, y } = context.getTextCursorPosition()
-    context.addContent({ x, y }, this._deletedContent)
+    const textCursorPoint = context.getTextCursorPosition()
+    const { x, y } = textCursorPoint
+    context.addContent(textCursorPoint.reset(x, y), this._deletedContent)
     context.setTextCursorX(x - this._leftOffset)
     // if (this._lineDeleted) {}
     context.updateTextRepresentation()

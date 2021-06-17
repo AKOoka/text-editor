@@ -1,4 +1,4 @@
-import { IPoint } from '../common/IPoint'
+import { Point } from '../common/Point'
 
 interface ISearchChildResult {
   child: HTMLElement
@@ -7,7 +7,7 @@ interface ISearchChildResult {
 
 class MeasureHtmlTool {
   private readonly _canvasContext: CanvasRenderingContext2D
-  private _contextPosition: IPoint
+  private _contextPosition: Point
   private _contextFont: string
 
   constructor () {
@@ -15,7 +15,7 @@ class MeasureHtmlTool {
     if (ctx === null) {
       throw new Error("can't create canvas context 2d")
     }
-    this._contextPosition = { x: 0, y: 0 }
+    this._contextPosition = new Point(0, 0)
     this._canvasContext = ctx
   }
 
@@ -134,18 +134,17 @@ class MeasureHtmlTool {
     return { child: parent, childX, childDisplayX: parent.offsetLeft }
   }
 
-  normalizeDisplayPosition (displayPosition: IPoint): IPoint {
-    return {
-      x: displayPosition.x - this._contextPosition.x,
-      y: displayPosition.y - this._contextPosition.y
-    }
+  normalizeDisplayPosition (displayPosition: Point): Point {
+    return displayPosition.reset(
+      displayPosition.x - this._contextPosition.x,
+      displayPosition.y - this._contextPosition.y
+    )
   }
 
-  convertDisplayPosition (lines: HTMLElement[], displayPosition: IPoint): IPoint {
-    const y: number = this._getLineOnDisplayY(lines, displayPosition.y - this._contextPosition.y)
-    const x: number = this._getTextPositionOnDisplayX(lines[y], displayPosition.x - this._contextPosition.x)
-
-    return { x, y }
+  convertDisplayPosition (lines: HTMLElement[], displayPoint: Point): Point {
+    const y: number = this._getLineOnDisplayY(lines, displayPoint.y - this._contextPosition.y)
+    const x: number = this._getTextPositionOnDisplayX(lines[y], displayPoint.x - this._contextPosition.x)
+    return displayPoint.reset(x, y)
   }
 }
 

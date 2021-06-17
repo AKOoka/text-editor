@@ -7,7 +7,6 @@ import { ITextEditor } from './core/ITextEditor'
 import { TextEditor } from './core/TextEditor'
 import { UiMenu } from './user-input/ui-menu/UiMenu'
 import { Mouse } from './user-input/mouse/Mouse'
-import { IInputEventManager } from './user-input/IInputEventManager'
 import { InputEventManager } from './user-input/InputEventManager'
 import { ICommandDispatcher } from './command-pipeline/ICommandDispatcher'
 
@@ -15,7 +14,7 @@ const textEditor: ITextEditor = new TextEditor()
 const textEditorContext: HTMLElement = textEditor.getContext()
 const historyCommandDispatcher: ICommandDispatcher = new HistoryCommandDispatcher(new CommandDispatcher(textEditor))
 const textArea: TextArea = new TextArea()
-const inputEventManager: IInputEventManager = new InputEventManager(textArea, historyCommandDispatcher)
+const inputEventManager: InputEventManager = new InputEventManager(textArea, historyCommandDispatcher)
 const keyboard: Keyboard = new Keyboard()
 const htmlUi = new UiMenu()
 const mouse: Mouse = new Mouse()
@@ -24,11 +23,15 @@ textEditorContext.append(htmlUi.getContext(), textArea.getContext())
 document.body.append(textEditorContext)
 
 textEditor.subscribeForTextCursorPosition(textArea)
-textEditor.subscribeForTextCursorSelections(textArea)
-textEditor.subscribeForTextRepresentation(textArea)
-textEditor.subscribeForActiveStyles(htmlUi)
-textEditor.init()
+textEditor.subscribeForTextCursorPosition(inputEventManager)
 
+textEditor.subscribeForTextCursorSelections(textArea)
+
+textEditor.subscribeForTextRepresentation(textArea)
+
+textEditor.subscribeForActiveStyles(htmlUi)
+
+textEditor.init()
 textArea.init()
 
 keyboard.setInputEventManager(inputEventManager)

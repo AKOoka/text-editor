@@ -19,10 +19,11 @@ class Range {
     return this._width
   }
 
-  reset (start: number, end: number): void {
+  reset (start: number, end: number): Range {
     this._start = start
     this._end = end
     this._width = end - start
+    return this
   }
 }
 

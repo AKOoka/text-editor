@@ -1,4 +1,4 @@
-import { IInputEventHandlerPayload } from '../../InputEventManager'
+import { IInputEventHandlerPayload } from '../../IInputEventManager'
 
 export abstract class BaseKeysHandler {
   protected _nextHandler: BaseKeysHandler

@@ -3,7 +3,7 @@ import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelections
 import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
 import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscriber'
 import { Selection } from '../common/Selection'
-import { IPoint } from '../common/IPoint'
+import { Point } from '../common/Point'
 import { Range } from '../common/Range'
 import { INodeCopy } from './TextRepresentation/Nodes/INode'
 import { TextStyle } from '../common/TextStyle'
@@ -11,8 +11,8 @@ import { TextStyle } from '../common/TextStyle'
 export interface ITextEditor {
   init: () => void
   getContext: () => HTMLElement
-  addText: (point: IPoint, text: string) => void
-  addContent: (point: IPoint, content: INodeCopy[]) => void
+  addText: (point: Point, text: string) => void
+  addContent: (point: Point, content: INodeCopy[]) => void
   addTextStyleInSelections: (selections: Selection[], textStyleType: TextStyle) => void
   addTextCursorSelections: (selections: Selection[]) => void
   addNewLinesInRange: (rangeY: Range) => void
@@ -26,7 +26,7 @@ export interface ITextEditor {
   deleteAllTextCursorSelections: () => void
   setTextCursorX: (x: number) => void
   setTextCursorY: (y: number) => void
-  setTextCursorPosition: (position: IPoint) => void
+  setTextCursorPosition: (position: Point) => void
   subscribeForTextCursorPosition: (subscriber: ITextCursorPositionSubscriber) => void
   subscribeForTextCursorSelections: (subscriber: ITextCursorSelectionsSubscriber) => void
   subscribeForTextRepresentation: (subscriber: ITextRepresentationSubscriber) => void
@@ -37,7 +37,7 @@ export interface ITextEditor {
   updateActiveStyles: () => void
   getTextCursorX: () => number
   getTextCursorY: () => number
-  getTextCursorPosition: () => IPoint
+  getTextCursorPosition: () => Point
   getTextCursorSelections: () => Selection[]
   getLineLength: (lineY: number) => number
   getLinesCount: () => number

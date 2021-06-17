@@ -11,10 +11,10 @@ class Keyboard {
 
   constructor () {
     this.addKeysHandler(new TypeKeysHandler())
+    this.addKeysHandler(new SpecialKeysHandler())
     this.addKeysHandler(new DeleteKeysHandler())
     this.addKeysHandler(new ArrowKeysHandler())
     this.addKeysHandler(new AddLineKeysHandler())
-    this.addKeysHandler(new SpecialKeysHandler())
   }
 
   addKeysHandler (handler: BaseKeysHandler): void {

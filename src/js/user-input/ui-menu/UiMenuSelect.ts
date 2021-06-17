@@ -1,5 +1,5 @@
 import { CommandTextStyleAdd } from '../../command-pipeline/commands/CommandTextStyleAdd'
-import { TextStyleUnique } from '../../common/TextStyleUnique'
+import { TextStyle } from '../../common/TextStyle'
 import { IInputEventManager } from '../IInputEventManager'
 import { BaseUiMenuOptionSelection } from './BaseUiMenuOptionSelection'
 
@@ -26,6 +26,6 @@ export class UiMenuSelect {
   }
 
   private _optionPickTrigger (value: string): void {
-    this._inputEventManager.triggerEventDoCommand(new CommandTextStyleAdd(new TextStyleUnique('font-family', value), true))
+    this._inputEventManager.triggerEventDoCommand(new CommandTextStyleAdd(new TextStyle('font-family', value), true))
   }
 }

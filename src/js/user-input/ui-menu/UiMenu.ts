@@ -1,10 +1,8 @@
 import { IActiveTextStylesSubscriber } from '../../common/IActiveTextStylesSubscriber'
 import { CommandTextStyleAdd } from '../../command-pipeline/commands/CommandTextStyleAdd'
-import { IInputEventManager } from '../IInputEventManager'
-import { InputEventHandler } from '../InputEventManager'
+import { IInputEventManager, InputEventHandler } from '../IInputEventManager'
 import { CommandTextStyleDeleteAll } from '../../command-pipeline/commands/CommandTextStyleDeleteAll'
 import { TextStyle } from '../../common/TextStyle'
-import { TextStyleUnique } from '../../common/TextStyleUnique'
 import { UiMenuButton } from './UiMenuButton'
 import { UiMenuSelect } from './UiMenuSelect'
 import { UiMenuOptionList } from './UiMenuOptionList'
@@ -16,9 +14,9 @@ interface IUiButtonConfig {
 }
 
 const uiButtonConfigs: IUiButtonConfig[] = [
-  { type: 'bold', popupText: 'bold', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleAdd(new TextStyleUnique('font-weight', 'bold'), true)) },
-  { type: 'underline', popupText: 'underline', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleAdd(new TextStyleUnique('text-decoration', 'underline'), true)) },
-  { type: 'italic', popupText: 'italic', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleAdd(new TextStyleUnique('font-style', 'italic'), true)) },
+  { type: 'bold', popupText: 'bold', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleAdd(new TextStyle('font-weight', 'bold'), true)) },
+  { type: 'underline', popupText: 'underline', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleAdd(new TextStyle('text-decoration', 'underline'), true)) },
+  { type: 'italic', popupText: 'italic', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleAdd(new TextStyle('font-style', 'italic'), true)) },
   { type: 'clear styles', popupText: 'clear styles', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleDeleteAll(true)) },
   { type: 'undo', popupText: 'undo', handler: ({ commandDispatcher }) => commandDispatcher.undoCommand() },
   { type: 'redo', popupText: 'redo', handler: ({ commandDispatcher }) => commandDispatcher.redoCommand() }

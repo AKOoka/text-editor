@@ -1,5 +1,5 @@
 import { Range } from './Range'
-import { IPoint } from './IPoint'
+import { Point } from './Point'
 
 export class Selection {
   private readonly _rangeX: Range
@@ -34,33 +34,27 @@ export class Selection {
     return this._rangeY.end
   }
 
-  getStartPoint (): IPoint {
-    return {
-      x: this._rangeX.start,
-      y: this._rangeY.start
-    }
+  getStartPoint (): Point {
+    return new Point(this._rangeX.start, this._rangeY.start)
   }
 
-  getEndPoint (): IPoint {
-    return {
-      x: this._rangeX.end,
-      y: this._rangeY.end
-    }
+  getEndPoint (): Point {
+    return new Point(this._rangeX.end, this._rangeY.end)
   }
 
-  reset (startPoint: IPoint, endPoint: IPoint): Selection {
+  reset (startPoint: Point, endPoint: Point): Selection {
     this._rangeX.reset(startPoint.x, endPoint.x)
     this._rangeY.reset(startPoint.y, endPoint.y)
     return this
   }
 
-  resetStart (startPoint: IPoint): Selection {
+  resetStart (startPoint: Point): Selection {
     this._rangeX.reset(startPoint.x, this._rangeX.end)
     this._rangeY.reset(startPoint.y, this._rangeY.end)
     return this
   }
 
-  resetEnd (endPoint: IPoint): Selection {
+  resetEnd (endPoint: Point): Selection {
     this._rangeX.reset(this._rangeX.start, endPoint.x)
     this._rangeY.reset(this._rangeY.start, endPoint.y)
     return this

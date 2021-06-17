@@ -1,5 +1,4 @@
-import { IInputEventManager } from '../IInputEventManager'
-import { InputEventHandler } from '../InputEventManager'
+import { IInputEventManager, InputEventHandler } from '../IInputEventManager'
 
 class MouseContextualMenu {
   private readonly _context: HTMLElement
@@ -35,6 +34,10 @@ class MouseContextualMenu {
 
   setActiveState (state: boolean): void {
     this._isActive = state
+  }
+
+  toggleActiveState (): void {
+    this._isActive = !this._isActive
   }
 
   setInputEventManager (inputEventManager: IInputEventManager): void {

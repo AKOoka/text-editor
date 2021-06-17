@@ -1,5 +1,5 @@
 import { CommandTextDelete } from '../../../command-pipeline/commands/CommandTextDelete'
-import { IInputEventHandlerPayload } from '../../InputEventManager'
+import { IInputEventHandlerPayload } from '../../IInputEventManager'
 import { BaseKeysHandler } from './BaseKeysHandler'
 
 class DeleteKeysHandler extends BaseKeysHandler {

@@ -1,16 +1,16 @@
 import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubscriber'
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
 import { Selection } from '../common/Selection'
-import { IPoint } from '../common/IPoint'
+import { Point } from '../common/Point'
 
 class TextEditorTextCursor {
-  private _position: IPoint
+  private _position: Point
   private _selections: Selection[]
   private readonly _positionSubscribers: ITextCursorPositionSubscriber[]
   private readonly _selectionsSubscribers: ITextCursorSelectionsSubscriber[]
 
   constructor () {
-    this._position = { x: 0, y: 0 }
+    this._position = new Point(0, 0)
     this._selections = []
     this._positionSubscribers = []
     this._selectionsSubscribers = []
@@ -22,7 +22,7 @@ class TextEditorTextCursor {
 
   set x (x: number) {
     this._position.x = x
-    console.log(`x: ${this._position.x}, y: ${this._position.y}`)
+    // console.log(`x: ${this._position.x}, y: ${this._position.y}`)
   }
 
   get y (): number {
@@ -31,16 +31,16 @@ class TextEditorTextCursor {
 
   set y (y: number) {
     this._position.y = y
-    console.log(`x: ${this._position.x}, y: ${this._position.y}`)
+    // console.log(`x: ${this._position.x}, y: ${this._position.y}`)
   }
 
-  get position (): IPoint {
-    return { x: this._position.x, y: this._position.y }
+  get position (): Point {
+    return this._position.copy()
   }
 
-  set position (position: IPoint) {
+  set position (position: Point) {
     this._position = position
-    console.log(`x: ${this._position.x}, y: ${this._position.y}`)
+    // console.log(`x: ${this._position.x}, y: ${this._position.y}`)
   }
 
   get selections (): Selection[] {
@@ -65,7 +65,7 @@ class TextEditorTextCursor {
 
   notifyPositionSubscribers (): void {
     for (const subscriber of this._positionSubscribers) {
-      subscriber.updateTextCursorPosition({ x: this._position.x, y: this._position.y })
+      subscriber.updateTextCursorPosition(this._position.copy())
     }
   }
 

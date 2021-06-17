@@ -5,7 +5,7 @@ import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelections
 import { TextAreaLayerText } from './TextAreaLayerText'
 import { TextAreaLayerUi } from './TextAreaLayerUi'
 import { ITextArea } from './ITextArea'
-import { IPoint } from '../common/IPoint'
+import { Point } from '../common/Point'
 import { Selection } from '../common/Selection'
 import { HtmlCreator } from './HtmlCreator'
 import {
@@ -68,7 +68,7 @@ class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorP
     return this._layerInteractive
   }
 
-  showInteractiveElement (displayPosition: IPoint, element: HTMLElement): void {
+  showInteractiveElement (displayPosition: Point, element: HTMLElement): void {
     const { x, y } = this._measureHtmlTool.normalizeDisplayPosition(displayPosition)
     element.style.left = `${x}px`
     element.style.top = `${y}px`
@@ -79,11 +79,11 @@ class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorP
     this._measureHtmlTool.setContext(this._context)
   }
 
-  convertDisplayPosition (displayPosition: IPoint): IPoint {
+  convertDisplayPosition (displayPosition: Point): Point {
     return this._measureHtmlTool.convertDisplayPosition(this._layerText.getAllTextLines(), displayPosition)
   }
 
-  updateTextCursorPosition (position: IPoint): void {
+  updateTextCursorPosition (position: Point): void {
     this._layerUi.setTextCursorX(this._measureHtmlTool.computePositionX(this._layerText.getTextLine(position.y), position.x))
     this._layerUi.setTextCursorY(this._measureHtmlTool.computePositionY(this._layerText.getAllTextLines(), position.y))
     this._layerUi.setTextCursorHeight(this._measureHtmlTool.computeLineHeight(this._layerText.getTextLine(position.y)))

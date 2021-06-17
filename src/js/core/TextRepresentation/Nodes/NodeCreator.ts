@@ -28,7 +28,7 @@ export class NodeCreator {
 
   private _createNodeTextStyle (nodeProps: { text: string, textStyle: TextStyle }): INode[] {
     const { textStyle, text } = nodeProps
-    if (textStyle.inside(this._forbiddenStyles.values())) {
+    if (textStyle.compareInside(this._forbiddenStyles.values())) {
       return this._createNodeText(nodeProps)
     }
     this._forbiddenStyles.add(textStyle)
@@ -43,7 +43,7 @@ export class NodeCreator {
   private _createContainerStyle (nodeProps: { children: INodeCopy[], textStyle: TextStyle }): INode[] {
     const { textStyle, children } = nodeProps
     const childNodes: INode[] = this._createNodes(children)
-    if (textStyle.inside(this._forbiddenStyles.values())) {
+    if (textStyle.compareInside(this._forbiddenStyles.values())) {
       return childNodes
     }
     this._forbiddenStyles.add(textStyle)

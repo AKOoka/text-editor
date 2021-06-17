@@ -1,16 +1,16 @@
 import { BaseCommand } from './BaseCommand'
 import { ITextEditor } from '../../core/ITextEditor'
-import { IPoint } from '../../common/IPoint'
+import { Point } from '../../common/Point'
 
 class CommandTextCursorSetPosition extends BaseCommand {
-  private _point: IPoint
+  private _point: Point
 
-  constructor (toBeSaved: boolean, point: IPoint) {
+  constructor (toBeSaved: boolean, point: Point) {
     super(toBeSaved)
     this._point = point
   }
 
-  _getNewPosition (context: ITextEditor, position: IPoint): IPoint {
+  _getNewPosition (context: ITextEditor, position: Point): Point {
     const textCursorY = context.getTextCursorY()
     const textLineCount = context.getLinesCount()
     const textLength = context.getLineLength(textCursorY)
@@ -33,7 +33,7 @@ class CommandTextCursorSetPosition extends BaseCommand {
       newY = position.y
     }
 
-    return { x: newX, y: newY }
+    return position.reset(newX, newY)
   }
 
   do (context: ITextEditor): void {

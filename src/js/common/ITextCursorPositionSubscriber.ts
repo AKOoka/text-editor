@@ -1,5 +1,5 @@
-import { IPoint } from './IPoint'
+import { Point } from './Point'
 
 export interface ITextCursorPositionSubscriber {
-  updateTextCursorPosition: (position: IPoint) => void
+  updateTextCursorPosition: (position: Point) => void
 }
