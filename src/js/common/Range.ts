@@ -19,10 +19,20 @@ class Range {
     return this._width
   }
 
+  copy (): Range {
+    return new Range(this._start, this._end)
+  }
+
   reset (start: number, end: number): Range {
     this._start = start
     this._end = end
     this._width = end - start
+    return this
+  }
+
+  translate (offset: number): Range {
+    this._start += offset
+    this._end += offset
     return this
   }
 }

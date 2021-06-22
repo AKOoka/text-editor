@@ -1,21 +1,25 @@
 import { TextStyle } from '../common/TextStyle'
 import {
   InstructionProps,
-  NodeRepresentation, NodeRepresentationInstructionId,
+  NodeRepresentation,
+  NodeRepresentationInstructionId,
   NodeRepresentationType
 } from '../core/TextRepresentation/Nodes/NodeRepresentation'
+import { HtmlElementPool } from './HtmlElementPool'
 
 type baseCreationFunction = () => HTMLElement
 type InstructionFunction = (base: HTMLElement, props: InstructionProps) => void
 
 class HtmlCreator {
+  private readonly _htmlElementPool: HtmlElementPool
   private readonly _htmlCreationFunctions: Record<NodeRepresentationType, baseCreationFunction>
   private readonly _instructionFunctions: Record<NodeRepresentationInstructionId, InstructionFunction>
 
   constructor () {
+    this._htmlElementPool = new HtmlElementPool()
     this._htmlCreationFunctions = {
-      [NodeRepresentationType.LINE]: this._createHtmlLine,
-      [NodeRepresentationType.TEXT]: this._createHtmlTextNode
+      [NodeRepresentationType.LINE]: this._createHtmlLine.bind(this),
+      [NodeRepresentationType.TEXT]: this._createHtmlTextNode.bind(this)
     }
     this._instructionFunctions = {
       [NodeRepresentationInstructionId.TEXT]: this._readTextInstruction.bind(this),
@@ -25,13 +29,13 @@ class HtmlCreator {
   }
 
   private _createHtmlLine (): HTMLElement {
-    const line: HTMLElement = document.createElement('div')
+    const line: HTMLElement = this._htmlElementPool.getTextLine()
     line.classList.add('text-line')
     return line
   }
 
   private _createHtmlTextNode (): HTMLElement {
-    return document.createElement('span')
+    return this._htmlElementPool.getNode()
   }
 
   private _readTextInstruction (base: HTMLElement, props: { value: string }): void {
@@ -58,8 +62,12 @@ class HtmlCreator {
     return element
   }
 
-  createHtmlElement (type: NodeRepresentationType): HTMLElement {
+  createHtmlElementFromNodeRepresentationType (type: NodeRepresentationType): HTMLElement {
     return this._htmlCreationFunctions[type]()
+  }
+
+  createHtmlElement (elementName: keyof HTMLElementTagNameMap): HTMLElement {
+    return document.createElement(elementName)
   }
 }
 

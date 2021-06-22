@@ -1,11 +1,9 @@
 import { BaseCommand } from '../command-pipeline/commands/BaseCommand'
-import { ICommandDispatcher } from '../command-pipeline/ICommandDispatcher'
 import { Point } from '../common/Point'
 import { InputModifiers } from './InputModifiers'
 
 export interface IInputEventHandlerPayload<E extends Event> {
   event: E
-  commandDispatcher: ICommandDispatcher
   inputEventManager: IInputEventManager
   inputModifiers: InputModifiers
 }
@@ -21,6 +19,8 @@ export interface IInputEventManager {
   triggerEventSelectionEndKeyboard: () => void
   triggerEventSelectionDeleteAll: () => void
   triggerEventDoCommand: (command: BaseCommand) => void
+  triggerEventUndoCommand: () => void
+  triggerEventRedoCommand: () => void
   showInteractiveElement: (displayPoint: Point, element: HTMLElement) => void
   subscribeToEvent: (event: keyof HTMLElementEventMap, eventHandler: InputEventHandler, context?: HTMLElement) => void
 }

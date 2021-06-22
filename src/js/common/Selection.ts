@@ -42,6 +42,10 @@ export class Selection {
     return new Point(this._rangeX.end, this._rangeY.end)
   }
 
+  copy (): Selection {
+    return new Selection(this._rangeX.copy(), this._rangeY.copy())
+  }
+
   resetWithPositions (startX: number, startY: number, endX: number, endY: number): Selection {
     this._rangeX.reset(startX, endX)
     this._rangeY.reset(startY, endY)

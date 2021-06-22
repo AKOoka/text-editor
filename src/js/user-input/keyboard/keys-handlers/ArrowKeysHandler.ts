@@ -5,14 +5,14 @@ import { BaseKeysHandler } from './BaseKeysHandler'
 
 class ArrowKeysHandler extends BaseKeysHandler {
   private _moveTextCursor (payload: IInputEventHandlerPayload<KeyboardEvent>, moveCommand: CommandTextCursorMoveX | CommandTextCursorMoveY): void {
-    const { commandDispatcher, inputEventManager, inputModifiers, event } = payload
+    const { inputEventManager, inputModifiers, event } = payload
     if (event.shiftKey) {
       inputEventManager.triggerEventSelectionContinueKeyboard()
     } else if (inputModifiers.selectingMode) {
       inputEventManager.triggerEventSelectionDeleteAll()
     }
 
-    commandDispatcher.doCommand(moveCommand)
+    inputEventManager.triggerEventDoCommand(moveCommand)
 
     if (inputModifiers.selectingModeKeyboard) {
       inputEventManager.triggerEventSelectionEndKeyboard()

@@ -14,12 +14,12 @@ interface IUiButtonConfig {
 }
 
 const uiButtonConfigs: IUiButtonConfig[] = [
-  { type: 'bold', popupText: 'bold', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleAdd(new TextStyle('font-weight', 'bold'), true)) },
-  { type: 'underline', popupText: 'underline', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleAdd(new TextStyle('text-decoration', 'underline'), true)) },
-  { type: 'italic', popupText: 'italic', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleAdd(new TextStyle('font-style', 'italic'), true)) },
-  { type: 'clear styles', popupText: 'clear styles', handler: ({ commandDispatcher }) => commandDispatcher.doCommand(new CommandTextStyleDeleteAll(true)) },
-  { type: 'undo', popupText: 'undo', handler: ({ commandDispatcher }) => commandDispatcher.undoCommand() },
-  { type: 'redo', popupText: 'redo', handler: ({ commandDispatcher }) => commandDispatcher.redoCommand() }
+  { type: 'bold', popupText: 'bold', handler: ({ inputEventManager }) => inputEventManager.triggerEventDoCommand(new CommandTextStyleAdd(new TextStyle('font-weight', 'bold'), true)) },
+  { type: 'underline', popupText: 'underline', handler: ({ inputEventManager }) => inputEventManager.triggerEventDoCommand(new CommandTextStyleAdd(new TextStyle('text-decoration', 'underline'), true)) },
+  { type: 'italic', popupText: 'italic', handler: ({ inputEventManager }) => inputEventManager.triggerEventDoCommand(new CommandTextStyleAdd(new TextStyle('font-style', 'italic'), true)) },
+  { type: 'clear styles', popupText: 'clear styles', handler: ({ inputEventManager }) => inputEventManager.triggerEventDoCommand(new CommandTextStyleDeleteAll(true)) },
+  { type: 'undo', popupText: 'undo', handler: ({ inputEventManager }) => inputEventManager.triggerEventUndoCommand() },
+  { type: 'redo', popupText: 'redo', handler: ({ inputEventManager }) => inputEventManager.triggerEventRedoCommand() }
 ]
 
 export class UiMenu implements IActiveTextStylesSubscriber {

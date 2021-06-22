@@ -1,13 +1,9 @@
 import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubscriber'
 import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
-import { MeasureHtmlTool } from './MeasureHtmlTool'
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
-import { TextAreaLayerText } from './TextAreaLayerText'
-import { TextAreaLayerUi } from './TextAreaLayerUi'
 import { ITextArea } from './ITextArea'
 import { Point } from '../common/Point'
 import { Selection } from '../common/Selection'
-import { HtmlCreator } from './HtmlCreator'
 import {
   ITextEditorRepresentationUpdateLine,
   ITextEditorRepresentationUpdateLineAdd,
@@ -16,27 +12,25 @@ import {
   TextEditorRepresentationUpdateLineType
 } from '../core/TextRepresentation/TextEditorRepresentationUpdateManager'
 import { Range } from '../common/Range'
+import { TextAreaLayerTextCursor } from './TextAreaLayerTextCursor'
+import { TextAreaLayerTextWithTextSelection } from './TextAreaLayerTextWithTextSelection'
 
 type TextAreaUpdateLineFunction = (change: ITextEditorRepresentationUpdateLineDelete) => void
 type TextAreaUpdateLineFunctionRecord = Record<TextEditorRepresentationUpdateLineType, TextAreaUpdateLineFunction>
 
 class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorPositionSubscriber, ITextCursorSelectionsSubscriber {
   private readonly _context: HTMLElement
-  private readonly _measureHtmlTool: MeasureHtmlTool
-  private readonly _htmlCreator: HtmlCreator
-  private readonly _layerText: TextAreaLayerText
-  private readonly _layerUi: TextAreaLayerUi
+  private readonly _layerText: TextAreaLayerTextWithTextSelection
+  private readonly _layerTextCursor: TextAreaLayerTextCursor
   private readonly _layerInteractive: HTMLElement
   private readonly _lineUpdateFunctions: TextAreaUpdateLineFunctionRecord
 
   constructor () {
     this._context = document.createElement('div')
     this._context.classList.add('text-area')
-    this._measureHtmlTool = new MeasureHtmlTool()
-    this._htmlCreator = new HtmlCreator()
-    this._layerText = new TextAreaLayerText()
-    this._layerUi = new TextAreaLayerUi()
-    this._layerUi.addTextCursor()
+    this._layerText = new TextAreaLayerTextWithTextSelection()
+    this._layerTextCursor = new TextAreaLayerTextCursor()
+    this._layerTextCursor.addTextCursor()
     this._layerInteractive = document.createElement('div')
     this._layerInteractive.classList.add('text-area_layer-interactive')
     this._lineUpdateFunctions = {
@@ -45,11 +39,11 @@ class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorP
       [TextEditorRepresentationUpdateLineType.CHANGE]: this._lineChange.bind(this)
     }
 
-    this._context.append(this._layerText.context, this._layerUi.context, this._layerInteractive)
+    this._context.append(this._layerText.context, this._layerTextCursor.context, this._layerInteractive)
   }
 
   private _lineAdd (change: ITextEditorRepresentationUpdateLineAdd): void {
-    this._layerText.addTextLine(change.y, this._htmlCreator.createHtmlFromNodeRepresentation(change.nodeLineRepresentation))
+    this._layerText.addTextLine(change.y, change.nodeLineRepresentation)
   }
 
   private _lineDelete (change: ITextEditorRepresentationUpdateLineDelete): void {
@@ -57,7 +51,7 @@ class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorP
   }
 
   private _lineChange (change: ITextEditorRepresentationUpdateLineChange): void {
-    this._layerText.changeTextLine(change.y, this._htmlCreator.createHtmlFromNodeRepresentation(change.nodeLineRepresentation))
+    this._layerText.changeTextLine(change.y, change.nodeLineRepresentation)
   }
 
   getContext (): HTMLElement {
@@ -68,47 +62,36 @@ class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorP
     return this._layerInteractive
   }
 
-  showInteractiveElement (displayPosition: Point, element: HTMLElement): void {
-    const { x, y } = this._measureHtmlTool.normalizeDisplayPosition(displayPosition)
-    element.style.left = `${x}px`
-    element.style.top = `${y}px`
+  init (): void {
+    this._layerText.init(this._context, new Range(0, this._context.offsetWidth))
+    console.log('line boundaries', this._context.offsetWidth)
+  }
+
+  showInteractiveElement (displayPoint: Point, element: HTMLElement, normalize: boolean = true): void {
+    let point = displayPoint
+
+    if (normalize) {
+      point = this._layerText.normalizeDisplayPoint(displayPoint)
+    }
+
+    element.style.left = `${point.x}px`
+    element.style.top = `${point.y}px`
     this._layerInteractive.append(element)
   }
 
-  init (): void {
-    this._measureHtmlTool.setContext(this._context)
+  convertDisplayPointToPoint (displayPoint: Point): Point {
+    return this._layerText.convertDisplayPointToPoint(displayPoint)
   }
 
-  convertDisplayPosition (displayPosition: Point): Point {
-    return this._measureHtmlTool.convertDisplayPosition(this._layerText.getAllTextLines(), displayPosition)
-  }
-
-  updateTextCursorPosition (position: Point): void {
-    this._layerUi.setTextCursorX(this._measureHtmlTool.computePositionX(this._layerText.getTextLine(position.y), position.x))
-    this._layerUi.setTextCursorY(this._measureHtmlTool.computePositionY(this._layerText.getAllTextLines(), position.y))
-    this._layerUi.setTextCursorHeight(this._measureHtmlTool.computeLineHeight(this._layerText.getTextLine(position.y)))
+  updateTextCursorPosition (point: Point): void {
+    this._layerTextCursor.setTextCursorPoint(this._layerText.convertPointToDisplayPoint(point))
+    this._layerTextCursor.setTextCursorHeight(this._layerText.computeLineHeight(point))
   }
 
   updateTextCursorSelections (selections: Selection[]): void {
-    const lines = this._layerText.getAllTextLines()
-    const textLengthInAllLines = this._layerText.getTextLengthInAllLines()
-    this._layerUi.removeAllTextSelections()
-
-    for (const sel of selections) {
-      for (const part of this._layerUi.splitSelectionIntoParts(sel, textLengthInAllLines)) {
-        const { y, rangeX: { start: startX, end: endX } } = part
-        const lineHeight = this._measureHtmlTool.computeLineHeight(this._layerText.getTextLine(y))
-        this._layerUi.addSelectionPart(
-          {
-            y: this._measureHtmlTool.computePositionY(lines, y),
-            rangeX: new Range(
-              this._measureHtmlTool.computePositionX(this._layerText.getTextLine(y), startX),
-              this._measureHtmlTool.computePositionX(this._layerText.getTextLine(y), endX)
-            )
-          },
-          lineHeight
-        )
-      }
+    this._layerText.removeAllTextSelections()
+    for (const s of selections) {
+      this._layerText.addSelection(s)
     }
   }
 

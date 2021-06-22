@@ -1,12 +1,13 @@
 import { BaseKeysHandler } from './BaseKeysHandler'
-import { CommandLineAdd } from '../../../command-pipeline/commands/CommandLineAdd'
 import { IInputEventHandlerPayload } from '../../IInputEventManager'
+import { CommandLineAdd } from '../../../command-pipeline/commands/CommandLineAdd'
 
 class AddLineKeysHandler extends BaseKeysHandler {
   handleEvent (payload: IInputEventHandlerPayload<KeyboardEvent>): void {
-    switch (payload.event.key) {
+    const { event, inputEventManager } = payload
+    switch (event.key) {
       case 'Enter':
-        payload.commandDispatcher.doCommand(new CommandLineAdd(1, true))
+        inputEventManager.triggerEventDoCommand(new CommandLineAdd(1, false))
         break
       default:
         this._nextHandler.handleEvent(payload)

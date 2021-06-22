@@ -5,10 +5,8 @@ export class HtmlElementPool {
     this._pool = []
 
     for (let i = 0; i < size; i++) {
-      // this._pool.push()
+      this._pool.push()
     }
-
-    console.log(this._pool)
   }
 
   getNode (): HTMLElement {

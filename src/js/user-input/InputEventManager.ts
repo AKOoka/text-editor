@@ -16,7 +16,7 @@ export class InputEventManager implements IInputEventManager, ITextCursorPositio
   private readonly _textArea: ITextArea
   private readonly _commandDispatcher: ICommandDispatcher
   private readonly _inputModifiers: InputModifiers
-  private readonly _selection: Selection
+  private _selection: Selection
   private _textCursorPoint: Point
   private _selectionAnchorPoint: Point
 
@@ -29,7 +29,7 @@ export class InputEventManager implements IInputEventManager, ITextCursorPositio
 
   private _selectionStart (): void {
     const { x, y } = this._textCursorPoint
-    this._selection.resetWithPositions(x, y, x, y)
+    this._selection = this._selection.copy().resetWithPositions(x, y, x, y)
     this._inputModifiers.selectingMode = true
     this._selectionAnchorPoint = this._textCursorPoint
     this._commandDispatcher.doCommand(new CommandSelectionAdd(this._selection, false))
@@ -51,7 +51,7 @@ export class InputEventManager implements IInputEventManager, ITextCursorPositio
   }
 
   triggerEventChangeTextCursorPosition (mousePoint: Point): void {
-    this._commandDispatcher.doCommand(new CommandTextCursorSetPoint(false, this._textArea.convertDisplayPosition(mousePoint)))
+    this._commandDispatcher.doCommand(new CommandTextCursorSetPoint(false, this._textArea.convertDisplayPointToPoint(mousePoint)))
   }
 
   triggerEventSelectionStartMouse (): void {
@@ -87,6 +87,14 @@ export class InputEventManager implements IInputEventManager, ITextCursorPositio
     this._commandDispatcher.doCommand(command)
   }
 
+  triggerEventUndoCommand (): void {
+    this._commandDispatcher.undoCommand()
+  }
+
+  triggerEventRedoCommand (): void {
+    this._commandDispatcher.redoCommand()
+  }
+
   showInteractiveElement (displayPoint: Point, uiElement: HTMLElement): void {
     this._textArea.showInteractiveElement(displayPoint, uiElement)
   }
@@ -109,7 +117,6 @@ export class InputEventManager implements IInputEventManager, ITextCursorPositio
         e.preventDefault()
         eventHandler({
           event: e,
-          commandDispatcher: this._commandDispatcher,
           inputEventManager: this,
           inputModifiers: this._inputModifiers
         })

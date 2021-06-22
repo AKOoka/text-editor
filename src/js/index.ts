@@ -22,6 +22,8 @@ const mouse: Mouse = new Mouse()
 textEditorContext.append(htmlUi.getContext(), textArea.getContext())
 document.body.append(textEditorContext)
 
+textArea.init()
+
 textEditor.subscribeForTextCursorPoint(textArea)
 textEditor.subscribeForTextCursorPoint(inputEventManager)
 
@@ -31,11 +33,10 @@ textEditor.subscribeForTextRepresentation(textArea)
 
 textEditor.subscribeForActiveStyles(htmlUi)
 
-textEditor.init()
-textArea.init()
-
 keyboard.setInputEventManager(inputEventManager)
 mouse.setInputEventManager(inputEventManager)
 htmlUi.setInputEventManager(inputEventManager)
 
-export { textEditor }
+textEditor.init()
+
+export {}

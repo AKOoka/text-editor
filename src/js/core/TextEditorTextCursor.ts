@@ -26,7 +26,7 @@ class TextEditorTextCursor {
 
   set x (x: number) {
     this._point.x = x
-    console.log(`x: ${this._point.x}, y: ${this._point.y}`)
+    console.log(`text cursor { x: ${this._point.x}, y: ${this._point.y} }`)
   }
 
   get savedX (): number {
@@ -39,7 +39,7 @@ class TextEditorTextCursor {
 
   set y (y: number) {
     this._point.y = y
-    console.log(`x: ${this._point.x}, y: ${this._point.y}`)
+    console.log(`text cursor { x: ${this._point.x}, y: ${this._point.y} }`)
   }
 
   get isLastUpdateY (): boolean {
@@ -56,7 +56,7 @@ class TextEditorTextCursor {
 
   set point (position: Point) {
     this._point = position
-    console.log(`x: ${this._point.x}, y: ${this._point.y}`)
+    console.log(`text cursor { x: ${this._point.x}, y: ${this._point.y} }`)
   }
 
   get selections (): Selection[] {

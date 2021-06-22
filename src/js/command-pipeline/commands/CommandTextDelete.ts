@@ -8,13 +8,14 @@ import { CommandTextCursorMoveX } from './CommandTextCursorMoveX'
 class CommandTextDelete extends BaseCommand {
   private readonly _leftOffset: number
   private readonly _rightOffset: number
-  private _commandTextCursorMoveX: CommandTextCursorMoveX
+  private readonly _commandTextCursorMoveX: CommandTextCursorMoveX
   private _deletedContent: INodeCopy[]
 
   constructor (toBeSaved: boolean, leftOffset: number, rightOffset: number) {
     super(toBeSaved)
     this._leftOffset = leftOffset
     this._rightOffset = rightOffset
+    this._commandTextCursorMoveX = new CommandTextCursorMoveX(false, this._leftOffset)
   }
 
   do (context: ITextEditor): void {
@@ -27,7 +28,6 @@ class CommandTextDelete extends BaseCommand {
     context.deleteTextInRange(y, new Range(x + this._leftOffset, x + this._rightOffset))
     context.updateTextRepresentation()
     if (this._leftOffset !== 0) {
-      this._commandTextCursorMoveX = new CommandTextCursorMoveX(false, this._leftOffset)
       this._commandTextCursorMoveX.do(context)
     }
   }
@@ -37,7 +37,9 @@ class CommandTextDelete extends BaseCommand {
     const { x, y } = textCursorPoint
     context.addContent(textCursorPoint.reset(x, y), this._deletedContent)
     context.updateTextRepresentation()
-    this._commandTextCursorMoveX?.undo(context)
+    if (this._leftOffset !== 0) {
+      this._commandTextCursorMoveX.undo(context)
+    }
   }
 }
 
