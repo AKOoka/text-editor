@@ -54,8 +54,8 @@ class TextEditorTextCursor {
     return this._point.copy()
   }
 
-  set point (position: Point) {
-    this._point = position
+  set point (point: Point) {
+    this._point.reset(point.x, point.y)
     console.log(`text cursor { x: ${this._point.x}, y: ${this._point.y} }`)
   }
 
@@ -70,18 +70,22 @@ class TextEditorTextCursor {
 
   addSelections (selections: Selection[]): void {
     this._selections.push(...selections)
+    console.log('text cursor selections', ...this._selections)
   }
 
   changeSelection (selectionIndex: number, selection: Selection): void {
     this._selections[selectionIndex] = selection
+    console.log('text cursor selections', ...this._selections)
   }
 
   deleteConcreteSelection (selectionIndex: number): void {
     this._selections.splice(selectionIndex, 1)
+    console.log('text cursor selections', ...this._selections)
   }
 
   deleteAllSelections (): void {
     this._selections = []
+    console.log('text cursor selections', ...this._selections)
   }
 
   notifyPositionSubscribers (): void {

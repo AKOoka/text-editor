@@ -25,4 +25,8 @@ export class ElementSplitsManager {
   addTextSplitX (x: number): void {
     this._splits[this._splits.length - 1].textSplitX = x
   }
+
+  static CompareRoutes (routeFirst: number[], routeSecond: number[]): boolean {
+    return routeFirst.every((v, i) => v === routeSecond[i])
+  }
 }

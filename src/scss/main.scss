@@ -33,6 +33,7 @@
 
 .text-area_layer-text {
   margin: 0;
+  font: inherit;
 }
 
 .text-line {
@@ -49,6 +50,7 @@
 .text-selection {
   position: absolute;
   background-color: blue;
+  height: 100%;
   opacity: 0.5;
 }
 

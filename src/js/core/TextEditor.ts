@@ -96,8 +96,8 @@ class TextEditor implements ITextEditor {
     this._textCursor.y = y
   }
 
-  setTextCursorPoint (position: Point): void {
-    this._textCursor.point = position
+  setTextCursorPoint (point: Point): void {
+    this._textCursor.point = point
   }
 
   setTextCursorIsLastUpdateY (state: boolean): void {

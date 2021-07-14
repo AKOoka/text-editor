@@ -1,6 +1,7 @@
 import { ITextEditor } from '../../core/ITextEditor'
 import { BaseCommand } from './BaseCommand'
 import { Range } from '../../common/Range'
+import { Point } from '../../common/Point'
 // import { INodeCopy } from '../../core/TextRepresentation/Nodes/INode'
 // import { Selection } from '../../common/Selection'
 // import { Point } from '../../common/Point'
@@ -28,13 +29,14 @@ class CommandLineAdd extends BaseCommand {
     //   context.addContent(textCursorPoint.reset(0, y + this._count), this._content)
     // }
 
-    // context.setTextCursorPoint(textCursorPoint.reset(0, y + this._count))
+    context.setTextCursorPoint(textCursorPoint.reset(0, y + this._count))
     context.updateTextRepresentation()
+    context.updateTextCursorPoint()
   }
 
   undo (context: ITextEditor): void {
     const textCursorY = context.getTextCursorY()
-    // const textLength = context.getLineSize(textCursorY)
+    const textLength = context.getLineSize(textCursorY)
 
     context.deleteLinesInRange(new Range(textCursorY - this._count, textCursorY))
 
@@ -42,8 +44,9 @@ class CommandLineAdd extends BaseCommand {
     //   context.addContent(new Point(textLength, textCursorY - this._count), this._content)
     // }
 
-    // context.setTextCursorPoint(new Point(textLength, textCursorY - this._count))
+    context.setTextCursorPoint(new Point(textLength, textCursorY - this._count))
     context.updateTextRepresentation()
+    context.updateTextCursorPoint()
   }
 }
 

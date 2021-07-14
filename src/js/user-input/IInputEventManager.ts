@@ -18,6 +18,7 @@ export interface IInputEventManager {
   triggerEventSelectionEndMouse: () => void
   triggerEventSelectionEndKeyboard: () => void
   triggerEventSelectionDeleteAll: () => void
+  triggerEventTextCursorMoveY: (offsetY: number) => void
   triggerEventDoCommand: (command: BaseCommand) => void
   triggerEventUndoCommand: () => void
   triggerEventRedoCommand: () => void

@@ -14,6 +14,7 @@ class HistoryCommandDispatcher implements ICommandDispatcher {
   }
 
   doCommand (command: BaseCommand): void {
+    console.log(command, 'command')
     this._commandDispatcher.doCommand(command)
 
     if (command.toBeSaved()) {

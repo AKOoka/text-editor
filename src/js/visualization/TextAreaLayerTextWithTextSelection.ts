@@ -18,8 +18,8 @@ export class TextAreaLayerTextWithTextSelection extends TextAreaLayerText {
   }
 
   private _adjustSelectionToLine (y: number, rangeX: Range): SelectionPart[] {
-    const { linePartY: startLinePartY, linePartOffsetX: startLinePartOffsetX } = this._context.getLinePartY(new Point(y, rangeX.start))
-    const { linePartY: endLinePartY, linePartOffsetX: endLinePartOffsetX } = this._context.getLinePartY(new Point(y, rangeX.end))
+    const { linePartY: startLinePartY, linePartOffsetX: startLinePartOffsetX } = this._context.getLinePartY(new Point(rangeX.start, y))
+    const { linePartY: endLinePartY, linePartOffsetX: endLinePartOffsetX } = this._context.getLinePartY(new Point(rangeX.end, y))
 
     if (startLinePartY === endLinePartY) {
       return [{
@@ -51,6 +51,7 @@ export class TextAreaLayerTextWithTextSelection extends TextAreaLayerText {
   }
 
   private _splitSelection (displaySelection: Selection): SelectionPart[] {
+    // FIXME: Here i accept display selection but this._adjustSelectionToLine() use character selection
     if (displaySelection.rangeY.width === 0) {
       return this._adjustSelectionToLine(displaySelection.startY, displaySelection.rangeX)
     }
@@ -81,7 +82,12 @@ export class TextAreaLayerTextWithTextSelection extends TextAreaLayerText {
   }
 
   addSelection (selection: Selection): void {
-    for (const displaySelectionPart of this._splitSelection(selection)) {
+    const displaySelection: Selection = selection
+      .copy()
+      .resetStartPoint(this.convertPointToDisplayPoint(selection.getStartPoint()))
+      .resetEndPoint(this.convertPointToDisplayPoint(selection.getEndPoint()))
+
+    for (const displaySelectionPart of this._splitSelection(displaySelection)) {
       const htmlSelectionPart = this._createHtmlSelectionPart(displaySelectionPart)
       this._context.addNodeToLinePartEnd(displaySelectionPart.y, displaySelectionPart.linePartY, htmlSelectionPart)
       this._textSelection.push(htmlSelectionPart)

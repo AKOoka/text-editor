@@ -83,6 +83,10 @@ class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorP
     return this._layerText.convertDisplayPointToPoint(displayPoint)
   }
 
+  moveTextCursorDisplayY (point: Point, offsetY: number): Point {
+    return this._layerText.movePointByDisplayY(point, offsetY)
+  }
+
   updateTextCursorPosition (point: Point): void {
     this._layerTextCursor.setTextCursorPoint(this._layerText.convertPointToDisplayPoint(point))
     this._layerTextCursor.setTextCursorHeight(this._layerText.computeLineHeight(point))

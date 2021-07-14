@@ -44,14 +44,22 @@ export class TextAreaLayerTextContext {
     const { x, y } = point
     let partOffsetX: number = 0
 
-    for (let i = 0; i < this._lines[y].length - 1; i++) {
+    for (let i = 0; i < this._lines[y].length; i++) {
       if (x >= partOffsetX && x <= partOffsetX + this._lines[y][i].innerText.length) {
         return { linePartY: i, linePartOffsetX: partOffsetX }
       }
       partOffsetX += this._lines[y][i].innerText.length
     }
 
-    throw new Error("can't get line part")
+    return {
+      linePartY: this._lines[y].length - 1,
+      linePartOffsetX: partOffsetX - this._lines[y][this._lines[y].length - 1].innerText.length
+    }
+
+    // const linePartsLength = this._lines[y].map(v => v.innerText.length)
+    // const lineLength = linePartsLength.reduce((p, c) => p + c)
+    // console.log('error lod\npoint:', point, 'lineLength:', lineLength, 'line parts length:', linePartsLength)
+    // throw new Error("can't get line part")
   }
 
   getLineWidth (y: number): number {
@@ -60,6 +68,50 @@ export class TextAreaLayerTextContext {
 
   getLinePartWidth (y: number, partY: number): number {
     return this._lines[y][partY].innerText.length
+  }
+
+  getLineWidthOnRangePartY (y: number, rangePartY: Range): number {
+    let width: number = 0
+
+    for (let i = rangePartY.start; i < rangePartY.end; i++) {
+      width += this._lines[y][i].innerText.length
+    }
+
+    return width
+  }
+
+  getPointAdjacentByDisplayY (point: Point, offsetY: number): Point {
+    const { linePartY, linePartOffsetX } = this.getLinePartY(point)
+    const { x, y } = point
+    let newX: number = 0
+    let newY: number = 0
+    const offsetX: number = x - linePartOffsetX
+
+    if (offsetY < 0) {
+      if (linePartY + offsetY >= 0) {
+        newY = y
+        newX = linePartOffsetX - this.getLineWidthOnRangePartY(y, new Range(linePartY + offsetY, linePartY)) + offsetX
+      } else if (y + offsetY > 0) {
+        newY = y + offsetY
+        newX = this.getLineWidth(newY) - offsetX
+      } else {
+        newY = 0
+        newX = x
+      }
+    } else {
+      if (linePartY + offsetY < this._lines[y].length) {
+        newY = y
+        newX = linePartOffsetX + this.getLineWidthOnRangePartY(y, new Range(linePartY, linePartY + offsetY)) + offsetX
+      } else if (y + offsetY < this.lines.length) {
+        newY = y + offsetY
+        newX = offsetX
+      } else {
+        newY = this.lines.length - 1
+        newX = x
+      }
+    }
+
+    return point.copy().reset(newX, newY)
   }
 
   init (lineWidth: Range): void {
@@ -82,28 +134,29 @@ export class TextAreaLayerTextContext {
   }
 
   changeLine (y: number, lineParts: HTMLElement[]): void {
-    const oldLine = this._lines[y]
-    const lineSizeDifference: number = lineParts.length - oldLine.length
-    const replaceUntil = lineParts.length - Math.abs(lineSizeDifference)
-
-    this._lines[y] = lineParts
-
+    const lineSizeDifference: number = lineParts.length - this._lines[y].length
+    const replaceUntil = lineParts.length > this._lines[y].length ? this._lines[y].length : lineParts.length
     let i: number = 0
+
     for (i; i < replaceUntil; i++) {
-      oldLine[i].replaceWith(lineParts[i])
+      this._lines[y][i].replaceWith(lineParts[i])
     }
 
     if (lineSizeDifference > 0) {
-      this._contextHtml.insertBefore(lineParts[i], this._lines[y + 1][0])
-      i++
-      for (i; i < lineParts.length; i++) {
+      this._contextHtml.insertBefore(
+        lineParts[i],
+        this._lines[y + 1] !== undefined ? this._lines[y + 1][0] : null
+      )
+      for (++i; i < lineParts.length; i++) {
         this._contextHtml.insertBefore(lineParts[i], lineParts[i - 1])
       }
     } else {
-      for (i; i < oldLine.length; i++) {
-        oldLine[i].remove()
+      for (i; i < this._lines[y].length; i++) {
+        this._lines[y][i].remove()
       }
     }
+
+    this._lines[y] = lineParts
   }
 
   deleteLine (y: number): void {

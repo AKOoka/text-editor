@@ -48,4 +48,8 @@ export class BaseTextAreaLayerText {
     const { linePartY } = this._context.getLinePartY(linePoint)
     return this._measureHtmlTool.computeLineHeight(this._context.getLinePartConcrete(linePoint.y, linePartY))
   }
+
+  movePointByDisplayY (point: Point, offsetY: number): Point {
+    return this._context.getPointAdjacentByDisplayY(point, offsetY)
+  }
 }

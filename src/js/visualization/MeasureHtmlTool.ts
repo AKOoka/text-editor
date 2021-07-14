@@ -68,12 +68,14 @@ class MeasureHtmlTool {
       const child: HTMLElement = parent.children[i] as HTMLElement
 
       if (displayX >= child.offsetLeft && displayX <= child.offsetLeft + child.offsetWidth) {
+        callback(childX)
         return this._getChildOnDisplayX(child, displayX, childX, callback)
       }
 
       childX += child.innerText.length
     }
 
+    callback(childX)
     return { child: parent, childX, childDisplayX: parent.offsetLeft }
   }
 
@@ -92,8 +94,7 @@ class MeasureHtmlTool {
       startDisplayX += textWidth
     }
 
-    throw new Error("can't get text x on element")
-    // return element.innerText.length
+    return element.innerText.length
   }
 
   setContext (context: HTMLElement): void {
@@ -188,8 +189,10 @@ class MeasureHtmlTool {
     for (let i = 0; i < element.children.length; i++) {
       const child: HTMLElement = element.children[i] as HTMLElement
       const childWidth: number = this.computeHtmlElementWidth(child)
+      const childEnd = childOffset + childWidth
+      const splitPartsCount = Math.floor(childEnd / splitPosition)
 
-      if (childOffset + childWidth >= splitPosition) {
+      for (let i = 0; i < splitPartsCount; i++) {
         elementSplits.addSplit()
 
         const {
@@ -199,10 +202,10 @@ class MeasureHtmlTool {
         } = this._getChildOnDisplayX(child, splitPosition, 0, (childX: number) => elementSplits.addRoute(childX))
 
         elementSplits.addTextSplitX(this._getXOnElement(endChild, endChildDisplayX, splitPosition) + endChildX)
-        splitPosition += splitPosition
+        splitPosition += partDisplayWidth
       }
 
-      childOffset += childWidth
+      childOffset = childEnd
     }
 
     return elementSplits.splits

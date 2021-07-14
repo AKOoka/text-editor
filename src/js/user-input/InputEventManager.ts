@@ -83,6 +83,12 @@ export class InputEventManager implements IInputEventManager, ITextCursorPositio
     this._commandDispatcher.doCommand(new CommandSelectionDeleteAll(false))
   }
 
+  triggerEventTextCursorMoveY (offsetY: number): void {
+    this._commandDispatcher.doCommand(
+      new CommandTextCursorSetPoint(false, this._textArea.moveTextCursorDisplayY(this._textCursorPoint.copy(), offsetY))
+    )
+  }
+
   triggerEventDoCommand (command: BaseCommand): void {
     this._commandDispatcher.doCommand(command)
   }
