@@ -10,24 +10,13 @@ class CommandTextCursorMoveX extends BaseCommand {
     this._offset = offset
   }
 
-  private _isValidX (x: number, lineSize: number): boolean {
-    return x >= 0 && x <= lineSize
-  }
-
   _getNewPoint (context: ITextEditor, offset: number): Point {
     const textCursorPosition = context.getTextCursorPoint()
     const { x, y } = textCursorPosition
-    const savedX = context.getTextCursorSavedX()
     const lineSize = context.getLineSize(y)
     const linesCount = context.getLinesCount()
-    let newX: number
+    let newX: number = x + offset
     let newY: number = y
-
-    if (this._isValidX(savedX, lineSize) && context.getTextCursorIsLastUpdateY()) {
-      newX = savedX + offset
-    } else {
-      newX = x + offset
-    }
 
     if (newX < 0) {
       if (y - 1 >= 0) {
@@ -44,8 +33,6 @@ class CommandTextCursorMoveX extends BaseCommand {
         newX = lineSize
       }
     }
-
-    context.setTextCursorIsLastUpdateY(false)
 
     return textCursorPosition.reset(newX, newY)
   }

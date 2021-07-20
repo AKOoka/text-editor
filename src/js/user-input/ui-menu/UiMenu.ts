@@ -23,14 +23,19 @@ const uiButtonConfigs: IUiButtonConfig[] = [
 ]
 
 export class UiMenu implements IActiveTextStylesSubscriber {
-  private readonly _context: HTMLElement
+  private readonly _htmlContext: HTMLElement
   private readonly _buttons: Map<TextStyle, UiMenuButton>
   private _inputEventManager: IInputEventManager
 
   constructor () {
-    this._context = document.createElement('div')
-    this._context.classList.add('ui')
+    this._htmlContext = this._createHtmlContext()
     this._buttons = new Map()
+  }
+
+  private _createHtmlContext (): HTMLElement {
+    const htmlContext: HTMLElement = document.createElement('div')
+    htmlContext.classList.add('text-editor-ui')
+    return htmlContext
   }
 
   setInputEventManager (inputEventManager: IInputEventManager): void {
@@ -39,15 +44,15 @@ export class UiMenu implements IActiveTextStylesSubscriber {
     for (const { popupText, handler } of uiButtonConfigs) {
       const newButton: UiMenuButton = new UiMenuButton(popupText, popupText)
       // this._buttons.set(type, newButton)
-      this._context.append(newButton.context)
+      this._htmlContext.append(newButton.context)
       this._inputEventManager.subscribeToEvent('click', handler, newButton.context)
     }
 
-    this._context.append(new UiMenuSelect(this._inputEventManager, 'font', 'select font', new UiMenuOptionList()).context)
+    this._htmlContext.append(new UiMenuSelect(this._inputEventManager, 'font', 'select font', new UiMenuOptionList()).context)
   }
 
   getContext (): HTMLElement {
-    return this._context
+    return this._htmlContext
   }
 
   updateActiveTextStyles (activeTextStyles: TextStyle[]): void {

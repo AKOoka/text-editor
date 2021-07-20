@@ -7,33 +7,34 @@
   width: 800px;
   height: 600px;
   border: red solid 2px;
+  display: flex;
+  flex-direction: column;
 }
 
-.ui {
+.text-editor-ui {
   background-color: aquamarine;
   height: 10%;
 }
 
-.text-area {
-  position: relative;
+.text-editor-body {
   height: 90%;
+  position: relative;
+}
+
+.layer-text {
+  position: relative;
+  height: 100%;
   background-color: black;
   color: white;
-}
-
-.text-area_layer-text, .text-area_layer-text-cursor, .text-area_layer-interactive {
-  height: 100%;
-  width: 100%;
-}
-
-.text-area_layer-text, .text-area_layer-text-cursor, .text-area_layer-interactive {
-  position: absolute;
-  top: 0;
-}
-
-.text-area_layer-text {
-  margin: 0;
   font: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+.layer-interactive {
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
 
 .text-line {
@@ -44,6 +45,7 @@
 .text-cursor {
   position: absolute;
   width: 2px;
+  top: 0;
   background-color: green;
 }
 

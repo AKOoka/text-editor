@@ -1,5 +1,6 @@
 import { Point } from '../../common/Point'
 import { IInputEventHandlerPayload, IInputEventManager } from '../IInputEventManager'
+import { InteractiveHtmlElement } from '../InteractiveElement'
 import { MouseContextualMenu } from './MouseContextualMenu'
 
 class Mouse {
@@ -73,7 +74,10 @@ class Mouse {
     // console.log(`context menu on x: ${event.x}; y: ${event.y}`)
     this._contextualMenu.toggleActiveState()
     if (this._contextualMenu.isActive()) {
-      this._inputEventManager.showInteractiveElement(new Point(event.x, event.y), this._contextualMenu.getContext())
+      this._inputEventManager.showInteractiveElement(
+        new Point(event.x, event.y),
+        new InteractiveHtmlElement(this._contextualMenu.getContext())
+      )
     } else {
       this._contextualMenu.removeContext()
     }

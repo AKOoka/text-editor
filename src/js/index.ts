@@ -11,16 +11,19 @@ import { InputEventManager } from './user-input/InputEventManager'
 import { ICommandDispatcher } from './command-pipeline/ICommandDispatcher'
 
 const textEditor: ITextEditor = new TextEditor()
-const textEditorContext: HTMLElement = textEditor.getContext()
+const textEditorHtmlContext: HTMLElement = textEditor.getHtmlContext()
 const historyCommandDispatcher: ICommandDispatcher = new HistoryCommandDispatcher(new CommandDispatcher(textEditor))
 const textArea: TextArea = new TextArea()
 const inputEventManager: InputEventManager = new InputEventManager(textArea, historyCommandDispatcher)
 const keyboard: Keyboard = new Keyboard()
-const htmlUi = new UiMenu()
+const htmlUi: UiMenu = new UiMenu()
 const mouse: Mouse = new Mouse()
+const textEditorHtmlContextBody: HTMLElement = document.createElement('div')
 
-textEditorContext.append(htmlUi.getContext(), textArea.getContext())
-document.body.append(textEditorContext)
+textEditorHtmlContextBody.classList.add('text-editor-body')
+textEditorHtmlContextBody.append(textArea.getContext(), inputEventManager.getHtmlContext())
+textEditorHtmlContext.append(htmlUi.getContext(), textEditorHtmlContextBody)
+document.body.append(textEditorHtmlContext)
 
 textArea.init()
 

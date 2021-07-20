@@ -1,26 +1,41 @@
 import { Point } from '../common/Point'
 import { Range } from '../common/Range'
+import { NodeRepresentation } from '../core/TextRepresentation/Nodes/NodeRepresentation'
+import { HtmlCreator } from './HtmlCreator'
 
-export class TextAreaLayerTextContext {
-  private readonly _contextHtml: HTMLElement
-  private readonly _lines: HTMLElement[][]
-  private _lineBoundaries: Range
+export class TextAreaContext {
+  protected readonly _contextHtml: HTMLElement
+  protected readonly _htmlCreator: HtmlCreator
+  protected readonly _lines: HTMLElement[][]
+  protected _lineBoundaries: Range
 
   constructor () {
-    this._contextHtml = document.createElement('pre')
-    this._contextHtml.classList.add('text-area_layer-text')
+    this._contextHtml = this._createContextHtml()
+    this._htmlCreator = new HtmlCreator()
     this._lines = []
   }
 
-  get contextHtml (): HTMLElement {
+  private _createContextHtml (): HTMLElement {
+    const htmlContext: HTMLElement = document.createElement('pre')
+
+    htmlContext.classList.add('layer-text')
+
+    return htmlContext
+  }
+
+  init (): void {
+    this._lineBoundaries = new Range(0, this._contextHtml.offsetWidth)
+  }
+
+  getContextHtml (): HTMLElement {
     return this._contextHtml
   }
 
-  get lineBoundaries (): Range {
+  getLineBoundaries (): Range {
     return this._lineBoundaries
   }
 
-  get lines (): HTMLElement[][] {
+  getLines (): HTMLElement[][] {
     return this._lines
   }
 
@@ -38,6 +53,20 @@ export class TextAreaLayerTextContext {
 
   getLinePartConcrete (y: number, partY: number): HTMLElement {
     return this._lines[y][partY]
+  }
+
+  getLinePartYByDisplayY (lineY: number, displayY: number): number {
+    let offset: number = this._lines[lineY][0].offsetTop
+
+    for (let i = 0; i < this._lines[lineY].length; i++) {
+      if (displayY >= offset && displayY <= offset + this._lines[lineY][i].offsetHeight) {
+        return i
+      } else {
+        offset += this._lines[lineY][i].offsetHeight
+      }
+    }
+
+    throw Error("can't find partY by displayY")
   }
 
   getLinePartY (point: Point): { linePartY: number, linePartOffsetX: number } {
@@ -80,42 +109,12 @@ export class TextAreaLayerTextContext {
     return width
   }
 
-  getPointAdjacentByDisplayY (point: Point, offsetY: number): Point {
-    const { linePartY, linePartOffsetX } = this.getLinePartY(point)
-    const { x, y } = point
-    let newX: number = 0
-    let newY: number = 0
-    const offsetX: number = x - linePartOffsetX
-
-    if (offsetY < 0) {
-      if (linePartY + offsetY >= 0) {
-        newY = y
-        newX = linePartOffsetX - this.getLineWidthOnRangePartY(y, new Range(linePartY + offsetY, linePartY)) + offsetX
-      } else if (y + offsetY > 0) {
-        newY = y + offsetY
-        newX = this.getLineWidth(newY) - offsetX
-      } else {
-        newY = 0
-        newX = x
-      }
-    } else {
-      if (linePartY + offsetY < this._lines[y].length) {
-        newY = y
-        newX = linePartOffsetX + this.getLineWidthOnRangePartY(y, new Range(linePartY, linePartY + offsetY)) + offsetX
-      } else if (y + offsetY < this.lines.length) {
-        newY = y + offsetY
-        newX = offsetX
-      } else {
-        newY = this.lines.length - 1
-        newX = x
-      }
-    }
-
-    return point.copy().reset(newX, newY)
+  createHtmlElement (tag: keyof HTMLElementTagNameMap): HTMLElement {
+    return this._htmlCreator.createHtmlElement(tag)
   }
 
-  init (lineWidth: Range): void {
-    this._lineBoundaries = lineWidth
+  createHtmlFromNodeRepresentation (lineRepresentation: NodeRepresentation): HTMLElement {
+    return this._htmlCreator.createHtmlFromNodeRepresentation(lineRepresentation)
   }
 
   addLine (y: number, lineParts: HTMLElement[]): void {

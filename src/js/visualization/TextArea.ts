@@ -1,7 +1,7 @@
 import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubscriber'
 import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
-import { ITextArea } from './ITextArea'
+import { IHtmlMeasurer } from './IHtmlMeasurer'
 import { Point } from '../common/Point'
 import { Selection } from '../common/Selection'
 import {
@@ -11,91 +11,71 @@ import {
   ITextEditorRepresentationUpdateLineDelete,
   TextEditorRepresentationUpdateLineType
 } from '../core/TextRepresentation/TextEditorRepresentationUpdateManager'
-import { Range } from '../common/Range'
-import { TextAreaLayerTextCursor } from './TextAreaLayerTextCursor'
-import { TextAreaLayerTextWithTextSelection } from './TextAreaLayerTextWithTextSelection'
+import { TextAreaContextWithMeasurer } from './TextAreaContextWithMeasurer'
+import { TextAreaTextManager } from './TextAreaTextManager'
+import { TextAreaTextSelectionManager } from './TextAreaTextSelectionManager'
+import { TextAreaTextCursorManager } from './TextAreaTextCursorManager'
 
 type TextAreaUpdateLineFunction = (change: ITextEditorRepresentationUpdateLineDelete) => void
 type TextAreaUpdateLineFunctionRecord = Record<TextEditorRepresentationUpdateLineType, TextAreaUpdateLineFunction>
 
-class TextArea implements ITextArea, ITextRepresentationSubscriber, ITextCursorPositionSubscriber, ITextCursorSelectionsSubscriber {
-  private readonly _context: HTMLElement
-  private readonly _layerText: TextAreaLayerTextWithTextSelection
-  private readonly _layerTextCursor: TextAreaLayerTextCursor
-  private readonly _layerInteractive: HTMLElement
+class TextArea implements IHtmlMeasurer, ITextRepresentationSubscriber, ITextCursorPositionSubscriber, ITextCursorSelectionsSubscriber {
+  private readonly _context: TextAreaContextWithMeasurer
+  private readonly _textManager: TextAreaTextManager
+  private readonly _textSelectionManager: TextAreaTextSelectionManager
+  private readonly _textCursorManager: TextAreaTextCursorManager
   private readonly _lineUpdateFunctions: TextAreaUpdateLineFunctionRecord
 
   constructor () {
-    this._context = document.createElement('div')
-    this._context.classList.add('text-area')
-    this._layerText = new TextAreaLayerTextWithTextSelection()
-    this._layerTextCursor = new TextAreaLayerTextCursor()
-    this._layerTextCursor.addTextCursor()
-    this._layerInteractive = document.createElement('div')
-    this._layerInteractive.classList.add('text-area_layer-interactive')
+    this._context = new TextAreaContextWithMeasurer()
+    this._textManager = new TextAreaTextManager(this._context)
+    this._textSelectionManager = new TextAreaTextSelectionManager(this._context)
+    this._textCursorManager = new TextAreaTextCursorManager(this._context)
     this._lineUpdateFunctions = {
       [TextEditorRepresentationUpdateLineType.ADD]: this._lineAdd.bind(this),
       [TextEditorRepresentationUpdateLineType.DELETE]: this._lineDelete.bind(this),
       [TextEditorRepresentationUpdateLineType.CHANGE]: this._lineChange.bind(this)
     }
-
-    this._context.append(this._layerText.context, this._layerTextCursor.context, this._layerInteractive)
   }
 
   private _lineAdd (change: ITextEditorRepresentationUpdateLineAdd): void {
-    this._layerText.addTextLine(change.y, change.nodeLineRepresentation)
+    this._textManager.addTextLine(change.y, change.nodeLineRepresentation)
   }
 
   private _lineDelete (change: ITextEditorRepresentationUpdateLineDelete): void {
-    this._layerText.deleteTextLine(change.y)
+    this._textManager.deleteTextLine(change.y)
   }
 
   private _lineChange (change: ITextEditorRepresentationUpdateLineChange): void {
-    this._layerText.changeTextLine(change.y, change.nodeLineRepresentation)
-  }
-
-  getContext (): HTMLElement {
-    return this._context
-  }
-
-  getInteractiveLayerContext (): HTMLElement {
-    return this._layerInteractive
+    this._textManager.changeTextLine(change.y, change.nodeLineRepresentation)
   }
 
   init (): void {
-    this._layerText.init(this._context, new Range(0, this._context.offsetWidth))
-    console.log('line boundaries', this._context.offsetWidth)
+    this._context.init()
   }
 
-  showInteractiveElement (displayPoint: Point, element: HTMLElement, normalize: boolean = true): void {
-    let point = displayPoint
-
-    if (normalize) {
-      point = this._layerText.normalizeDisplayPoint(displayPoint)
-    }
-
-    element.style.left = `${point.x}px`
-    element.style.top = `${point.y}px`
-    this._layerInteractive.append(element)
+  getContext (): HTMLElement {
+    return this._context.getContextHtml()
   }
 
   convertDisplayPointToPoint (displayPoint: Point): Point {
-    return this._layerText.convertDisplayPointToPoint(displayPoint)
+    return this._context.convertDisplayPointToPoint(displayPoint)
   }
 
-  moveTextCursorDisplayY (point: Point, offsetY: number): Point {
-    return this._layerText.movePointByDisplayY(point, offsetY)
+  translatePoint (point: Point, offsetY: number): Point {
+    return this._context.translatePoint(point, offsetY)
   }
 
   updateTextCursorPosition (point: Point): void {
-    this._layerTextCursor.setTextCursorPoint(this._layerText.convertPointToDisplayPoint(point))
-    this._layerTextCursor.setTextCursorHeight(this._layerText.computeLineHeight(point))
+    // this._textCursorManager.setTextCursorPoint(this._context.convertPointToDisplayPoint(point))
+    // this._textCursorManager.setTextCursorHeight(this._context.computeLineHeight(point))
+    this._textCursorManager.setTextCursorPoint(point)
   }
 
   updateTextCursorSelections (selections: Selection[]): void {
-    this._layerText.removeAllTextSelections()
+    this._textSelectionManager.removeAllTextSelections()
     for (const s of selections) {
-      this._layerText.addSelection(s)
+      this._textSelectionManager.addSelection(s)
     }
   }
 

@@ -10,7 +10,7 @@ import { TextStyle } from '../common/TextStyle'
 
 export interface ITextEditor {
   init: () => void
-  getContext: () => HTMLElement
+  getHtmlContext: () => HTMLElement
   addText: (point: Point, text: string) => void
   addContent: (point: Point, content: INodeCopy[]) => void
   addTextStyleInSelections: (selections: Selection[], textStyleType: TextStyle) => void
@@ -27,7 +27,6 @@ export interface ITextEditor {
   setTextCursorX: (x: number) => void
   setTextCursorY: (y: number) => void
   setTextCursorPoint: (point: Point) => void
-  setTextCursorIsLastUpdateY: (state: boolean) => void
   subscribeForTextCursorPoint: (subscriber: ITextCursorPositionSubscriber) => void
   subscribeForTextCursorSelections: (subscriber: ITextCursorSelectionsSubscriber) => void
   subscribeForTextRepresentation: (subscriber: ITextRepresentationSubscriber) => void
@@ -38,12 +37,9 @@ export interface ITextEditor {
   updateActiveStyles: () => void
   getTextCursorX: () => number
   getTextCursorY: () => number
-  getTextCursorSavedX: () => number
-  getTextCursorIsLastUpdateY: () => boolean
   getTextCursorPoint: () => Point
   getTextCursorSelections: () => Selection[]
   getLineSize: (y: number) => number
   getLinesCount: () => number
   getContentInSelections: (selections: Selection[]) => INodeCopy[]
-  saveTextCursorX: () => void
 }

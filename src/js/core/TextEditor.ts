@@ -32,7 +32,7 @@ class TextEditor implements ITextEditor {
     this.updateTextCursorPoint()
   }
 
-  getContext (): HTMLElement {
+  getHtmlContext (): HTMLElement {
     return this._context
   }
 
@@ -100,10 +100,6 @@ class TextEditor implements ITextEditor {
     this._textCursor.point = point
   }
 
-  setTextCursorIsLastUpdateY (state: boolean): void {
-    this._textCursor.isLastUpdateY = state
-  }
-
   subscribeForTextCursorPoint (subscriber: ITextCursorPositionSubscriber): void {
     this._textCursor.subscribeForPosition(subscriber)
   }
@@ -145,16 +141,8 @@ class TextEditor implements ITextEditor {
     return this._textCursor.x
   }
 
-  getTextCursorSavedX (): number {
-    return this._textCursor.savedX
-  }
-
   getTextCursorY (): number {
     return this._textCursor.y
-  }
-
-  getTextCursorIsLastUpdateY (): boolean {
-    return this._textCursor.isLastUpdateY
   }
 
   getTextCursorPoint (): Point {
@@ -175,10 +163,6 @@ class TextEditor implements ITextEditor {
 
   getContentInSelections (selections: Selection[]): INodeCopy[] {
     return this._representation.getContentInSelections(selections)
-  }
-
-  saveTextCursorX (): void {
-    this._textCursor.saveX()
   }
 }
 

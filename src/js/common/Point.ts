@@ -31,4 +31,10 @@ export class Point {
   copy (): Point {
     return new Point(this._x, this._y)
   }
+
+  translate (offsetX: number, offsetY: number): this {
+    this._x += offsetX
+    this._y += offsetY
+    return this
+  }
 }

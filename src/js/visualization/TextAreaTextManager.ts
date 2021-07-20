@@ -1,8 +1,14 @@
 import { NodeRepresentation } from '../core/TextRepresentation/Nodes/NodeRepresentation'
-import { BaseTextAreaLayerText } from './BaseTextAreaLayerText'
 import { IElementSplit } from './ElementSplitsManager'
+import { TextAreaContextWithMeasurer } from './TextAreaContextWithMeasurer'
 
-export class TextAreaLayerText extends BaseTextAreaLayerText {
+export class TextAreaTextManager {
+  private readonly _context: TextAreaContextWithMeasurer
+
+  constructor (context: TextAreaContextWithMeasurer) {
+    this._context = context
+  }
+
   private _findHtmlPositionInElement (element: HTMLElement, route: number[]): { position: number, outerHtmlTags: string } {
     let outerHtmlTags: string = ''
     let position = 0
@@ -60,7 +66,7 @@ export class TextAreaLayerText extends BaseTextAreaLayerText {
   }
 
   private _sliceLineIntoParts (line: HTMLElement): HTMLElement[] {
-    const lineSplits: IElementSplit[] = this._measureHtmlTool.splitElementByDisplayWidth(line, this._context.lineBoundaries.width)
+    const lineSplits: IElementSplit[] = this._context.splitElementByDisplayWidth(line)
 
     if (lineSplits.length === 0) {
       return [line]
@@ -85,11 +91,11 @@ export class TextAreaLayerText extends BaseTextAreaLayerText {
   }
 
   addTextLine (y: number, lineRepresentation: NodeRepresentation): void {
-    this._context.addLine(y, this._sliceLineIntoParts(this._htmlCreator.createHtmlFromNodeRepresentation(lineRepresentation)))
+    this._context.addLine(y, this._sliceLineIntoParts(this._context.createHtmlFromNodeRepresentation(lineRepresentation)))
   }
 
   changeTextLine (y: number, lineRepresentation: NodeRepresentation): void {
-    this._context.changeLine(y, this._sliceLineIntoParts(this._htmlCreator.createHtmlFromNodeRepresentation(lineRepresentation)))
+    this._context.changeLine(y, this._sliceLineIntoParts(this._context.createHtmlFromNodeRepresentation(lineRepresentation)))
   }
 
   deleteTextLine (y: number): void {

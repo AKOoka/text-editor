@@ -13,7 +13,6 @@ export class CommandTextCursorSetPoint extends BaseCommand {
   do (context: ITextEditor): void {
     const textCursorPosition = context.getTextCursorPoint()
     context.setTextCursorPoint(this._point)
-    context.setTextCursorIsLastUpdateY(false)
     this._point = textCursorPosition
     context.updateTextCursorPoint()
   }
@@ -21,7 +20,6 @@ export class CommandTextCursorSetPoint extends BaseCommand {
   undo (context: ITextEditor): void {
     const textCursorPosition = context.getTextCursorPoint()
     context.setTextCursorPoint(this._point)
-    context.setTextCursorIsLastUpdateY(false)
     this._point = textCursorPosition
     context.updateTextCursorPoint()
   }

@@ -1,6 +1,7 @@
 import { BaseCommand } from '../command-pipeline/commands/BaseCommand'
 import { Point } from '../common/Point'
 import { InputModifiers } from './InputModifiers'
+import { InteractiveHtmlElement } from './InteractiveElement'
 
 export interface IInputEventHandlerPayload<E extends Event> {
   event: E
@@ -22,6 +23,6 @@ export interface IInputEventManager {
   triggerEventDoCommand: (command: BaseCommand) => void
   triggerEventUndoCommand: () => void
   triggerEventRedoCommand: () => void
-  showInteractiveElement: (displayPoint: Point, element: HTMLElement) => void
+  showInteractiveElement: (displayPoint: Point, element: InteractiveHtmlElement) => void
   subscribeToEvent: (event: keyof HTMLElementEventMap, eventHandler: InputEventHandler, context?: HTMLElement) => void
 }

@@ -1,4 +1,4 @@
-import { ITextArea } from '../visualization/ITextArea'
+import { IHtmlMeasurer } from '../visualization/IHtmlMeasurer'
 import { CommandTextCursorSetPoint } from '../command-pipeline/commands/CommandTextCursorSetPoint'
 import { IInputEventManager, InputEventHandler } from './IInputEventManager'
 import { ICommandDispatcher } from '../command-pipeline/ICommandDispatcher'
@@ -11,20 +11,29 @@ import { CommandSelectionChangeLast } from '../command-pipeline/commands/Command
 import { BaseCommand } from '../command-pipeline/commands/BaseCommand'
 import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubscriber'
 import { InputModifiers } from './InputModifiers'
+import { InteractiveHtmlElement } from './InteractiveElement'
 
 export class InputEventManager implements IInputEventManager, ITextCursorPositionSubscriber {
-  private readonly _textArea: ITextArea
+  private readonly _htmlContext: HTMLElement
+  private readonly _htmlMeasurer: IHtmlMeasurer
   private readonly _commandDispatcher: ICommandDispatcher
   private readonly _inputModifiers: InputModifiers
   private _selection: Selection
   private _textCursorPoint: Point
   private _selectionAnchorPoint: Point
 
-  constructor (textArea: ITextArea, commandDispatcher: ICommandDispatcher) {
-    this._textArea = textArea
+  constructor (htmlMeasurer: IHtmlMeasurer, commandDispatcher: ICommandDispatcher) {
+    this._htmlContext = this._createHtmlContext()
+    this._htmlMeasurer = htmlMeasurer
     this._commandDispatcher = commandDispatcher
     this._inputModifiers = new InputModifiers()
     this._selection = new Selection(new Range(0, 0), new Range(0, 0))
+  }
+
+  private _createHtmlContext (): HTMLElement {
+    const htmlContext: HTMLElement = document.createElement('div')
+    htmlContext.classList.add('layer-interactive')
+    return htmlContext
   }
 
   private _selectionStart (): void {
@@ -50,8 +59,12 @@ export class InputEventManager implements IInputEventManager, ITextCursorPositio
     this._commandDispatcher.doCommand(new CommandSelectionChangeLast(this._selection, false))
   }
 
+  getHtmlContext (): HTMLElement {
+    return this._htmlContext
+  }
+
   triggerEventChangeTextCursorPosition (mousePoint: Point): void {
-    this._commandDispatcher.doCommand(new CommandTextCursorSetPoint(false, this._textArea.convertDisplayPointToPoint(mousePoint)))
+    this._commandDispatcher.doCommand(new CommandTextCursorSetPoint(false, this._htmlMeasurer.convertDisplayPointToPoint(mousePoint)))
   }
 
   triggerEventSelectionStartMouse (): void {
@@ -85,7 +98,7 @@ export class InputEventManager implements IInputEventManager, ITextCursorPositio
 
   triggerEventTextCursorMoveY (offsetY: number): void {
     this._commandDispatcher.doCommand(
-      new CommandTextCursorSetPoint(false, this._textArea.moveTextCursorDisplayY(this._textCursorPoint.copy(), offsetY))
+      new CommandTextCursorSetPoint(false, this._htmlMeasurer.translatePoint(this._textCursorPoint.copy(), offsetY))
     )
   }
 
@@ -101,8 +114,14 @@ export class InputEventManager implements IInputEventManager, ITextCursorPositio
     this._commandDispatcher.redoCommand()
   }
 
-  showInteractiveElement (displayPoint: Point, uiElement: HTMLElement): void {
-    this._textArea.showInteractiveElement(displayPoint, uiElement)
+  showInteractiveElement (displayPoint: Point, element: InteractiveHtmlElement): void {
+    element.setPoint(
+      displayPoint.translate(
+        this._htmlContext.getBoundingClientRect().x,
+        this._htmlContext.getBoundingClientRect().y
+      )
+    )
+    this._htmlContext.append(element.context)
   }
 
   updateTextCursorPosition (textCursorPoint: Point): void {
@@ -115,14 +134,14 @@ export class InputEventManager implements IInputEventManager, ITextCursorPositio
   subscribeToEvent (
     event: keyof HTMLElementEventMap,
     eventHandler: InputEventHandler,
-    context: HTMLElement = this._textArea.getInteractiveLayerContext()
+    context: HTMLElement = this._htmlContext
   ): void {
     context.addEventListener(
       event,
-      (e: MouseEvent | KeyboardEvent) => {
-        e.preventDefault()
+      (event: MouseEvent | KeyboardEvent) => {
+        event.preventDefault()
         eventHandler({
-          event: e,
+          event,
           inputEventManager: this,
           inputModifiers: this._inputModifiers
         })

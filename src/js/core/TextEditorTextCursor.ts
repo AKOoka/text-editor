@@ -6,16 +6,12 @@ import { Point } from '../common/Point'
 class TextEditorTextCursor {
   private _point: Point
   private _selections: Selection[]
-  private _savedX: number
-  private _isLastUpdateY: boolean
   private readonly _positionSubscribers: ITextCursorPositionSubscriber[]
   private readonly _selectionsSubscribers: ITextCursorSelectionsSubscriber[]
 
   constructor () {
     this._point = new Point(0, 0)
     this._selections = []
-    this._savedX = 0
-    this._isLastUpdateY = false
     this._positionSubscribers = []
     this._selectionsSubscribers = []
   }
@@ -29,10 +25,6 @@ class TextEditorTextCursor {
     console.log(`text cursor { x: ${this._point.x}, y: ${this._point.y} }`)
   }
 
-  get savedX (): number {
-    return this._savedX
-  }
-
   get y (): number {
     return this._point.y
   }
@@ -40,14 +32,6 @@ class TextEditorTextCursor {
   set y (y: number) {
     this._point.y = y
     console.log(`text cursor { x: ${this._point.x}, y: ${this._point.y} }`)
-  }
-
-  get isLastUpdateY (): boolean {
-    return this._isLastUpdateY
-  }
-
-  set isLastUpdateY (state: boolean) {
-    this._isLastUpdateY = state
   }
 
   get point (): Point {
@@ -61,11 +45,6 @@ class TextEditorTextCursor {
 
   get selections (): Selection[] {
     return this._selections
-  }
-
-  saveX (): void {
-    this._savedX = this._point.x
-    console.log(`xSaved: ${this._savedX}`)
   }
 
   addSelections (selections: Selection[]): void {
