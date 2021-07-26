@@ -8,8 +8,8 @@ import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubs
 import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscriber'
 import { Point } from '../common/Point'
 import { Selection } from '../common/Selection'
-import { INodeCopy } from './TextRepresentation/Nodes/INode'
 import { TextStyle } from '../common/TextStyle'
+import { ILineContent } from './TextRepresentation/ILineContent'
 
 class TextEditor implements ITextEditor {
   private readonly _textCursor: TextEditorTextCursor
@@ -40,7 +40,7 @@ class TextEditor implements ITextEditor {
     this._representation.addTextInLine(point, text)
   }
 
-  addContent (point: Point, content: INodeCopy[]): void {
+  addContent (point: Point, content: ILineContent[]): void {
     this._representation.addContent(point, content)
   }
 
@@ -161,7 +161,7 @@ class TextEditor implements ITextEditor {
     return this._textCursor.selections
   }
 
-  getContentInSelections (selections: Selection[]): INodeCopy[] {
+  getContentInSelections (selections: Selection[]): ILineContent[] {
     return this._representation.getContentInSelections(selections)
   }
 }

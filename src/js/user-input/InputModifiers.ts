@@ -33,7 +33,7 @@ export class InputModifiers {
     this._selectingModeKeyboard = value
   }
 
-  clear (): void {
+  reset (): void {
     this._selectingMode = false
     this._selectingModeMouse = false
     this._selectingModeKeyboard = false

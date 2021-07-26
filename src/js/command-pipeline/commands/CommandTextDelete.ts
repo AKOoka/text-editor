@@ -1,15 +1,15 @@
 import { ITextEditor } from '../../core/ITextEditor'
 import { BaseCommand } from './BaseCommand'
 import { Range } from '../../common/Range'
-import { INodeCopy } from '../../core/TextRepresentation/Nodes/INode'
 import { Selection } from '../../common/Selection'
 import { CommandTextCursorMoveX } from './CommandTextCursorMoveX'
+import { ILineContent } from '../../core/TextRepresentation/ILineContent'
 
 class CommandTextDelete extends BaseCommand {
   private readonly _leftOffset: number
   private readonly _rightOffset: number
   private readonly _commandTextCursorMoveX: CommandTextCursorMoveX
-  private _deletedContent: INodeCopy[]
+  private _deletedContent: ILineContent[]
 
   constructor (toBeSaved: boolean, leftOffset: number, rightOffset: number) {
     super(toBeSaved)

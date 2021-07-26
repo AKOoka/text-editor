@@ -21,25 +21,32 @@
   position: relative;
 }
 
-.layer-text {
-  position: relative;
+.text-area {
+  position: absolute;
   height: 100%;
+  width: 100%;
   background-color: black;
+  top: 0;
+}
+
+.layer-text, .layer-selection, .layer-interactive {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.layer-text {
   color: white;
   font: inherit;
   margin: 0;
   padding: 0;
 }
 
-.layer-interactive {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
-
 .text-line {
   position: relative;
-  height: 20px;
+  height: 1em;
 }
 
 .text-cursor {

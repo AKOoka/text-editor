@@ -1,7 +1,7 @@
 import { CreatedContent, INode, INodeCopy, NodeType } from './INode'
 import { NodeRepresentation, NodeRepresentationType } from './NodeRepresentation'
-import { RangeNode } from './RangeNode'
-import { PositionNode } from './PositionNode'
+import { RangeWithOffset } from '../../../common/RangeWithOffset'
+import { PositionWithOffset } from '../../../common/PositionWithOffset'
 import { NodeCreator } from './NodeCreator'
 import { NodeText } from './NodeText'
 import { TextStyle } from '../../../common/TextStyle'
@@ -33,27 +33,27 @@ abstract class BaseNode implements INode {
     return this._text.length
   }
 
-  addText (position: PositionNode, text: string): void {
-    this._text = this._text.slice(0, position.position) + text + this._text.slice(position.position)
+  addText (position: PositionWithOffset, text: string): void {
+    this._text = this._text.slice(0, position.positionWithOffset) + text + this._text.slice(position.positionWithOffset)
   }
 
-  deleteText (range: RangeNode): boolean {
-    this._text = this._text.slice(0, range.start) + this._text.slice(range.end)
+  deleteText (range: RangeWithOffset): boolean {
+    this._text = this._text.slice(0, range.startWithOffset) + this._text.slice(range.endWithOffset)
     return this._text.length === 0
   }
 
-  addContent (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyle[]): CreatedContent {
+  addContent (position: PositionWithOffset, content: INodeCopy[], parentTextStyles: TextStyle[]): CreatedContent {
     let newNodes: INode[] = []
     const { nodes, nodeStyles } = this._nodeCreator.createNodeFromCopies(content, parentTextStyles)
-    if (position.position === 0) {
+    if (position.positionWithOffset === 0) {
       newNodes = [...nodes, new NodeText(this._text)]
-    } else if (position.position === this._text.length) {
+    } else if (position.positionWithOffset === this._text.length) {
       newNodes = [new NodeText(this._text), ...nodes]
     } else {
       newNodes = [
-        new NodeText(this._text.slice(0, position.position)),
+        new NodeText(this._text.slice(0, position.positionWithOffset)),
         ...nodes,
-        new NodeText(this._text.slice(position.position))
+        new NodeText(this._text.slice(position.positionWithOffset))
       ]
     }
 
@@ -63,11 +63,11 @@ abstract class BaseNode implements INode {
   abstract getNodeType (): NodeType
   abstract getStyle (): TextStyle | null
   abstract getContent (): INodeCopy[]
-  abstract getContentInRange (range: RangeNode): INodeCopy[]
-  abstract getTextStylesInRange (range: RangeNode): TextStyle[]
-  abstract addTextStyle (range: RangeNode, textStyle: TextStyle): INode[]
-  abstract deleteAllTextStyles (range: RangeNode): INode[]
-  abstract deleteConcreteTextStyle (range: RangeNode, textStyle: TextStyle): INode[]
+  abstract getContentInRange (range: RangeWithOffset): INodeCopy[]
+  abstract getTextStylesInRange (range: RangeWithOffset): TextStyle[]
+  abstract addTextStyle (range: RangeWithOffset, textStyle: TextStyle): INode[]
+  abstract deleteTextStyleAll (range: RangeWithOffset): INode[]
+  abstract deleteTextStyleConcrete (range: RangeWithOffset, textStyle: TextStyle): INode[]
 }
 
 export { BaseNode }

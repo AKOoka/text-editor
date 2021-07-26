@@ -1,42 +1,33 @@
-class RangeNode {
-  private _offset: number
-  private _start: number
-  private _end: number
+import { Range } from './Range'
 
-  constructor (offset: number, start: number, end: number) {
+export class RangeWithOffset extends Range {
+  private _offset: number
+
+  constructor (start: number, end: number, offset: number) {
+    super(start, end)
     this._offset = offset
-    this._start = start
-    this._end = end
   }
 
   get offset (): number {
     return this._offset
   }
 
-  get start (): number {
+  get startWithOffset (): number {
     return this._start - this._offset
   }
 
-  get initStart (): number {
-    return this._start
-  }
-
-  get end (): number {
+  get endWithOffset (): number {
     return this._end - this._offset
   }
 
-  get initEnd (): number {
-    return this._end
+  copy (): RangeWithOffset {
+    return new RangeWithOffset(this._start, this._end, this._offset)
   }
 
-  copy (): RangeNode {
-    return new RangeNode(this._offset, this._start, this._end)
-  }
-
-  reset (offset: number, start: number, end: number): RangeNode {
-    this._offset = offset
+  reset (start: number, end: number, offset: number): RangeWithOffset {
     this._start = start
     this._end = end
+    this._offset = offset
     return this
   }
 
@@ -50,27 +41,25 @@ class RangeNode {
     )
   }
 
-  nodeInRange (nodeSize: number): boolean {
+  isNodeInRange (nodeSize: number): boolean {
     const rightEdge: number = this._offset + nodeSize
     return (this._start >= this._offset && this._start <= rightEdge) ||
            (this._end >= this._offset && this._end <= rightEdge)
   }
 
-  nodeInsideRange (nodeSize: number): boolean {
+  isNodeInsideRange (nodeSize: number): boolean {
     return this._start <= this._offset && this._end >= this._offset + nodeSize
   }
 
-  rangeInsideNode (nodeSize: number): boolean {
+  isRangeInsideNode (nodeSize: number): boolean {
     return this._start > this._offset && this._end < this._offset + nodeSize
   }
 
-  nodeStartInRange (nodeSize: number): boolean {
+  isNodeStartInRange (nodeSize: number): boolean {
     return this._start > this._offset && this._start < this._offset + nodeSize
   }
 
-  nodeEndInRange (nodeSize: number): boolean {
+  isNodeEndInRange (nodeSize: number): boolean {
     return this._end > this._offset && this._end < this._offset + nodeSize
   }
 }
-
-export { RangeNode }

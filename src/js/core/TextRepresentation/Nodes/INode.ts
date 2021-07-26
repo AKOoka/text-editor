@@ -1,7 +1,9 @@
-import { RangeNode } from './RangeNode'
-import { PositionNode } from './PositionNode'
+import { RangeWithOffset } from '../../../common/RangeWithOffset'
+import { PositionWithOffset } from '../../../common/PositionWithOffset'
 import { NodeRepresentation } from './NodeRepresentation'
 import { TextStyle } from '../../../common/TextStyle'
+
+// TODO: choose between INodeCopy and INodeRepresentation for usage
 
 export interface INodeCopyProps {
   text?: string
@@ -46,13 +48,13 @@ export interface INode {
   getStyle: () => TextStyle | null
   getNodeType: () => NodeType
   getContent: () => INodeCopy[]
-  getContentInRange: (range: RangeNode) => INodeCopy[]
-  getTextStylesInRange: (range: RangeNode) => TextStyle[]
+  getContentInRange: (range: RangeWithOffset) => INodeCopy[]
+  getTextStylesInRange: (range: RangeWithOffset) => TextStyle[]
   getRepresentation: () => NodeRepresentation
-  addText: (position: PositionNode, text: string) => void
-  addContent: (position: PositionNode, content: INodeCopy[], parentTextStyles: TextStyle[]) => CreatedContent
-  addTextStyle: (range: RangeNode, textStyle: TextStyle) => INode[]
-  deleteText: (range: RangeNode) => boolean
-  deleteAllTextStyles: (range: RangeNode) => INode[]
-  deleteConcreteTextStyle: (range: RangeNode, textStyle: TextStyle) => INode[]
+  addText: (position: PositionWithOffset, text: string) => void
+  addContent: (position: PositionWithOffset, content: INodeCopy[], parentTextStyles: TextStyle[]) => CreatedContent
+  addTextStyle: (range: RangeWithOffset, textStyle: TextStyle) => INode[]
+  deleteText: (range: RangeWithOffset) => boolean
+  deleteTextStyleAll: (range: RangeWithOffset) => INode[]
+  deleteTextStyleConcrete: (range: RangeWithOffset, textStyle: TextStyle) => INode[]
 }

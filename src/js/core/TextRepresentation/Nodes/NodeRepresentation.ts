@@ -11,13 +11,26 @@ export enum NodeRepresentationInstructionId {
   STYLE
 }
 
-export interface InstructionProps {
-  value: string | NodeRepresentation[] | TextStyle
-}
+export type InstructionProps = string | NodeRepresentation[] | TextStyle
 
 export interface INodeRepresentationInstruction {
   instructionType: NodeRepresentationInstructionId
-  instructionProps: InstructionProps
+  instructionProp: InstructionProps
+}
+
+export interface INodeRepresentationInstructionText extends INodeRepresentationInstruction {
+  instructionType: NodeRepresentationInstructionId.TEXT
+  instructionProp: string
+}
+
+export interface INodeRepresentationInstructionStyle extends INodeRepresentationInstruction {
+  instructionType: NodeRepresentationInstructionId.STYLE
+  instructionProp: TextStyle
+}
+
+export interface INodeRepresentationInstructionContainer extends INodeRepresentationInstruction {
+  instructionType: NodeRepresentationInstructionId.CONTAINER
+  instructionProp: NodeRepresentation[]
 }
 
 class NodeRepresentation {
@@ -46,17 +59,17 @@ class NodeRepresentation {
   }
 
   addTextInstruction (text: string): NodeRepresentation {
-    this._instructions.push({ instructionType: NodeRepresentationInstructionId.TEXT, instructionProps: { value: text } })
+    this._instructions.push({ instructionType: NodeRepresentationInstructionId.TEXT, instructionProp: text })
     return this
   }
 
   addStyleInstruction (style: TextStyle): NodeRepresentation {
-    this._instructions.push({ instructionType: NodeRepresentationInstructionId.STYLE, instructionProps: { value: style } })
+    this._instructions.push({ instructionType: NodeRepresentationInstructionId.STYLE, instructionProp: style })
     return this
   }
 
   addContainerInstruction (containerChildren: NodeRepresentation[]): NodeRepresentation {
-    this._instructions.push({ instructionType: NodeRepresentationInstructionId.CONTAINER, instructionProps: { value: containerChildren } })
+    this._instructions.push({ instructionType: NodeRepresentationInstructionId.CONTAINER, instructionProp: containerChildren })
     return this
   }
 

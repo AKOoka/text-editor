@@ -59,12 +59,22 @@ export class InputEventManager implements IInputEventManager, ITextCursorPositio
     this._commandDispatcher.doCommand(new CommandSelectionChangeLast(this._selection, false))
   }
 
+  private _normalizeDisplayPoint (displayPoint: Point): Point {
+    const boundaries = this._htmlContext.getBoundingClientRect()
+    return displayPoint.translate(-boundaries.x, -boundaries.y)
+  }
+
   getHtmlContext (): HTMLElement {
     return this._htmlContext
   }
 
   triggerEventChangeTextCursorPosition (mousePoint: Point): void {
-    this._commandDispatcher.doCommand(new CommandTextCursorSetPoint(false, this._htmlMeasurer.convertDisplayPointToPoint(mousePoint)))
+    this._commandDispatcher.doCommand(
+      new CommandTextCursorSetPoint(
+        false,
+        this._htmlMeasurer.convertDisplayPointToPoint(this._normalizeDisplayPoint(mousePoint))
+      )
+    )
   }
 
   triggerEventSelectionStartMouse (): void {
@@ -92,7 +102,7 @@ export class InputEventManager implements IInputEventManager, ITextCursorPositio
   }
 
   triggerEventSelectionDeleteAll (): void {
-    this._inputModifiers.clear()
+    this._inputModifiers.reset()
     this._commandDispatcher.doCommand(new CommandSelectionDeleteAll(false))
   }
 
@@ -134,9 +144,9 @@ export class InputEventManager implements IInputEventManager, ITextCursorPositio
   subscribeToEvent (
     event: keyof HTMLElementEventMap,
     eventHandler: InputEventHandler,
-    context: HTMLElement = this._htmlContext
+    htmlContext: HTMLElement = this._htmlContext
   ): void {
-    context.addEventListener(
+    htmlContext.addEventListener(
       event,
       (event: MouseEvent | KeyboardEvent) => {
         event.preventDefault()

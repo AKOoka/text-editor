@@ -9,60 +9,67 @@ export class TextAreaTextManager {
     this._context = context
   }
 
-  private _findHtmlPositionInElement (element: HTMLElement, route: number[]): { position: number, outerHtmlTags: string } {
-    let outerHtmlTags: string = ''
-    let position = 0
-    let parent = element
-
-    for (const r of route) {
-      for (let i = 0; i < parent.children.length; i++) {
-        const child: HTMLElement = parent.children[i] as HTMLElement
-        if (i === r) {
-          parent = child
-          outerHtmlTags += `<${child.localName}>`
-          position += parent.localName.length + 2
-          break
-        }
-        position += child.outerHTML.length
-      }
-    }
-
-    return { position, outerHtmlTags }
-  }
-
-  private _splitElement (
-    element: HTMLElement,
-    split: IElementSplit
-  ): { leftPartHtml: string, rightPartHtml: string } {
+  private _splitElement (element: HTMLElement, split: IElementSplit): [HTMLElement, HTMLElement] {
     const { route, textSplitX } = split
-    const { position, outerHtmlTags } = this._findHtmlPositionInElement(element, route)
-    const splitPosition = position + textSplitX
+    const leftPart: HTMLElement = element.cloneNode(false) as HTMLElement
+    const rightPart: HTMLElement = element.cloneNode(false) as HTMLElement
+    let i: number
 
-    return {
-      leftPartHtml: element.innerHTML.slice(0, splitPosition),
-      rightPartHtml: outerHtmlTags + element.innerHTML.slice(splitPosition)
+    if (route.length === 0) {
+      leftPart.innerText = element.innerText.slice(0, textSplitX)
+      rightPart.innerText = element.innerText.slice(textSplitX)
+
+      return [leftPart, rightPart]
     }
+
+    for (i = 0; i < route[0]; i++) {
+      leftPart.append(element.children[i].cloneNode(true))
+    }
+
+    const [left, right] = this._splitElement(element.children[route[0]].cloneNode(true) as HTMLElement, { route: route.slice(1), textSplitX })
+
+    leftPart.append(left)
+    rightPart.append(right)
+
+    for (i = route[0] + 1; i < element.children.length; i++) {
+      rightPart.append((element.children[i] as HTMLElement).cloneNode(true))
+    }
+
+    return [leftPart, rightPart]
   }
 
-  private _sliceElement (element: HTMLElement, slices: IElementSplit[]): string[] {
-    const linePartsHtml: string[] = []
-    let { position: linePartLeftPosition, outerHtmlTags: linePartLeftTags } = this._findHtmlPositionInElement(element, slices[0].route)
+  private _sliceElement (element: HTMLElement, startSplit: IElementSplit, endSplit: IElementSplit): HTMLElement {
+    const { route: startRoute, textSplitX: startTextSplit } = startSplit
+    const { route: endRoute, textSplitX: endTextSplit } = endSplit
+    const slicedElement: HTMLElement = element.cloneNode(false) as HTMLElement
 
-    linePartLeftPosition += slices[0].textSplitX
-    linePartsHtml.push(element.innerHTML.slice(0, linePartLeftPosition))
+    if (startRoute[0] === endRoute[0]) {
+      if (startRoute.length > 0) {
+        slicedElement.append(this._sliceElement(
+          element.children[startRoute[0]].cloneNode(true) as HTMLElement,
+          { route: startRoute.slice(1), textSplitX: startTextSplit },
+          { route: endRoute.slice(1), textSplitX: endTextSplit }
+        ))
+      } else {
+        slicedElement.innerText = element.innerText.slice(startTextSplit, endTextSplit)
+      }
+    } else {
+      slicedElement.append(this._splitElement(
+        element.children[startRoute[0]].cloneNode(true) as HTMLElement,
+        { route: startRoute.slice(1), textSplitX: startTextSplit }
+      )[0])
 
-    for (let i = 1; i < slices.length; i++) {
-      const { position: p, outerHtmlTags: o } = this._findHtmlPositionInElement(element, slices[i].route)
-      const curP = p + slices[i].textSplitX
+      for (let i = startRoute[0] + 1; i < endRoute[0]; i++) {
+        slicedElement.append(element.children[i].cloneNode(true))
+      }
 
-      linePartsHtml.push(linePartLeftTags + element.innerHTML.slice(linePartLeftPosition, curP))
-      linePartLeftPosition = curP
-      linePartLeftTags = o
+      slicedElement.append(this._splitElement(
+        element.children[endRoute[0]].cloneNode(true) as HTMLElement,
+        { route: endRoute.slice(1), textSplitX: endTextSplit }
+      )[1])
     }
 
-    linePartsHtml.push(linePartLeftTags + element.innerHTML.slice(linePartLeftPosition))
-
-    return linePartsHtml
+    return slicedElement
   }
 
   private _sliceLineIntoParts (line: HTMLElement): HTMLElement[] {
@@ -71,22 +78,19 @@ export class TextAreaTextManager {
     if (lineSplits.length === 0) {
       return [line]
     } else if (lineSplits.length === 1) {
-      const { leftPartHtml, rightPartHtml } = this._splitElement(line, lineSplits[0])
-      const lineParts = [line.cloneNode(false) as HTMLElement, line.cloneNode(false) as HTMLElement]
-
-      lineParts[0].innerHTML = leftPartHtml
-      lineParts[1].innerHTML = rightPartHtml
-
-      return lineParts
+      return this._splitElement(line, lineSplits[0])
     } else {
-      const lineParts: HTMLElement[] = []
+      const newLines: HTMLElement[] = []
 
-      for (const linePartHtml of this._sliceElement(line, lineSplits)) {
-        lineParts.push(line.cloneNode(false) as HTMLElement)
-        lineParts[lineParts.length - 1].innerHTML = linePartHtml
+      newLines.push(this._splitElement(line, lineSplits[0])[0])
+
+      for (let i = 1; i < lineSplits.length; i++) {
+        newLines.push(this._sliceElement(line, lineSplits[i - 1], lineSplits[i]))
       }
 
-      return lineParts
+      newLines.push(this._splitElement(line, lineSplits[lineSplits.length - 1])[1])
+
+      return newLines
     }
   }
 

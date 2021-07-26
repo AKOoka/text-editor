@@ -1,112 +1,46 @@
-import { Point } from '../common/Point'
 import { Range } from '../common/Range'
 import { NodeRepresentation } from '../core/TextRepresentation/Nodes/NodeRepresentation'
 import { HtmlCreator } from './HtmlCreator'
 
 export class TextAreaContext {
-  protected readonly _contextHtml: HTMLElement
+  protected readonly _htmlContext: HTMLElement
+  protected readonly _layerTextHtmlContext: HTMLElement
+  protected readonly _layerSelectionHtmlContext: HTMLElement
   protected readonly _htmlCreator: HtmlCreator
   protected readonly _lines: HTMLElement[][]
   protected _lineBoundaries: Range
 
   constructor () {
-    this._contextHtml = this._createContextHtml()
+    this._htmlContext = this._createHtmlContext()
+    this._layerTextHtmlContext = this._createLayerHtmlContext('pre', 'layer-text')
+    this._layerSelectionHtmlContext = this._createLayerHtmlContext('div', 'layer-selection')
+    this._htmlContext.append(this._layerTextHtmlContext, this._layerSelectionHtmlContext)
     this._htmlCreator = new HtmlCreator()
     this._lines = []
   }
 
-  private _createContextHtml (): HTMLElement {
-    const htmlContext: HTMLElement = document.createElement('pre')
+  private _createHtmlContext (): HTMLElement {
+    const htmlContext: HTMLElement = document.createElement('div')
 
-    htmlContext.classList.add('layer-text')
+    htmlContext.classList.add('text-area')
+
+    return htmlContext
+  }
+
+  private _createLayerHtmlContext (htmlTag: keyof HTMLElementTagNameMap, layerClassName: string): HTMLElement {
+    const htmlContext: HTMLElement = document.createElement(htmlTag)
+
+    htmlContext.classList.add(layerClassName)
 
     return htmlContext
   }
 
   init (): void {
-    this._lineBoundaries = new Range(0, this._contextHtml.offsetWidth)
+    this._lineBoundaries = new Range(0, this._htmlContext.offsetWidth)
   }
 
-  getContextHtml (): HTMLElement {
-    return this._contextHtml
-  }
-
-  getLineBoundaries (): Range {
-    return this._lineBoundaries
-  }
-
-  getLines (): HTMLElement[][] {
-    return this._lines
-  }
-
-  getLinesCount (): number {
-    return this._lines.length
-  }
-
-  getLinePartsCount (y: number): number {
-    return this._lines[y].length
-  }
-
-  getLinePartAll (y: number): HTMLElement[] {
-    return this._lines[y]
-  }
-
-  getLinePartConcrete (y: number, partY: number): HTMLElement {
-    return this._lines[y][partY]
-  }
-
-  getLinePartYByDisplayY (lineY: number, displayY: number): number {
-    let offset: number = this._lines[lineY][0].offsetTop
-
-    for (let i = 0; i < this._lines[lineY].length; i++) {
-      if (displayY >= offset && displayY <= offset + this._lines[lineY][i].offsetHeight) {
-        return i
-      } else {
-        offset += this._lines[lineY][i].offsetHeight
-      }
-    }
-
-    throw Error("can't find partY by displayY")
-  }
-
-  getLinePartY (point: Point): { linePartY: number, linePartOffsetX: number } {
-    const { x, y } = point
-    let partOffsetX: number = 0
-
-    for (let i = 0; i < this._lines[y].length; i++) {
-      if (x >= partOffsetX && x <= partOffsetX + this._lines[y][i].innerText.length) {
-        return { linePartY: i, linePartOffsetX: partOffsetX }
-      }
-      partOffsetX += this._lines[y][i].innerText.length
-    }
-
-    return {
-      linePartY: this._lines[y].length - 1,
-      linePartOffsetX: partOffsetX - this._lines[y][this._lines[y].length - 1].innerText.length
-    }
-
-    // const linePartsLength = this._lines[y].map(v => v.innerText.length)
-    // const lineLength = linePartsLength.reduce((p, c) => p + c)
-    // console.log('error lod\npoint:', point, 'lineLength:', lineLength, 'line parts length:', linePartsLength)
-    // throw new Error("can't get line part")
-  }
-
-  getLineWidth (y: number): number {
-    return this._lines[y].reduce((p, c) => p + c.innerText.length, 0)
-  }
-
-  getLinePartWidth (y: number, partY: number): number {
-    return this._lines[y][partY].innerText.length
-  }
-
-  getLineWidthOnRangePartY (y: number, rangePartY: Range): number {
-    let width: number = 0
-
-    for (let i = rangePartY.start; i < rangePartY.end; i++) {
-      width += this._lines[y][i].innerText.length
-    }
-
-    return width
+  getHtmlContext (): HTMLElement {
+    return this._htmlContext
   }
 
   createHtmlElement (tag: keyof HTMLElementTagNameMap): HTMLElement {
@@ -123,7 +57,7 @@ export class TextAreaContext {
       insertBefore = this._lines[y][0]
     }
     for (const part of lineParts) {
-      this._contextHtml.insertBefore(part, insertBefore)
+      this._layerTextHtmlContext.insertBefore(part, insertBefore)
     }
     this._lines.splice(y, 0, lineParts)
   }
@@ -142,12 +76,12 @@ export class TextAreaContext {
     }
 
     if (lineSizeDifference > 0) {
-      this._contextHtml.insertBefore(
+      this._layerTextHtmlContext.insertBefore(
         lineParts[i],
         this._lines[y + 1] !== undefined ? this._lines[y + 1][0] : null
       )
       for (++i; i < lineParts.length; i++) {
-        this._contextHtml.insertBefore(lineParts[i], lineParts[i - 1])
+        this._layerTextHtmlContext.insertBefore(lineParts[i], lineParts[i - 1])
       }
     } else {
       for (i; i < this._lines[y].length; i++) {
@@ -163,5 +97,13 @@ export class TextAreaContext {
       linePart.remove()
     }
     this._lines.splice(y, 1)
+  }
+
+  addTextCursor (textCursorContext: HTMLElement): void {
+    this._layerSelectionHtmlContext.append(textCursorContext)
+  }
+
+  addSelection (selectionContext: HTMLElement): void {
+    this._layerSelectionHtmlContext.append(selectionContext)
   }
 }

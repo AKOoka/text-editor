@@ -5,14 +5,14 @@ import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscrib
 import { Selection } from '../common/Selection'
 import { Point } from '../common/Point'
 import { Range } from '../common/Range'
-import { INodeCopy } from './TextRepresentation/Nodes/INode'
 import { TextStyle } from '../common/TextStyle'
+import { ILineContent } from './TextRepresentation/ILineContent'
 
 export interface ITextEditor {
   init: () => void
   getHtmlContext: () => HTMLElement
   addText: (point: Point, text: string) => void
-  addContent: (point: Point, content: INodeCopy[]) => void
+  addContent: (point: Point, content: ILineContent[]) => void
   addTextStyleInSelections: (selections: Selection[], textStyleType: TextStyle) => void
   addTextCursorSelections: (selections: Selection[]) => void
   addNewLinesInRange: (rangeY: Range) => void
@@ -41,5 +41,5 @@ export interface ITextEditor {
   getTextCursorSelections: () => Selection[]
   getLineSize: (y: number) => number
   getLinesCount: () => number
-  getContentInSelections: (selections: Selection[]) => INodeCopy[]
+  getContentInSelections: (selections: Selection[]) => ILineContent[]
 }

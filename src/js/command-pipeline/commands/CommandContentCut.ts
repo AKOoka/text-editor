@@ -1,13 +1,13 @@
 import { Point } from '../../common/Point'
 import { Selection } from '../../common/Selection'
 import { ITextEditor } from '../../core/ITextEditor'
-import { INodeCopy } from '../../core/TextRepresentation/Nodes/INode'
+import { ILineContent } from '../../core/TextRepresentation/ILineContent'
 import { BaseCommand } from './BaseCommand'
 
 export class CommandContentCut extends BaseCommand {
   private readonly _from: Selection
   private readonly _to: Point
-  private _content: INodeCopy[]
+  private _content: ILineContent[]
 
   constructor (toBeSaved: boolean, from: Selection, to: Point) {
     super(toBeSaved)

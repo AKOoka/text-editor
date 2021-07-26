@@ -52,10 +52,11 @@ class TextArea implements IHtmlMeasurer, ITextRepresentationSubscriber, ITextCur
 
   init (): void {
     this._context.init()
+    this._textCursorManager.addTextCursor()
   }
 
   getContext (): HTMLElement {
-    return this._context.getContextHtml()
+    return this._context.getHtmlContext()
   }
 
   convertDisplayPointToPoint (displayPoint: Point): Point {
@@ -67,8 +68,6 @@ class TextArea implements IHtmlMeasurer, ITextRepresentationSubscriber, ITextCur
   }
 
   updateTextCursorPosition (point: Point): void {
-    // this._textCursorManager.setTextCursorPoint(this._context.convertPointToDisplayPoint(point))
-    // this._textCursorManager.setTextCursorHeight(this._context.computeLineHeight(point))
     this._textCursorManager.setTextCursorPoint(point)
   }
 

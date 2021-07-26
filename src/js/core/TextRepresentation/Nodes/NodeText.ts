@@ -2,8 +2,8 @@ import { CreatedContent, INode, INodeCopy, NodeType } from './INode'
 import { NodeTextStyle } from './NodeTextStyle'
 import { BaseNode } from './BaseNode'
 import { NodeRepresentationType } from './NodeRepresentation'
-import { RangeNode } from './RangeNode'
-import { PositionNode } from './PositionNode'
+import { RangeWithOffset } from '../../../common/RangeWithOffset'
+import { PositionWithOffset } from '../../../common/PositionWithOffset'
 import { TextStyle } from '../../../common/TextStyle'
 
 class NodeText extends BaseNode {
@@ -20,33 +20,33 @@ class NodeText extends BaseNode {
     return null
   }
 
-  addTextStyle (range: RangeNode, textStyleType: TextStyle): INode[] {
+  addTextStyle (range: RangeWithOffset, textStyleType: TextStyle): INode[] {
     let newNodes: INode[] = []
 
-    if (range.nodeInsideRange(this.getSize())) {
+    if (range.isNodeInsideRange(this.getSize())) {
       newNodes = [new NodeTextStyle(this._text, textStyleType)]
-    } else if (range.rangeInsideNode(this.getSize())) {
+    } else if (range.isRangeInsideNode(this.getSize())) {
       newNodes = [
-        new NodeText(this._text.slice(0, range.start)),
-        new NodeTextStyle(this._text.slice(range.start, range.end), textStyleType),
-        new NodeText(this._text.slice(range.end))
+        new NodeText(this._text.slice(0, range.startWithOffset)),
+        new NodeTextStyle(this._text.slice(range.startWithOffset, range.endWithOffset), textStyleType),
+        new NodeText(this._text.slice(range.endWithOffset))
       ]
-    } else if (range.nodeStartInRange(this.getSize())) {
-      newNodes = [this, new NodeTextStyle(this._text.slice(range.start), textStyleType)]
-      this._text = this._text.slice(0, range.start)
-    } else if (range.nodeEndInRange(this.getSize())) {
-      newNodes = [new NodeTextStyle(this._text.slice(0, range.end), textStyleType), this]
-      this._text = this._text.slice(range.end)
+    } else if (range.isNodeStartInRange(this.getSize())) {
+      newNodes = [this, new NodeTextStyle(this._text.slice(range.startWithOffset), textStyleType)]
+      this._text = this._text.slice(0, range.startWithOffset)
+    } else if (range.isNodeEndInRange(this.getSize())) {
+      newNodes = [new NodeTextStyle(this._text.slice(0, range.endWithOffset), textStyleType), this]
+      this._text = this._text.slice(range.endWithOffset)
     }
 
     return newNodes
   }
 
-  deleteAllTextStyles (_: RangeNode): INode[] {
+  deleteTextStyleAll (_: RangeWithOffset): INode[] {
     return [this]
   }
 
-  deleteConcreteTextStyle (_: RangeNode, __: TextStyle): INode[] {
+  deleteTextStyleConcrete (_: RangeWithOffset, __: TextStyle): INode[] {
     return [this]
   }
 
@@ -62,8 +62,8 @@ class NodeText extends BaseNode {
     }]
   }
 
-  getContentInRange (range: RangeNode): INodeCopy[] {
-    const text = this._text.slice(range.start, range.end)
+  getContentInRange (range: RangeWithOffset): INodeCopy[] {
+    const text = this._text.slice(range.startWithOffset, range.endWithOffset)
     return [{
       type: NodeType.TEXT,
       size: text.length,
@@ -71,7 +71,7 @@ class NodeText extends BaseNode {
     }]
   }
 
-  addContent (position: PositionNode, content: INodeCopy[], parentTextStyle: TextStyle[]): CreatedContent {
+  addContent (position: PositionWithOffset, content: INodeCopy[], parentTextStyle: TextStyle[]): CreatedContent {
     return super.addContent(position, content, parentTextStyle)
   }
 }

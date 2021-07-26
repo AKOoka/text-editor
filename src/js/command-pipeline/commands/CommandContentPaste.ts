@@ -1,12 +1,12 @@
 import { BaseCommand } from './BaseCommand'
 import { ITextEditor } from '../../core/ITextEditor'
 import { Range } from '../../common/Range'
-import { INodeCopy } from '../../core/TextRepresentation/Nodes/INode'
+import { ILineContent } from '../../core/TextRepresentation/ILineContent'
 
 class CommandContentPaste extends BaseCommand {
-  private readonly _content: INodeCopy[]
+  private readonly _content: ILineContent[]
 
-  constructor (toBeSaved: true, content: INodeCopy[]) {
+  constructor (toBeSaved: true, content: ILineContent[]) {
     super(toBeSaved)
     this._content = content
   }
@@ -25,7 +25,7 @@ class CommandContentPaste extends BaseCommand {
     context.deleteTextInRange(
       y,
       new Range(
-        x - this._content.reduce((p, c) => p + c.size, 0),
+        x - this._content.reduce((p, c) => p + c.getSize(), 0),
         x
       )
     )

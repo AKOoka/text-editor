@@ -1,29 +1,29 @@
-class PositionNode {
+export class PositionWithOffset {
   private _offset: number
   private _position: number
 
-  constructor (offset: number, position: number) {
-    this._offset = offset
+  constructor (position: number, offset: number) {
     this._position = position
+    this._offset = offset
   }
 
   get offset (): number {
     return this._offset
   }
 
-  get position (): number {
+  get positionWithOffset (): number {
     return this._position - this._offset
   }
 
-  get initPosition (): number {
+  get position (): number {
     return this._position
   }
 
-  copy (): PositionNode {
-    return new PositionNode(this._offset, this._position)
+  copy (): PositionWithOffset {
+    return new PositionWithOffset(this._position, this._offset)
   }
 
-  reset (offset: number, position: number): PositionNode {
+  reset (position: number, offset: number): PositionWithOffset {
     this._position = position
     this._offset = offset
     return this
@@ -40,5 +40,3 @@ class PositionNode {
       ((this._position >= nodeOffset && this._position <= rightEdge) && !(this._position === nodeOffset && this._position <= nodeOffset)))
   }
 }
-
-export { PositionNode }

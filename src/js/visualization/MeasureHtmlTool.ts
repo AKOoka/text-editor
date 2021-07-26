@@ -17,8 +17,8 @@ interface IGetChildOnDisplayXResult {
 }
 
 export interface ITextAreaRangeX {
-  displayRangesX: Range[],
-  startLinePartY: number,
+  displayRangesX: Range[]
+  startLinePartY: number
   endLinePartY: number
 }
 
@@ -72,19 +72,31 @@ export class MeasureHtmlTool {
   ): IGetChildOnDisplayXResult {
     let childX: number = x
 
-    for (let i = 0; i < parent.children.length; i++) {
+    for (let i = 0; i < parent.children.length - 1; i++) {
       const child: HTMLElement = parent.children[i] as HTMLElement
 
       if (displayX >= child.offsetLeft && displayX <= child.offsetLeft + child.offsetWidth) {
         callback(childX)
-        return this._getChildOnDisplayX(child, displayX, childX, callback)
+        if (parent.children[i].children.length > 0) {
+          return this._getChildOnDisplayX(child, displayX, childX, callback)
+        } else {
+          return {
+            child: parent.children[i] as HTMLElement,
+            childX,
+            childDisplayX: (parent.children[i] as HTMLElement).offsetLeft
+          }
+        }
       }
 
       childX += child.innerText.length
     }
 
-    callback(childX)
-    return { child: parent, childX, childDisplayX: parent.offsetLeft }
+    if (parent.children.length === 0) {
+      return { child: parent, childX, childDisplayX: parent.offsetLeft }
+    } else {
+      callback(childX)
+      return this._getChildOnDisplayX(parent.lastElementChild as HTMLElement, displayX, childX, callback)
+    }
   }
 
   private _getXOnElement (element: HTMLElement, offsetDisplayX: number, displayX: number): number {
@@ -198,7 +210,7 @@ export class MeasureHtmlTool {
   }
 
   convertRangeXToDisplayRangeX (lineParts: HTMLElement[], rangeX: Range): ITextAreaRangeX {
-    const { start, end } = rangeX
+    const { start: start, end: end } = rangeX
     const displayRangesX: Range[] = []
     let startLinePartY: number = 0
     let endLinePartY: number = 0
@@ -207,19 +219,25 @@ export class MeasureHtmlTool {
 
     for (i; i < lineParts.length; i++) {
       if (start >= offsetX && start <= offsetX + lineParts[i].innerText.length) {
-        const { child, childOffset } = this._getChildOnX(lineParts[i], start - offsetX)
-        this._canvasContext.font = this._getFontFromElement(child)
+        const { child: startRangeChild, childOffset: startRangeChildOffset } = this._getChildOnX(lineParts[i], start - offsetX)
+        this._canvasContext.font = this._getFontFromElement(startRangeChild)
         const startDisplayX = Math.round(
-          this.normalizeDisplayX(child.getBoundingClientRect().x) +
-          this._canvasContext.measureText(child.innerText.slice(0, start - childOffset - offsetX)).width
+          this.normalizeDisplayX(startRangeChild.getBoundingClientRect().x) +
+          this._canvasContext.measureText(startRangeChild.innerText.slice(0, start - startRangeChildOffset - offsetX)).width
         )
 
         if (end >= offsetX && end <= offsetX + lineParts[i].innerText.length) {
+          const { child: endRangeChild, childOffset: endRangeChildOffset } = this._getChildOnX(lineParts[i], end - offsetX)
+
+          if (!startRangeChild.isEqualNode(endRangeChild)) {
+            this._canvasContext.font = this._getFontFromElement(startRangeChild)
+          }
+
           displayRangesX.push(new Range(
             startDisplayX,
-            startDisplayX + Math.round(
-              this.normalizeDisplayX(child.getBoundingClientRect().x) +
-              this._canvasContext.measureText(child.innerText.slice(start - childOffset - offsetX, end - childOffset - offsetX)).width
+            Math.round(
+              this.normalizeDisplayX(endRangeChild.getBoundingClientRect().x) +
+              this._canvasContext.measureText(endRangeChild.innerText.slice(0, end - endRangeChildOffset - offsetX)).width
             )
           ))
 
@@ -227,7 +245,7 @@ export class MeasureHtmlTool {
         } else {
           displayRangesX.push(new Range(
             startDisplayX,
-            startDisplayX + this._canvasContext.measureText(child.innerText.slice(start - childOffset - offsetX)).width
+            startDisplayX + this._canvasContext.measureText(startRangeChild.innerText.slice(start - startRangeChildOffset - offsetX)).width
           ))
         }
         startLinePartY = i
@@ -260,10 +278,10 @@ export class MeasureHtmlTool {
     return { displayRangesX: [new Range(0, 0)], startLinePartY, endLinePartY }
   }
 
-  splitElementByDisplayWidth (element: HTMLElement, partDisplayWidth: number): IElementSplit[] {
+  splitElementByDisplayWidth (element: HTMLElement, displayWidth: number): IElementSplit[] {
     const elementSplits: ElementSplitsManager = new ElementSplitsManager()
     let childOffset: number = 0
-    let splitPosition: number = partDisplayWidth
+    let splitPosition: number = displayWidth
 
     for (let i = 0; i < element.children.length; i++) {
       const child: HTMLElement = element.children[i] as HTMLElement
@@ -271,8 +289,9 @@ export class MeasureHtmlTool {
       const childEnd = childOffset + childWidth
       const splitPartsCount = Math.floor(childEnd / splitPosition)
 
-      for (let i = 0; i < splitPartsCount; i++) {
+      for (let j = 0; j < splitPartsCount; j++) {
         elementSplits.addSplit()
+        elementSplits.addRoute(i)
 
         const {
           child: endChild,
@@ -280,8 +299,8 @@ export class MeasureHtmlTool {
           childDisplayX: endChildDisplayX
         } = this._getChildOnDisplayX(child, splitPosition, 0, (childX: number) => elementSplits.addRoute(childX))
 
-        elementSplits.addTextSplitX(this._getXOnElement(endChild, endChildDisplayX, splitPosition) + endChildX)
-        splitPosition += partDisplayWidth
+        elementSplits.addTextSplitX(this._getXOnElement(endChild, childOffset + endChildDisplayX, splitPosition) + endChildX)
+        splitPosition += displayWidth
       }
 
       childOffset = childEnd

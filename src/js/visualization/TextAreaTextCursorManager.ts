@@ -28,13 +28,15 @@ export class TextAreaTextCursorManager {
     this._textCursorHtmlContext.style.top = `${y}px`
   }
 
+  addTextCursor (): void {
+    this._context.addTextCursor(this._textCursorHtmlContext)
+  }
+
   setTextCursorPoint (point: Point): void {
     const { displayPoint, linePartY } = this._context.convertPointToDisplayPoint(point)
 
-    this._textCursorHtmlContext.remove()
-    this._context.addNodeToLinePartEnd(point.y, linePartY, this._textCursorHtmlContext)
-
     this._textCursorHtmlContext.style.left = `${displayPoint.x}px`
+    this._textCursorHtmlContext.style.top = `${this._context.computeLinePartDisplayY(point.y, linePartY)}px`
     this._textCursorHtmlContext.style.height = `${this._context.measureLinePartDisplayHeight(point.y, linePartY)}px`
   }
 }
