@@ -5,19 +5,19 @@ import { IHtmlMeasurer } from './IHtmlMeasurer'
 import { Point } from '../common/Point'
 import { Selection } from '../common/Selection'
 import {
-  ITextEditorRepresentationUpdateLine,
-  ITextEditorRepresentationUpdateLineAdd,
-  ITextEditorRepresentationUpdateLineChange,
-  ITextEditorRepresentationUpdateLineDelete,
-  TextEditorRepresentationUpdateLineType
-} from '../core/TextRepresentation/TextEditorRepresentationUpdateManager'
+  ITextEditorRepresentationUpdate,
+  ITextEditorRepresentationUpdateAdd,
+  ITextEditorRepresentationUpdateChange,
+  ITextEditorRepresentationUpdateDelete,
+  TextEditorRepresentationUpdateType
+} from '../core/TextRepresentation/ITextEditorRepresentationUpdate'
 import { TextAreaContextWithMeasurer } from './TextAreaContextWithMeasurer'
 import { TextAreaTextManager } from './TextAreaTextManager'
 import { TextAreaTextSelectionManager } from './TextAreaTextSelectionManager'
 import { TextAreaTextCursorManager } from './TextAreaTextCursorManager'
 
-type TextAreaUpdateLineFunction = (change: ITextEditorRepresentationUpdateLineDelete) => void
-type TextAreaUpdateLineFunctionRecord = Record<TextEditorRepresentationUpdateLineType, TextAreaUpdateLineFunction>
+type TextAreaUpdateLineFunction = (change: ITextEditorRepresentationUpdateDelete) => void
+type TextAreaUpdateLineFunctionRecord = Record<TextEditorRepresentationUpdateType, TextAreaUpdateLineFunction>
 
 class TextArea implements IHtmlMeasurer, ITextRepresentationSubscriber, ITextCursorPositionSubscriber, ITextCursorSelectionsSubscriber {
   private readonly _context: TextAreaContextWithMeasurer
@@ -32,22 +32,22 @@ class TextArea implements IHtmlMeasurer, ITextRepresentationSubscriber, ITextCur
     this._textSelectionManager = new TextAreaTextSelectionManager(this._context)
     this._textCursorManager = new TextAreaTextCursorManager(this._context)
     this._lineUpdateFunctions = {
-      [TextEditorRepresentationUpdateLineType.ADD]: this._lineAdd.bind(this),
-      [TextEditorRepresentationUpdateLineType.DELETE]: this._lineDelete.bind(this),
-      [TextEditorRepresentationUpdateLineType.CHANGE]: this._lineChange.bind(this)
+      [TextEditorRepresentationUpdateType.ADD]: this._lineAdd.bind(this),
+      [TextEditorRepresentationUpdateType.DELETE]: this._lineDelete.bind(this),
+      [TextEditorRepresentationUpdateType.CHANGE]: this._lineChange.bind(this)
     }
   }
 
-  private _lineAdd (change: ITextEditorRepresentationUpdateLineAdd): void {
-    this._textManager.addTextLine(change.y, change.nodeLineRepresentation)
+  private _lineAdd (change: ITextEditorRepresentationUpdateAdd): void {
+    this._textManager.addTextLine(change.y, change.lineContent)
   }
 
-  private _lineDelete (change: ITextEditorRepresentationUpdateLineDelete): void {
+  private _lineDelete (change: ITextEditorRepresentationUpdateDelete): void {
     this._textManager.deleteTextLine(change.y)
   }
 
-  private _lineChange (change: ITextEditorRepresentationUpdateLineChange): void {
-    this._textManager.changeTextLine(change.y, change.nodeLineRepresentation)
+  private _lineChange (change: ITextEditorRepresentationUpdateChange): void {
+    this._textManager.changeTextLine(change.y, change.lineContent)
   }
 
   init (): void {
@@ -78,7 +78,7 @@ class TextArea implements IHtmlMeasurer, ITextRepresentationSubscriber, ITextCur
     }
   }
 
-  updateTextRepresentation (changes: ITextEditorRepresentationUpdateLine[]): void {
+  updateTextRepresentation (changes: ITextEditorRepresentationUpdate[]): void {
     for (const change of changes) {
       this._lineUpdateFunctions[change.type](change)
     }

@@ -19,7 +19,8 @@ export class LineWithStyles implements ITextEditorRepresentationLine<ILineWithSt
   }
 
   private _findStartIndexInStyles (position: number): number {
-    return this._styles.findIndex(v => v.range.start >= position || v.range.end >= position)
+    const i: number = this._styles.findIndex(v => v.range.start >= position || v.range.end >= position)
+    return i >= 0 ? i : 0
   }
 
   getSize (): number {
@@ -34,7 +35,7 @@ export class LineWithStyles implements ITextEditorRepresentationLine<ILineWithSt
     const stylesInRange: LineStyle[] = []
     const startIndex: number = this._styles.findIndex(v => v.range.isRangeIntersects(range))
 
-    for (let i = startIndex; i < this._styles.length; i++) {
+    for (let i = startIndex >= 0 ? startIndex : 0; i < this._styles.length; i++) {
       const style = this._styles[i]
 
       if (style.range.isInsideRange(range)) {

@@ -1,7 +1,7 @@
-import { ILineFactory } from './ILineFactory'
-import { ITextEditorRepresentationLine } from './ITextEditorRepresentationLine'
-import { LineWithStyles } from './LineWithStyles/LineWithStyles'
-import { Range } from '../../common/Range'
+import { ILineFactory } from '../ILineFactory'
+import { ITextEditorRepresentationLine } from '../ITextEditorRepresentationLine'
+import { LineWithStyles } from './LineWithStyles'
+import { Range } from '../../../common/Range'
 
 export class LineWithStylesFactory implements ILineFactory<Range, number> {
   createLine (): ITextEditorRepresentationLine {

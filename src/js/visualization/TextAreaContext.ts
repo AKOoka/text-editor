@@ -1,4 +1,5 @@
 import { Range } from '../common/Range'
+import { ILineWithStylesContent } from '../core/TextRepresentation/LineWithStyles/LineWithStylesContent'
 import { NodeRepresentation } from '../core/TextRepresentation/Nodes/NodeRepresentation'
 import { HtmlCreator } from './HtmlCreator'
 
@@ -51,37 +52,45 @@ export class TextAreaContext {
     return this._htmlCreator.createHtmlFromNodeRepresentation(lineRepresentation)
   }
 
-  addLine (y: number, lineParts: HTMLElement[]): void {
+  // addLine (y: number, lineParts: HTMLElement[]): void {
+  addLine (y: number, lineParts: ILineWithStylesContent[]): void {
+    const htmlLineParts: HTMLElement[] = []
     let insertBefore: HTMLElement | null = null
+
     if (this._lines[y] !== undefined) {
       insertBefore = this._lines[y][0]
     }
+
     for (const part of lineParts) {
-      this._layerTextHtmlContext.insertBefore(part, insertBefore)
+      htmlLineParts.push(this._htmlCreator.createHtmlLineFromContentLineWithStyles(part))
+      this._layerTextHtmlContext.insertBefore(htmlLineParts[htmlLineParts.length - 1], insertBefore)
     }
-    this._lines.splice(y, 0, lineParts)
+
+    this._lines.splice(y, 0, htmlLineParts)
   }
 
   addNodeToLinePartEnd (y: number, linePartY: number, node: HTMLElement): void {
     this._lines[y][linePartY].append(node)
   }
 
-  changeLine (y: number, lineParts: HTMLElement[]): void {
-    const lineSizeDifference: number = lineParts.length - this._lines[y].length
-    const replaceUntil = lineParts.length > this._lines[y].length ? this._lines[y].length : lineParts.length
+  // changeLine (y: number, lineParts: HTMLElement[]): void {
+  changeLine (y: number, lineParts: ILineWithStylesContent[]): void {
+    const htmlLineParts: HTMLElement[] = lineParts.map(v => this._htmlCreator.createHtmlLineFromContentLineWithStyles(v))
+    const lineSizeDifference: number = htmlLineParts.length - this._lines[y].length
+    const replaceUntil = htmlLineParts.length > this._lines[y].length ? this._lines[y].length : htmlLineParts.length
     let i: number = 0
 
     for (i; i < replaceUntil; i++) {
-      this._lines[y][i].replaceWith(lineParts[i])
+      this._lines[y][i].replaceWith(htmlLineParts[i])
     }
 
     if (lineSizeDifference > 0) {
       this._layerTextHtmlContext.insertBefore(
-        lineParts[i],
+        htmlLineParts[i],
         this._lines[y + 1] !== undefined ? this._lines[y + 1][0] : null
       )
-      for (++i; i < lineParts.length; i++) {
-        this._layerTextHtmlContext.insertBefore(lineParts[i], lineParts[i - 1])
+      for (++i; i < htmlLineParts.length; i++) {
+        this._layerTextHtmlContext.insertBefore(htmlLineParts[i], htmlLineParts[i - 1])
       }
     } else {
       for (i; i < this._lines[y].length; i++) {
@@ -89,7 +98,7 @@ export class TextAreaContext {
       }
     }
 
-    this._lines[y] = lineParts
+    this._lines[y] = htmlLineParts
   }
 
   deleteLine (y: number): void {

@@ -3,15 +3,14 @@ import { ITextRepresentationSubscriber } from '../../common/ITextRepresentationS
 import { Selection } from '../../common/Selection'
 import { Point } from '../../common/Point'
 import {
-  ITextEditorRepresentationUpdateLine,
-  TextEditorRepresentationUpdateLineType,
   TextEditorRepresentationUpdateManager
 } from './TextEditorRepresentationUpdateManager'
 import { ITextEditorRepresentationLine } from './ITextEditorRepresentationLine'
 import { TextStyle } from '../../common/TextStyle'
 import { ILineFactory } from './ILineFactory'
-import { LineWithStylesFactory } from './LineWithStylesFactory'
+import { LineWithStylesFactory } from './LineWithStyles/LineWithStylesFactory'
 import { ILineContent } from './ILineContent'
+import { ITextEditorRepresentationUpdate, TextEditorRepresentationUpdateType } from './ITextEditorRepresentationUpdate'
 
 type ChangeCallback = (payload: IChangeCallbackPayload) => void
 type GetInfoCallback<Info> = (payload: IGetInfoCallbackPayload) => Info[]
@@ -283,16 +282,16 @@ class TextEditorRepresentation {
   }
 
   notifySubscribers (): void {
-    const updates: ITextEditorRepresentationUpdateLine[] = []
+    const updates: ITextEditorRepresentationUpdate[] = []
     for (const { y, type } of this._updateManager.getUpdates()) {
       switch (type) {
-        case TextEditorRepresentationUpdateLineType.ADD:
-          updates.push({ y, type, nodeLineRepresentation: this._textLines[y].getContent() })
+        case TextEditorRepresentationUpdateType.ADD:
+          updates.push({ y, type, lineContent: this._textLines[y].getContent() })
           break
-        case TextEditorRepresentationUpdateLineType.CHANGE:
-          updates.push({ y, type, nodeLineRepresentation: this._textLines[y].getContent() })
+        case TextEditorRepresentationUpdateType.CHANGE:
+          updates.push({ y, type, lineContent: this._textLines[y].getContent() })
           break
-        case TextEditorRepresentationUpdateLineType.DELETE:
+        case TextEditorRepresentationUpdateType.DELETE:
           updates.push({ y, type })
       }
     }
