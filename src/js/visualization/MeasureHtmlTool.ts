@@ -1,6 +1,5 @@
 import { Point } from '../common/Point'
 import { Range } from '../common/Range'
-import { ILineWithStylesContent } from '../core/TextRepresentation/LineWithStyles/LineWithStylesContent'
 import { ElementSplitsManager, IElementSplit } from './ElementSplitsManager'
 import { Font } from './Font'
 
@@ -310,35 +309,6 @@ export class MeasureHtmlTool {
     }
 
     return elementSplits.splits
-  }
-
-  splitByDisplayWidthLineWithStyles (line: ILineWithStylesContent, displayWidth: number): number[] {
-    // TODO: move LineWithStyles logic to it own ToolMeasureLineWithStyles
-    const splits: number[] = []
-    const font: Font = this._contextFont.copy()
-    let offset: number = 0
-    let splitPosition: number = displayWidth
-
-    for (let i = 0; i < line.text.length; i++) {
-      const sizeStyle = line.styles.find(v => v.range.isOnPosition(i) && v.textStyle.property === 'font-size')
-
-      if (sizeStyle !== undefined) {
-        font.size = sizeStyle.textStyle.value
-      } else {
-        font.size = this._contextFont.size
-      }
-
-      this._canvasContext.font = font.merged
-
-      offset += this._canvasContext.measureText(line.text[i]).width
-
-      if (offset > splitPosition) {
-        splits.push(i)
-        splitPosition += displayWidth
-      }
-    }
-
-    return splits
   }
 
   normalizeDisplayX (x: number): number {

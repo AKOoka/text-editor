@@ -2,9 +2,9 @@ import { CreatedContent, INode, INodeCopy, NodeType } from './INode'
 import { NodeTextStyle } from './NodeTextStyle'
 import { BaseNode } from './BaseNode'
 import { NodeRepresentationType } from './NodeRepresentation'
-import { RangeWithOffset } from '../../../common/RangeWithOffset'
-import { PositionWithOffset } from '../../../common/PositionWithOffset'
+import { PositionWithOffset } from '../line-with-nodes/util/PositionWithOffset'
 import { TextStyle } from '../../../common/TextStyle'
+import { RangeWithOffset } from '../line-with-nodes/util/RangeWithOffset'
 
 class NodeText extends BaseNode {
   constructor (text: string) {

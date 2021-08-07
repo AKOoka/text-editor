@@ -1,9 +1,9 @@
 import { CreatedContent, INode, INodeCopy, NodeType } from './INode'
 import { BaseNodeContainer, ChildNodeInRangeCallback } from './BaseNodeContainer'
 import { NodeRepresentation, NodeRepresentationType } from './NodeRepresentation'
-import { PositionWithOffset } from '../../../common/PositionWithOffset'
-import { RangeWithOffset } from '../../../common/RangeWithOffset'
+import { PositionWithOffset } from '../line-with-nodes/util/PositionWithOffset'
 import { TextStyle } from '../../../common/TextStyle'
+import { RangeWithOffset } from '../line-with-nodes/util/RangeWithOffset'
 
 class NodeContainerStyle extends BaseNodeContainer {
   private readonly _textStyle: TextStyle

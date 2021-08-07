@@ -8,9 +8,9 @@ import {
 import { ITextEditorRepresentationLine } from './ITextEditorRepresentationLine'
 import { TextStyle } from '../../common/TextStyle'
 import { ILineFactory } from './ILineFactory'
-import { LineWithStylesFactory } from './LineWithStyles/LineWithStylesFactory'
 import { ILineContent } from './ILineContent'
 import { ITextEditorRepresentationUpdate, TextEditorRepresentationUpdateType } from './ITextEditorRepresentationUpdate'
+import { LineWithNodesFactory } from './line-with-nodes/LineWithNodesFactory'
 
 type ChangeCallback = (payload: IChangeCallbackPayload) => void
 type GetInfoCallback<Info> = (payload: IGetInfoCallbackPayload) => Info[]
@@ -31,7 +31,7 @@ interface IGetInfoCallbackPayload {
 }
 
 class TextEditorRepresentation {
-  private readonly _lineFactory: ILineFactory<Range, number>
+  private readonly _lineFactory: ILineFactory
   private readonly _subscribers: ITextRepresentationSubscriber[]
   private _textLines: ITextEditorRepresentationLine[]
   private _linePositionOffset: Map<number, number>
@@ -39,7 +39,7 @@ class TextEditorRepresentation {
   private _updateManager: TextEditorRepresentationUpdateManager
 
   constructor () {
-    this._lineFactory = new LineWithStylesFactory()
+    this._lineFactory = new LineWithNodesFactory()
     this._textLines = []
     this._subscribers = []
     this._linePositionOffset = new Map()
@@ -100,6 +100,7 @@ class TextEditorRepresentation {
     for (const { rangeX, rangeY } of selections) {
       let lineOffset = this._getOffsetY(rangeY.start)
       let line = this._textLines[rangeY.start + lineOffset]
+
       this._updateManager.addUpdateLineChange(rangeY.start, lineOffset)
 
       if (rangeY.width === 0) {
@@ -114,6 +115,7 @@ class TextEditorRepresentation {
       }
 
       const lineStart: number = rangeX.start + this._getOffsetX(rangeY.start, rangeX.start)
+
       changeCallback({ line, range: this._lineFactory.createLineRange(lineStart, lineStart + line.getSize()) })
 
       for (let i = rangeY.start + 1; i < rangeY.end; i++) {
@@ -135,6 +137,7 @@ class TextEditorRepresentation {
 
     for (const { rangeX, rangeY } of selections) {
       let line: ITextEditorRepresentationLine = this._textLines[rangeY.start + this._getOffsetY(rangeY.start)]
+
       if (rangeY.width === 0) {
         info.push(...getInfoCallback({
           line,
@@ -147,11 +150,14 @@ class TextEditorRepresentation {
       }
 
       const lineStart: number = rangeX.start + this._getOffsetX(rangeY.start, rangeX.start)
+
       info.push(...getInfoCallback({ line, range: this._lineFactory.createLineRange(lineStart, lineStart + line.getSize()) }))
+
       for (let i = rangeY.start + 1; i < rangeY.end; i++) {
         line = this._textLines[i + this._getOffsetY(i)]
         info.push(...getInfoCallback({ line, range: this._lineFactory.createLineRange(0, line.getSize()) }))
       }
+
       info.push(...getInfoCallback({
         line,
         range: this._lineFactory.createLineRange(0, rangeX.end + this._getOffsetX(rangeY.end, rangeX.end))
@@ -189,7 +195,9 @@ class TextEditorRepresentation {
   deleteLines (rangeY: Range): void {
     const lineOffset = this._getOffsetY(rangeY.start)
     const deletedLines = this._textLines.splice(rangeY.start + lineOffset, rangeY.width)
+
     this._setOffsetY(rangeY.start - rangeY.width - 1, -rangeY.width)
+
     for (let i = 0; i < deletedLines.length; i++) {
       this._updateManager.addUpdateLineDelete(rangeY.start + i, lineOffset)
     }
@@ -198,6 +206,7 @@ class TextEditorRepresentation {
   addTextInLine (point: Point, text: string): void {
     const lineOffset = this._getOffsetY(point.y)
     const line = this._textLines[point.y + lineOffset]
+
     line.addText(this._lineFactory.createLinePosition(point.x + this._getOffsetX(point.y, point.x)), text)
     this._setOffsetX(point.y, point.x, text.length)
     this._updateManager.addUpdateLineChange(point.y, lineOffset)
@@ -214,6 +223,7 @@ class TextEditorRepresentation {
         rangeX.end + this._getOffsetX(y, rangeX.end)
       )
     )
+
     this._setOffsetX(y, rangeX.start, rangeX.width)
     this._updateManager.addUpdateLineChange(y, offsetY)
   }

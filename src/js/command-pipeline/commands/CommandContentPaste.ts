@@ -1,7 +1,7 @@
 import { BaseCommand } from './BaseCommand'
 import { ITextEditor } from '../../core/ITextEditor'
 import { Range } from '../../common/Range'
-import { ILineContent } from '../../core/TextRepresentation/ILineContent'
+import { ILineContent } from '../../core/text-representation/ILineContent'
 
 class CommandContentPaste extends BaseCommand {
   private readonly _content: ILineContent[]

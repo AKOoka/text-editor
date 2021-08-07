@@ -6,7 +6,7 @@ import { Selection } from '../common/Selection'
 import { Point } from '../common/Point'
 import { Range } from '../common/Range'
 import { TextStyle } from '../common/TextStyle'
-import { ILineContent } from './TextRepresentation/ILineContent'
+import { ILineContent } from './text-representation/ILineContent'
 
 export interface ITextEditor {
   init: () => void

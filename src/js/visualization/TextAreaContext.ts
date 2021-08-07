@@ -1,6 +1,6 @@
 import { Range } from '../common/Range'
-import { ILineWithStylesContent } from '../core/TextRepresentation/LineWithStyles/LineWithStylesContent'
-import { NodeRepresentation } from '../core/TextRepresentation/Nodes/NodeRepresentation'
+import { ILineWithStylesContent } from '../core/text-representation/LineWithStyles/LineWithStylesContent'
+import { NodeRepresentation } from '../core/text-representation/Nodes/NodeRepresentation'
 import { HtmlCreator } from './HtmlCreator'
 
 export class TextAreaContext {

@@ -10,7 +10,7 @@ import {
   ITextEditorRepresentationUpdateChange,
   ITextEditorRepresentationUpdateDelete,
   TextEditorRepresentationUpdateType
-} from '../core/TextRepresentation/ITextEditorRepresentationUpdate'
+} from '../core/text-representation/ITextEditorRepresentationUpdate'
 import { TextAreaContextWithMeasurer } from './TextAreaContextWithMeasurer'
 import { TextAreaTextManager } from './TextAreaTextManager'
 import { TextAreaTextSelectionManager } from './TextAreaTextSelectionManager'

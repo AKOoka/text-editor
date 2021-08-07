@@ -1,11 +1,10 @@
 import { TextStyle } from '../common/TextStyle'
-import { ILineWithStylesContent } from '../core/TextRepresentation/LineWithStyles/LineWithStylesContent'
 import {
   InstructionProps,
   NodeRepresentation,
   NodeRepresentationInstructionId,
   NodeRepresentationType
-} from '../core/TextRepresentation/Nodes/NodeRepresentation'
+} from '../core/text-representation/Nodes/NodeRepresentation'
 import { HtmlElementPool } from './HtmlElementPool'
 
 type baseCreationFunction = () => HTMLElement
@@ -63,77 +62,14 @@ class HtmlCreator {
     return element
   }
 
+  // TODO: instead of instruction.type use Object.keys(content)
+
   createHtmlElementFromNodeRepresentationType (type: NodeRepresentationType): HTMLElement {
     return this._htmlCreationFunctions[type]()
   }
 
   createHtmlElement (elementName: keyof HTMLElementTagNameMap): HTMLElement {
     return document.createElement(elementName)
-  }
-
-  createHtmlLineFromContentLineWithStyles (content: ILineWithStylesContent): HTMLElement {
-    const htmlLine: HTMLElement = this._createHtmlLine()
-
-    if (content.styles.length === 0) {
-      htmlLine.innerText = content.text
-      return htmlLine
-    }
-
-    const styles = []
-
-    for (const s of content.styles) {
-      styles.push(
-        { position: s.range.start, textStyle: s.textStyle },
-        { position: s.range.end, textStyle: s.textStyle }
-      )
-    }
-
-    let lineInnerHtml: string = ''
-    const styleStack: typeof styles = []
-
-    lineInnerHtml = content.text.slice(0, styles[0].position)
-
-    for (let i = 1; i < styles.length - 1; i++) {
-      const style = styles[i]
-
-      lineInnerHtml += content.text.slice(styleStack[styleStack.length - 1].position, style.position)
-
-      if (styleStack.length === 0) {
-        lineInnerHtml += `<span style='${style.textStyle.property}: ${style.textStyle.value}'>`
-        styleStack.push(style)
-
-        continue
-      }
-
-      if (styleStack[styleStack.length - 1].textStyle.deepCompare(style.textStyle)) {
-        lineInnerHtml += '</span>'
-        styleStack.pop()
-      } else {
-        const startIndex = styleStack.findIndex(v => v.textStyle.deepCompare(style.textStyle))
-        lineInnerHtml += '</span>'
-
-        if (startIndex < 0) {
-          lineInnerHtml += `<span style="${style.textStyle.property}: ${style.textStyle.value}">`
-          styleStack.push(style)
-          continue
-        }
-
-        styleStack.splice(startIndex, 1)
-        const reopenStyles = styleStack.slice(startIndex)
-
-        lineInnerHtml += '</span>'.repeat(reopenStyles.length)
-
-        for (const style of reopenStyles) {
-          lineInnerHtml += `<span style="${style.textStyle.property}: ${style.textStyle.value}">`
-        }
-      }
-    }
-
-    lineInnerHtml = content.text.slice(styles[styles.length - 1].position)
-
-    htmlLine.innerHTML = lineInnerHtml
-
-    return htmlLine
   }
 }
 

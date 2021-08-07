@@ -1,7 +1,7 @@
 import { Point } from '../../common/Point'
 import { Selection } from '../../common/Selection'
 import { ITextEditor } from '../../core/ITextEditor'
-import { ILineContent } from '../../core/TextRepresentation/ILineContent'
+import { ILineContent } from '../../core/text-representation/ILineContent'
 import { BaseCommand } from './BaseCommand'
 
 export class CommandContentCut extends BaseCommand {

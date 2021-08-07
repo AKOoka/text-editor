@@ -1,7 +1,7 @@
-import { RangeWithOffset } from '../../../common/RangeWithOffset'
-import { PositionWithOffset } from '../../../common/PositionWithOffset'
+import { PositionWithOffset } from '../line-with-nodes/util/PositionWithOffset'
 import { NodeRepresentation } from './NodeRepresentation'
 import { TextStyle } from '../../../common/TextStyle'
+import { RangeWithOffset } from '../line-with-nodes/util/RangeWithOffset'
 
 // TODO: choose between INodeCopy and INodeRepresentation for usage
 

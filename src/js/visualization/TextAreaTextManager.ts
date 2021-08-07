@@ -1,7 +1,7 @@
 import { Range } from '../common/Range'
-import { ILineContent } from '../core/TextRepresentation/ILineContent'
-import { LineStyle } from '../core/TextRepresentation/LineWithStyles/LineStyle'
-import { ILineWithStylesContent } from '../core/TextRepresentation/LineWithStyles/LineWithStylesContent'
+import { ILineContent } from '../core/text-representation/ILineContent'
+import { LineStyle } from '../core/text-representation/LineWithStyles/LineStyle'
+import { ILineWithStylesContent } from '../core/text-representation/LineWithStyles/LineWithStylesContent'
 import { TextAreaContextWithMeasurer } from './TextAreaContextWithMeasurer'
 
 export class TextAreaTextManager {

@@ -3,9 +3,9 @@ import { NodeContainerStyle } from './NodeContainerStyle'
 import { NodeText } from './NodeText'
 import { BaseNode } from './BaseNode'
 import { NodeRepresentation, NodeRepresentationType } from './NodeRepresentation'
-import { RangeWithOffset } from '../../../common/RangeWithOffset'
-import { PositionWithOffset } from '../../../common/PositionWithOffset'
+import { PositionWithOffset } from '../line-with-nodes/util/PositionWithOffset'
 import { TextStyle } from '../../../common/TextStyle'
+import { RangeWithOffset } from '../line-with-nodes/util/RangeWithOffset'
 
 class NodeTextStyle extends BaseNode {
   private readonly _textStyle: TextStyle

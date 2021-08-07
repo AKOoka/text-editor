@@ -3,7 +3,7 @@ import { BaseCommand } from './BaseCommand'
 import { Range } from '../../common/Range'
 import { Selection } from '../../common/Selection'
 import { CommandTextCursorMoveX } from './CommandTextCursorMoveX'
-import { ILineContent } from '../../core/TextRepresentation/ILineContent'
+import { ILineContent } from '../../core/text-representation/ILineContent'
 
 class CommandTextDelete extends BaseCommand {
   private readonly _leftOffset: number

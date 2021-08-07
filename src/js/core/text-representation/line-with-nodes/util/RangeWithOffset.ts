@@ -1,4 +1,4 @@
-import { Range } from './Range'
+import { Range } from '../../../../common/Range'
 
 export class RangeWithOffset extends Range {
   private _offset: number
@@ -27,6 +27,11 @@ export class RangeWithOffset extends Range {
   reset (start: number, end: number, offset: number): RangeWithOffset {
     this._start = start
     this._end = end
+    this._offset = offset
+    return this
+  }
+
+  setOffset (offset: number): RangeWithOffset {
     this._offset = offset
     return this
   }
@@ -61,5 +66,12 @@ export class RangeWithOffset extends Range {
 
   isNodeEndInRange (nodeSize: number): boolean {
     return this._end > this._offset && this._end < this._offset + nodeSize
+  }
+
+  getNodeWidthInRange (nodeSize: number): number {
+    const start: number = this._offset > this._start ? this.offset : this._start
+    const end: number = this._offset + nodeSize > this._end ? this._end : this._offset + nodeSize
+
+    return end - start
   }
 }

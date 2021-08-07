@@ -19,12 +19,22 @@ export class PositionWithOffset {
     return this._position
   }
 
-  copy (): PositionWithOffset {
-    return new PositionWithOffset(this._position, this._offset)
+  copy (position: number = this._position, offset: number = this._offset): PositionWithOffset {
+    return new PositionWithOffset(position, offset)
   }
 
   reset (position: number, offset: number): PositionWithOffset {
     this._position = position
+    this._offset = offset
+    return this
+  }
+
+  setPosition (position: number): PositionWithOffset {
+    this._position = position
+    return this
+  }
+
+  setOffset (offset: number): PositionWithOffset {
     this._offset = offset
     return this
   }

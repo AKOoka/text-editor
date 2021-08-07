@@ -1,7 +1,7 @@
 import { ITextEditor } from './ITextEditor'
 import { Range } from '../common/Range'
 import { TextEditorTextCursor } from './TextEditorTextCursor'
-import { TextEditorRepresentation } from './TextRepresentation/TextEditorRepresentation'
+import { TextEditorRepresentation } from './text-representation/TextEditorRepresentation'
 import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubscriber'
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
 import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
@@ -9,7 +9,7 @@ import { IActiveTextStylesSubscriber } from '../common/IActiveTextStylesSubscrib
 import { Point } from '../common/Point'
 import { Selection } from '../common/Selection'
 import { TextStyle } from '../common/TextStyle'
-import { ILineContent } from './TextRepresentation/ILineContent'
+import { ILineContent } from './text-representation/ILineContent'
 
 class TextEditor implements ITextEditor {
   private readonly _textCursor: TextEditorTextCursor

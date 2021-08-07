@@ -1,12 +1,12 @@
 import { CreatedContent, INode, INodeCopy, NodeType } from './INode'
 import { NodeContainerStyle } from './NodeContainerStyle'
 import { BaseNodeContainer, ChildNodeInRangeCallback } from './BaseNodeContainer'
-import { PositionWithOffset } from '../../../common/PositionWithOffset'
-import { RangeWithOffset } from '../../../common/RangeWithOffset'
+import { PositionWithOffset } from '../line-with-nodes/util/PositionWithOffset'
 import { NodeRepresentationType } from './NodeRepresentation'
 import { INodeUpdate } from './NodeUpdatesManager'
 import { NodeText } from './NodeText'
 import { TextStyle } from '../../../common/TextStyle'
+import { RangeWithOffset } from '../line-with-nodes/util/RangeWithOffset'
 
 class NodeContainerLine extends BaseNodeContainer {
   constructor (childNodes: INode[] = []) {

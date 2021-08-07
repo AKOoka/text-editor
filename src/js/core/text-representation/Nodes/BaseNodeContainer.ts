@@ -1,10 +1,10 @@
 import { CreatedContent, INode, INodeCopy, NodeType } from './INode'
 import { NodeRepresentation } from './NodeRepresentation'
-import { RangeWithOffset } from '../../../common/RangeWithOffset'
-import { PositionWithOffset } from '../../../common/PositionWithOffset'
+import { PositionWithOffset } from '../line-with-nodes/util/PositionWithOffset'
 import { NodeCreator } from './NodeCreator'
 import { NodeMerger } from './NodeMerger'
 import { TextStyle } from '../../../common/TextStyle'
+import { RangeWithOffset } from '../line-with-nodes/util/RangeWithOffset'
 
 export type ChildNodeInRangeCallback<TextStyle> = (
   range: RangeWithOffset,

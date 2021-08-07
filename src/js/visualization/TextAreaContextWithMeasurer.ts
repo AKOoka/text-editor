@@ -1,6 +1,6 @@
 import { Point } from '../common/Point'
 import { Range } from '../common/Range'
-import { ILineWithStylesContent } from '../core/TextRepresentation/LineWithStyles/LineWithStylesContent'
+import { ILineContent } from '../core/text-representation/ILineContent'
 import { IElementSplit } from './ElementSplitsManager'
 import { IHtmlMeasurer } from './IHtmlMeasurer'
 import { ITextAreaRangeX, MeasureHtmlTool } from './MeasureHtmlTool'
@@ -174,7 +174,7 @@ export class TextAreaContextWithMeasurer extends TextAreaContext implements IHtm
     return this._measureHtmlTool.splitElementByDisplayWidth(line, this._lineBoundaries.width)
   }
 
-  splitByDisplayWidthLineWithStyles (line: ILineWithStylesContent): number[] {
+  splitByDisplayWidthLineWithStyles (line: ILineContent): number[] {
     return this._measureHtmlTool.splitByDisplayWidthLineWithStyles(line, this._lineBoundaries.width)
   }
 }
