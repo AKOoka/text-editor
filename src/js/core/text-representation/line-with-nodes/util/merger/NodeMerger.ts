@@ -1,9 +1,9 @@
-import { TextStyle } from '../../../../common/TextStyle'
-import { Node, INodeContainer, INodeText, INodeTextStyle, NodeType } from '../nodes/INode'
-import { NodeCreator } from './NodeCreator'
-import { NodeLayer } from '../NodeLayer'
+import { TextStyle } from '../../../../../common/TextStyle'
+import { Node, INodeContainer, INodeText, INodeTextStyle, NodeType } from '../../nodes/Node'
+import { NodeCreator } from '../NodeCreator'
+import { NodeChildren } from '../../nodes/NodeChildren'
 
-export interface IMergeResult {
+interface IMergeResult {
   node?: Node
   success: boolean
 }
@@ -27,7 +27,8 @@ export class NodeMerger {
   }
 
   mergeTwoNodeText (leftNode: INodeText, rightNode: INodeText): INodeText {
-    return this._nodeCreator.createNodeText(leftNode.text + rightNode.text)
+    leftNode.text += rightNode.text
+    return leftNode
   }
 
   mergeTwoNodeTextStyle (leftNode: INodeTextStyle, rightNode: INodeTextStyle): INodeTextStyle {
@@ -37,7 +38,7 @@ export class NodeMerger {
     )
   }
 
-  private _mergeNodeLayers (leftNodeLayer: NodeLayer, rightNodeLayer: NodeLayer): NodeLayer {
+  private _mergeNodeLayers (leftNodeLayer: NodeChildren, rightNodeLayer: NodeChildren): NodeChildren {
     const mergeResult: MergeResult = this.mergeIfPossibleTwoNodes(
       leftNodeLayer.lastNode.node,
       rightNodeLayer.firstNode.node
@@ -58,7 +59,7 @@ export class NodeMerger {
     return leftNode
   }
 
-  mergeNodeTextWithText (nodeText: INodeText, text: string, mergeAfter: boolean): INodeText {
+  mergeNodeTextWithNodeTextContent (nodeText: INodeText, text: string, mergeAfter: boolean): INodeText {
     const newNodeText: INodeText = this._nodeCreator.createNodeText(nodeText.text)
 
     if (mergeAfter) {
@@ -70,7 +71,7 @@ export class NodeMerger {
     return newNodeText
   }
 
-  mergeNodeTextStyleWithText (nodeTextStyle: INodeTextStyle, text: string, mergeAfter: boolean): INodeTextStyle {
+  mergeNodeTextStyleWithNodeTextContent (nodeTextStyle: INodeTextStyle, text: string, mergeAfter: boolean): INodeTextStyle {
     if (mergeAfter) {
       return this._nodeCreator.createNodeTextStyle(nodeTextStyle.text + text, nodeTextStyle.style)
     } else {
@@ -78,14 +79,14 @@ export class NodeMerger {
     }
   }
 
-  mergeNodeContainerWithText (nodeContainer: INodeContainer, text: string, mergeAfter: boolean): INodeContainer {
+  mergeNodeContainerWithNodeTextContent (nodeContainer: INodeContainer, text: string, mergeAfter: boolean): INodeContainer {
     const newNodeContainer: INodeContainer = this._nodeCreator.createNodeContainer(nodeContainer.style, nodeContainer.childNodes)
 
     if (mergeAfter) {
       const { node } = newNodeContainer.childNodes.lastNode
 
       if (node.type === NodeType.TEXT) {
-        this.mergeNodeTextWithText(node, text, mergeAfter)
+        this.mergeNodeTextWithNodeTextContent(node, text, mergeAfter)
       } else {
         newNodeContainer.childNodes.push(this._nodeCreator.createNodeText(text))
       }
@@ -93,7 +94,7 @@ export class NodeMerger {
       const { node } = newNodeContainer.childNodes.firstNode
 
       if (node.type === NodeType.TEXT) {
-        this.mergeNodeTextWithText(node, text, mergeAfter)
+        this.mergeNodeTextWithNodeTextContent(node, text, mergeAfter)
       } else {
         newNodeContainer.childNodes.unshift(this._nodeCreator.createNodeText(text))
       }
@@ -103,10 +104,10 @@ export class NodeMerger {
   }
 
   mergeNodeContainerWithNodeTextStyle (nodeContainer: INodeContainer, nodeTextStyle: INodeTextStyle, mergeAfter: boolean): INodeContainer {
-    return this.mergeNodeContainerWithText(nodeContainer, nodeTextStyle.text, mergeAfter)
+    return this.mergeNodeContainerWithNodeTextContent(nodeContainer, nodeTextStyle.text, mergeAfter)
   }
 
-  mergeIfPossibleNodeWithTextStyle (node: Node, text: string, style: TextStyle, mergeAfter: boolean): MergeResult {
+  mergeIfPossibleNodeWithNodeTextStyleContent (node: Node, text: string, style: TextStyle, mergeAfter: boolean): MergeResult {
     if (node.type === NodeType.TEXT || !node.style.deepCompare(style)) {
       return { success: false }
     }
@@ -114,12 +115,12 @@ export class NodeMerger {
     switch (node.type) {
       case NodeType.TEXT_STYLE:
         return {
-          node: this.mergeNodeTextStyleWithText(node, text, mergeAfter),
+          node: this.mergeNodeTextStyleWithNodeTextContent(node, text, mergeAfter),
           success: true
         }
       case NodeType.CONTAINER:
         return {
-          node: this.mergeNodeContainerWithText(node, text, mergeAfter),
+          node: this.mergeNodeContainerWithNodeTextContent(node, text, mergeAfter),
           success: true
         }
     }
@@ -153,7 +154,7 @@ export class NodeMerger {
     return { success: false }
   }
 
-  mergeIfPossibleNodeContainerWithNode (node: Node, textStyle: TextStyle, childNodes: NodeLayer, mergeAfter: boolean): MergeResult {
+  mergeIfPossibleNodeWithNodeContainerContent (node: Node, textStyle: TextStyle, childNodes: NodeChildren, mergeAfter: boolean): MergeResult {
     if (node.type === NodeType.TEXT || !node.style.deepCompare(textStyle)) {
       return { success: false }
     }

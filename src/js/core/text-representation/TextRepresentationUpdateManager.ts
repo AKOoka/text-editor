@@ -1,11 +1,11 @@
-import { TextEditorRepresentationUpdateType, ITextEditorRepresentationUpdate } from './ITextEditorRepresentationUpdate'
+import { TextEditorRepresentationUpdateType, ITextRepresentationUpdate } from './ITextRepresentationUpdate'
 
 interface ILineUpdate {
   offset: number
   type: TextEditorRepresentationUpdateType
 }
 
-class TextEditorRepresentationUpdateManager {
+class TextRepresentationUpdateManager {
   private readonly _lineUpdates: Map<number, ILineUpdate>
 
   constructor () {
@@ -30,8 +30,8 @@ class TextEditorRepresentationUpdateManager {
     }
   }
 
-  getUpdates (): ITextEditorRepresentationUpdate[] {
-    const lineUpdates: ITextEditorRepresentationUpdate[] = []
+  getUpdates (): ITextRepresentationUpdate[] {
+    const lineUpdates: ITextRepresentationUpdate[] = []
     for (const [y, update] of this._lineUpdates.entries()) {
       lineUpdates.push({ y: y + update.offset, type: update.type })
     }
@@ -40,4 +40,4 @@ class TextEditorRepresentationUpdateManager {
   }
 }
 
-export { TextEditorRepresentationUpdateManager }
+export { TextRepresentationUpdateManager as TextEditorRepresentationUpdateManager }

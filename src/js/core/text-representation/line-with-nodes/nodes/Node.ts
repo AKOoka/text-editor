@@ -1,5 +1,5 @@
 import { TextStyle } from '../../../../common/TextStyle'
-import { NodeLayer } from '../NodeLayer'
+import { NodeChildren } from './NodeChildren'
 
 export enum NodeType {
   CONTAINER,
@@ -7,7 +7,7 @@ export enum NodeType {
   TEXT
 }
 
-export interface INode {
+interface INode {
   type: NodeType
   size: number
 }
@@ -26,7 +26,7 @@ export interface INodeTextStyle extends INode {
 export interface INodeContainer extends INode {
   type: NodeType.CONTAINER
   style: TextStyle
-  childNodes: NodeLayer
+  childNodes: NodeChildren
 }
 
 export type Node = INodeText | INodeTextStyle | INodeContainer

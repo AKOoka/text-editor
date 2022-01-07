@@ -1,7 +1,7 @@
 import { TextStyle } from '../../../../common/TextStyle'
 import { BaseNodeTextActionStrategy } from './BaseNodeTextActionStrategy'
 import { RangeWithOffset } from '../util/RangeWithOffset'
-import { NodeLayer } from '../NodeLayer'
+import { NodeChildren } from '../nodes/NodeChildren'
 import { ILinkedNodeReadonly } from '../ILinkedNode'
 
 export class NodeTextActionStrategy extends BaseNodeTextActionStrategy {
@@ -11,35 +11,45 @@ export class NodeTextActionStrategy extends BaseNodeTextActionStrategy {
 
   // }
 
-  addTextStyle (nodeLayer: NodeLayer, linkedNode: ILinkedNodeReadonly, range: RangeWithOffset, textStyle: TextStyle): void {
+  addTextStyle (nodeChildrenContainer: NodeChildren, linkedNode: ILinkedNodeReadonly, range: RangeWithOffset, textStyle: TextStyle): void {
     const { node } = linkedNode
 
     if (range.isNodeInsideRange(node.size)) {
-      this._nodeLayerTool.replaceNodeTextWithNodeTextStyle(nodeLayer, linkedNode, textStyle)
-    } else if (range.isRangeInsideNode(node.size)) {
-      this._nodeLayerTool.replaceNodeTextPartMiddleWithNodeTextStyle(nodeLayer, linkedNode, range, textStyle)
-    } else if (range.isNodeStartInRange(node.size)) {
-      this._nodeLayerTool.replaceNodeTextPartLeftWithNodeTextStyle(
-        nodeLayer,
+      this._nodeChildrenTool.replaceNodeTextWithNodeTextStyle(nodeChildrenContainer, linkedNode, textStyle)
+      return
+    }
+
+    if (range.isRangeInsideNode(node.size)) {
+      this._nodeChildrenTool.replaceNodeTextPartMiddleWithNodeTextStyle(nodeChildrenContainer, linkedNode, range, textStyle)
+      return
+    }
+
+    if (range.isNodeStartInRange(node.size)) {
+      this._nodeChildrenTool.replaceNodeTextPartLeftWithNodeTextStyle(
+        nodeChildrenContainer,
         linkedNode,
         range.endWithOffset,
         textStyle
       )
-    } else if (range.isNodeEndInRange(node.size)) {
-      this._nodeLayerTool.replaceNodeTextPartRightWithNodeTextStyle(
-        nodeLayer,
+      return
+    }
+
+    if (range.isNodeEndInRange(node.size)) {
+      this._nodeChildrenTool.replaceNodeTextPartRightWithNodeTextStyle(
+        nodeChildrenContainer,
         linkedNode,
         range.startWithOffset,
         textStyle
       )
-    } else {
-      throw new Error(
-        `cant apply style(${textStyle.property}: ${textStyle.value}) to NodeText ` +
-        `at start ${range.start}, end: ${range.end}, offset: ${range.offset}`
-      )
+      return
     }
+
+    throw new Error(
+      `cant apply style(${textStyle.property}: ${textStyle.value}) to NodeText ` +
+      `at start ${range.start}, end: ${range.end}, offset: ${range.offset}`
+    )
   }
 
   deleteTextStyleAll (): void {}
-  deleteTextStyleConcrete (): void {}
+  deleteTextStyle (): void {}
 }

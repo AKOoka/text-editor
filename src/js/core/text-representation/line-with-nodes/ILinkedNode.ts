@@ -1,4 +1,4 @@
-import { Node } from './nodes/INode'
+import { Node } from './nodes/Node'
 
 export interface ILinkedNode<N extends Node = Node> {
   node: N

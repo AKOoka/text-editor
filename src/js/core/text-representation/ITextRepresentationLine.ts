@@ -2,7 +2,7 @@ import { Range } from '../../common/Range'
 import { TextStyle } from '../../common/TextStyle'
 import { ILineContent } from './ILineContent'
 
-export interface ITextEditorRepresentationLine {
+export interface ITextRepresentationLine {
   getSize: () => number
   getContent: () => ILineContent
   getContentInRange: (range: Range) => ILineContent

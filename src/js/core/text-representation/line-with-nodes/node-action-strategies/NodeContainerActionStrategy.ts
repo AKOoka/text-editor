@@ -1,10 +1,10 @@
 import { TextStyle } from '../../../../common/TextStyle'
-import { INode, Node, INodeContainer, NodeType } from '../nodes/INode'
+import { Node, INodeContainer, NodeType } from '../nodes/Node'
 import { INodeActionStrategy } from './INodeActionStrategy'
 import { NodeContainer } from '../nodes/NodeContainer'
 import { NodeCreator } from '../util/NodeCreator'
-import { NodeLayerTool } from '../util/NodeLayerTool'
-import { NodeMerger } from '../util/NodeMerger'
+import { NodeChildrenTool } from '../util/NodeChildrenTool'
+import { NodeMerger } from '../util/merger/NodeMerger'
 import { NodeTextActionStrategy } from './NodeTextActionStrategy'
 import { NodeTextStyleActionStrategy } from './NodeTextStyleActionStrategy'
 import { PositionWithOffset } from '../util/PositionWithOffset'
@@ -15,13 +15,13 @@ import { ILinkedNode } from '../ILinkedNode'
 export class NodeContainerActionStrategy implements INodeActionStrategy {
   private readonly _nodeCreator: NodeCreator
   private readonly _nodeMerger: NodeMerger
-  private readonly _nodeLayerTool: NodeLayerTool
+  private readonly _nodeLayerTool: NodeChildrenTool
   private readonly _nodeAction: Record<NodeType, INodeActionStrategy>
 
   constructor (
     nodeCreator: NodeCreator,
     nodeMerger: NodeMerger,
-    nodeLayerTool: NodeLayerTool,
+    nodeLayerTool: NodeChildrenTool,
     nodeTextActionStrategy: NodeTextActionStrategy,
     nodeTextStyleActionStrategy: NodeTextStyleActionStrategy
   ) {
@@ -138,7 +138,7 @@ export class NodeContainerActionStrategy implements INodeActionStrategy {
     )
   }
 
-  deleteTextStyleConcrete (nodeLayer: INode[], nodeIndex: number, range: RangeWithOffset, textStyle: TextStyle): void {
+  deleteTextStyle (nodeLayer: INode[], nodeIndex: number, range: RangeWithOffset, textStyle: TextStyle): void {
     const nodeContainer: INodeContainer = nodeLayer[nodeIndex] as INodeContainer
 
     if (!nodeContainer.style.deepCompare(textStyle)) {

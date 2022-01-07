@@ -47,9 +47,9 @@ export class RangeWithOffset extends Range {
   }
 
   isNodeInRange (nodeSize: number): boolean {
-    const rightEdge: number = this._offset + nodeSize
-    return (this._start >= this._offset && this._start <= rightEdge) ||
-           (this._end >= this._offset && this._end <= rightEdge)
+    const nodeEnd: number = this._offset + nodeSize
+    return (this._start >= this._offset && this._start <= nodeEnd) ||
+           (this._end >= this._offset && this._end <= nodeEnd)
   }
 
   isNodeInsideRange (nodeSize: number): boolean {

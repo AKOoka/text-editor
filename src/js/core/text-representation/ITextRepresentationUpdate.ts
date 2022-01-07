@@ -6,24 +6,24 @@ export enum TextEditorRepresentationUpdateType {
   DELETE
 }
 
-export interface ITextEditorRepresentationUpdate {
+export interface ITextRepresentationUpdate {
   y: number
   type: TextEditorRepresentationUpdateType
   lineContent?: ILineContent
 }
 
-export interface ITextEditorRepresentationUpdateDelete extends ITextEditorRepresentationUpdate {
+export interface ITextRepresentationUpdateDelete extends ITextRepresentationUpdate {
   y: number
   type: TextEditorRepresentationUpdateType
 }
 
-export interface ITextEditorRepresentationUpdateAdd extends ITextEditorRepresentationUpdate {
+export interface ITextRepresentationUpdateAdd extends ITextRepresentationUpdate {
   y: number
   type: TextEditorRepresentationUpdateType
   lineContent: ILineContent
 }
 
-export interface ITextEditorRepresentationUpdateChange extends ITextEditorRepresentationUpdate {
+export interface ITextRepresentationUpdateChange extends ITextRepresentationUpdate {
   y: number
   type: TextEditorRepresentationUpdateType
   lineContent: ILineContent

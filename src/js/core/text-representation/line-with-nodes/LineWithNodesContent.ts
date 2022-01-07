@@ -1,7 +1,7 @@
 import { Range } from '../../../common/Range'
 import { TextStyle } from '../../../common/TextStyle'
 import { ILineContent, StyleWithRange } from '../ILineContent'
-import { Node, NodeType } from './nodes/INode'
+import { Node, NodeType } from './nodes/Node'
 
 export class LineWithNodesContent implements ILineContent {
   private readonly _content: Node[]

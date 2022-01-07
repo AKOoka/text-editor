@@ -1,5 +1,5 @@
 import { ILinkedNode } from './ILinkedNode'
-import { Node } from './nodes/INode'
+import { Node } from './nodes/Node'
 
 export class LinkedNode implements ILinkedNode {
   private _node: Node

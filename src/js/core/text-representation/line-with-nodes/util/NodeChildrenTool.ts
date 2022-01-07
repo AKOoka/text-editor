@@ -1,22 +1,36 @@
 import { TextStyle } from '../../../../common/TextStyle'
-import { INodeContainer, INodeText } from '../nodes/INode'
+import { INodeContainer, INodeText, NodeType, Node } from '../nodes/Node'
 import { NodeCreator } from './NodeCreator'
-import { MergeResult, NodeMerger } from './NodeMerger'
+import { MergeResult, NodeMerger } from './merger/NodeMerger'
 import { RangeWithOffset } from './RangeWithOffset'
-import { NodeLayer } from '../NodeLayer'
+import { NodeChildren } from '../nodes/NodeChildren'
 import { ILinkedNodeReadonly } from '../ILinkedNode'
+import { NodeContainerMergerStrategy } from './merger/NodeContainerMergerStrategy'
+import { NodeTextMergerStrategy } from './merger/NodeTextMergerStrategy'
+import { NodeTextStyleMergerStrategy } from './merger/NodeTextStyleMergerStrategy'
+import { BaseNodeMergerStrategy } from './merger/BaseNodeMergerStrategy'
 
-export class NodeLayerTool {
+export class NodeChildrenTool {
   private readonly _nodeCreator: NodeCreator
   private readonly _nodeMerger: NodeMerger
+  private readonly _mergerStrategy: Record<NodeType, BaseNodeMergerStrategy>
 
   constructor (nodeMerger: NodeMerger, nodeCreator: NodeCreator) {
     this._nodeCreator = nodeCreator
     this._nodeMerger = nodeMerger
+    this._mergerStrategy = {
+      [NodeType.TEXT]: new NodeTextMergerStrategy(this._nodeMerger),
+      [NodeType.TEXT_STYLE]: new NodeTextStyleMergerStrategy(this._nodeMerger),
+      [NodeType.CONTAINER]: new NodeContainerMergerStrategy(this._nodeMerger)
+    }
+  }
+
+  mergeIfPossibleTwoNodes (leftNode: Node, rightNode: Node): MergeResult {
+    return this._mergerStrategy[leftNode.type].mergeIfPossibleTwoNodes(leftNode, rightNode)
   }
 
   replaceNodeTextPartLeftWithNodeTextStyle (
-    nodeLayer: NodeLayer,
+    nodeLayer: NodeChildren,
     linkedNode: ILinkedNodeReadonly,
     splitPosition: number,
     textStyle: TextStyle
@@ -27,7 +41,7 @@ export class NodeLayerTool {
     node.text = node.text.slice(splitPosition)
 
     if (prev !== null) {
-      const mergeResult: MergeResult = this._nodeMerger.mergeIfPossibleNodeWithTextStyle(
+      const mergeResult: MergeResult = this._nodeMerger.mergeIfPossibleNodeWithNodeTextStyleContent(
         prev.node,
         newNodeTextStyleText,
         textStyle,
@@ -45,7 +59,7 @@ export class NodeLayerTool {
   }
 
   replaceNodeTextPartRightWithNodeTextStyle (
-    nodeLayer: NodeLayer,
+    nodeLayer: NodeChildren,
     linkedNode: ILinkedNodeReadonly,
     splitPosition: number,
     textStyle: TextStyle
@@ -56,7 +70,7 @@ export class NodeLayerTool {
     node.text = node.text.slice(0, splitPosition)
 
     if (next !== null) {
-      const mergeResult: MergeResult = this._nodeMerger.mergeIfPossibleNodeWithTextStyle(
+      const mergeResult: MergeResult = this._nodeMerger.mergeIfPossibleNodeWithNodeTextStyleContent(
         next.node,
         newNodeTextStyleText,
         textStyle,
@@ -73,7 +87,7 @@ export class NodeLayerTool {
     nodeLayer.addAfter(linkedNode, this._nodeCreator.createNodeTextStyle(newNodeTextStyleText, textStyle))
   }
 
-  replaceNodeTextPartMiddleWithNodeTextStyle (nodeLayer: NodeLayer, linkedNode: ILinkedNodeReadonly, range: RangeWithOffset, textStyle: TextStyle): void {
+  replaceNodeTextPartMiddleWithNodeTextStyle (nodeLayer: NodeChildren, linkedNode: ILinkedNodeReadonly, range: RangeWithOffset, textStyle: TextStyle): void {
     const { node } = linkedNode as ILinkedNodeReadonly<INodeText>
 
     nodeLayer.addAfter(
@@ -96,11 +110,11 @@ export class NodeLayerTool {
     node.text = node.text.slice(0, range.startWithOffset)
   }
 
-  replaceNodeTextWithNodeTextStyle (nodeLayer: NodeLayer, linkedNode: ILinkedNodeReadonly, textStyle: TextStyle): void {
+  replaceNodeTextWithNodeTextStyle (nodeChildren: NodeChildren, linkedNode: ILinkedNodeReadonly, textStyle: TextStyle): void {
     const { prev, node, next } = linkedNode as ILinkedNodeReadonly<INodeText>
 
     if (prev !== null) {
-      const leftMergeResult: MergeResult = this._nodeMerger.mergeIfPossibleNodeWithTextStyle(
+      const leftMergeResult: MergeResult = this._nodeMerger.mergeIfPossibleNodeWithNodeTextStyleContent(
         prev.node,
         node.text,
         textStyle,
@@ -111,10 +125,10 @@ export class NodeLayerTool {
         if (next !== null) {
           const mergedNodes = this._nodeMerger.mergeIfPossibleTwoNodes(leftMergeResult.node, next.node)
 
-          nodeLayer.delete(prev)
+          nodeChildren.delete(prev)
 
           if (mergedNodes.success) {
-            nodeLayer.delete(next)
+            nodeChildren.delete(next)
             linkedNode.node = mergedNodes.node
             return
           }
@@ -122,30 +136,32 @@ export class NodeLayerTool {
 
         linkedNode.node = leftMergeResult.node
         return
-      } else if (next !== null) {
-        const rightMergeResult: MergeResult = this._nodeMerger.mergeIfPossibleNodeWithTextStyle(
-          next.node,
-          node.text,
-          textStyle,
-          false
-        )
+      }
+    }
 
-        if (rightMergeResult.success) {
-          nodeLayer.delete(next)
-          linkedNode.node = rightMergeResult.node
-          return
-        }
+    if (next !== null) {
+      const rightMergeResult: MergeResult = this._nodeMerger.mergeIfPossibleNodeWithNodeTextStyleContent(
+        next.node,
+        node.text,
+        textStyle,
+        false
+      )
+
+      if (rightMergeResult.success) {
+        nodeChildren.delete(next)
+        linkedNode.node = rightMergeResult.node
+        return
       }
     }
 
     linkedNode.node = this._nodeCreator.createNodeTextStyle(node.text, textStyle)
   }
 
-  replaceNodeTextStyleWithNodeContainer (nodeLayer: NodeLayer, linkedNode: ILinkedNodeReadonly, textStyle: TextStyle): void {
+  replaceNodeTextStyleWithNodeContainer (nodeLayer: NodeChildren, linkedNode: ILinkedNodeReadonly, textStyle: TextStyle): void {
     const { prev, next, node } = linkedNode as ILinkedNodeReadonly<INodeContainer>
 
     if (prev !== null) {
-      const leftMergeResult: MergeResult = this._nodeMerger.mergeIfPossibleNodeContainerWithNode(prev.node, node.style, node.childNodes, false)
+      const leftMergeResult: MergeResult = this._nodeMerger.mergeIfPossibleNodeWithNodeContainerContent(prev.node, node.style, node.childNodes, false)
 
       if (next !== null) {
         if (leftMergeResult.success) {

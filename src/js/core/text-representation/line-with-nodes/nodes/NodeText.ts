@@ -1,4 +1,4 @@
-import { INodeText, NodeType } from './INode'
+import { INodeText, NodeType } from './Node'
 
 export class NodeText implements INodeText {
   private readonly _type: NodeType.TEXT

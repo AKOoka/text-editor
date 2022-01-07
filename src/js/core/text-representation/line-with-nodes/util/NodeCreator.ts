@@ -1,6 +1,6 @@
 import { TextStyle } from '../../../../common/TextStyle'
-import { NodeLayer } from '../NodeLayer'
-import { Node, INodeContainer, INodeText, INodeTextStyle } from '../nodes/INode'
+import { NodeChildren } from '../nodes/NodeChildren'
+import { Node, INodeContainer, INodeText, INodeTextStyle } from '../nodes/Node'
 import { NodeContainer } from '../nodes/NodeContainer'
 import { NodeText } from '../nodes/NodeText'
 import { NodeTextStyle } from '../nodes/NodeTextStyle'
@@ -16,12 +16,12 @@ export class NodeCreator {
     return new NodeTextStyle(text, textStyle)
   }
 
-  createNodeContainer (textStyle: TextStyle, childNodes: NodeLayer): INodeContainer {
+  createNodeContainer (textStyle: TextStyle, childNodes: NodeChildren): INodeContainer {
     return new NodeContainer(textStyle, childNodes)
   }
 
-  createNodeLayer (node: Node): NodeLayer {
-    return new NodeLayer(node)
+  createNodeLayer (node: Node): NodeChildren {
+    return new NodeChildren(node)
   }
 
   // releaseNode (): void {

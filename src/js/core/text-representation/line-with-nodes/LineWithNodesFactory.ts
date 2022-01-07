@@ -1,11 +1,11 @@
 import { ILineFactory } from '../ILineFactory'
-import { ITextEditorRepresentationLine } from '../ITextEditorRepresentationLine'
+import { ITextRepresentationLine } from '../ITextRepresentationLine'
 import { LineWithNodes } from './LineWithNodes'
 import { PositionWithOffset } from './util/PositionWithOffset'
 import { RangeWithOffset } from './util/RangeWithOffset'
 
 export class LineWithNodesFactory implements ILineFactory {
-  createLine (): ITextEditorRepresentationLine {
+  createLine (): ITextRepresentationLine {
     return new LineWithNodes()
   }
 

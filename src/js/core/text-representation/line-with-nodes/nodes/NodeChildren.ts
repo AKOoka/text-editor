@@ -1,13 +1,13 @@
-import { Node } from './nodes/INode'
-import { LinkedNode } from './LinkedNode'
-import { ILinkedNode, ILinkedNodeReadonly } from './ILinkedNode'
-import { PositionWithOffset } from './util/PositionWithOffset'
-import { RangeWithOffset } from './util/RangeWithOffset'
+import { Node } from './Node'
+import { LinkedNode } from '../LinkedNode'
+import { ILinkedNode, ILinkedNodeReadonly } from '../ILinkedNode'
+import { PositionWithOffset } from '../util/PositionWithOffset'
+import { RangeWithOffset } from '../util/RangeWithOffset'
 
 export type UpdateNodeCallback = (linkedNode: ILinkedNodeReadonly, offset: number) => void
 
 // TODO: make feature for node layer to work with multiple nodes
-export class NodeLayer {
+export class NodeChildren {
   private _firstNode: ILinkedNode
   private _lastNode: ILinkedNode
 
@@ -61,7 +61,7 @@ export class NodeLayer {
     throw new Error(`can't get node on position: ${position.position} with offset: ${position.offset}`)
   }
 
-  mergeWithNodeLayer (nodeLayer: NodeLayer): void {
+  mergeWithNodeLayer (nodeLayer: NodeChildren): void {
     nodeLayer.firstNode.prev = this._lastNode
     this._lastNode.next = nodeLayer.firstNode
     this._lastNode = nodeLayer.lastNode

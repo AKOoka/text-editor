@@ -1,7 +1,7 @@
 import { ITextEditor } from './ITextEditor'
 import { Range } from '../common/Range'
 import { TextEditorTextCursor } from './TextEditorTextCursor'
-import { TextEditorRepresentation } from './text-representation/TextEditorRepresentation'
+import { TextRepresentation } from './text-representation/TextRepresentation'
 import { ITextCursorPositionSubscriber } from '../common/ITextCursorPositionSubscriber'
 import { ITextCursorSelectionsSubscriber } from '../common/ITextCursorSelectionsSubscriber'
 import { ITextRepresentationSubscriber } from '../common/ITextRepresentationSubscriber'
@@ -13,20 +13,20 @@ import { ILineContent } from './text-representation/ILineContent'
 
 class TextEditor implements ITextEditor {
   private readonly _textCursor: TextEditorTextCursor
-  private readonly _representation: TextEditorRepresentation
+  private readonly _textRepresentation: TextRepresentation
   private readonly _activeTextStylesSubscribers: IActiveTextStylesSubscriber[]
   private readonly _context: HTMLElement
 
   constructor () {
     this._textCursor = new TextEditorTextCursor()
-    this._representation = new TextEditorRepresentation()
+    this._textRepresentation = new TextRepresentation()
     this._activeTextStylesSubscribers = []
     this._context = document.createElement('div')
     this._context.classList.add('text-editor')
   }
 
   init (): void {
-    this._representation.addNewLines(new Range(0, 1))
+    this._textRepresentation.addNewLines(new Range(0, 1))
     this._textCursor.y = 0
     this.updateTextRepresentation()
     this.updateTextCursorPoint()
@@ -37,15 +37,15 @@ class TextEditor implements ITextEditor {
   }
 
   addText (point: Point, text: string): void {
-    this._representation.addTextInLine(point, text)
+    this._textRepresentation.addTextInLine(point, text)
   }
 
   addContent (point: Point, content: ILineContent[]): void {
-    this._representation.addContent(point, content)
+    this._textRepresentation.addContent(point, content)
   }
 
   addTextStyleInSelections (selections: Selection[], textStyleType: TextStyle): void {
-    this._representation.addTextStylesInSelections(selections, textStyleType)
+    this._textRepresentation.addTextStylesInSelections(selections, textStyleType)
   }
 
   addTextCursorSelections (selections: Selection[]): void {
@@ -53,7 +53,7 @@ class TextEditor implements ITextEditor {
   }
 
   addNewLinesInRange (rangeY: Range): void {
-    this._representation.addNewLines(rangeY)
+    this._textRepresentation.addNewLines(rangeY)
   }
 
   changeTextCursorSelection (selectionIndex: number, selection: Selection): void {
@@ -61,23 +61,23 @@ class TextEditor implements ITextEditor {
   }
 
   deleteTextInRange (y: number, rangeX: Range): void {
-    this._representation.deleteTextInLine(y, rangeX)
+    this._textRepresentation.deleteTextInLine(y, rangeX)
   }
 
   deleteTextInSelections (selections: Selection[]): void {
-    this._representation.deleteTextInSelections(selections)
+    this._textRepresentation.deleteTextInSelections(selections)
   }
 
   deleteConcreteTextStylesInSelections (selections: Selection[], textStyleType: TextStyle): void {
-    this._representation.deleteConcreteTextStyleInSelections(selections, textStyleType)
+    this._textRepresentation.deleteConcreteTextStyleInSelections(selections, textStyleType)
   }
 
   deleteAllTextStylesInSelections (selections: Selection[]): void {
-    this._representation.deleteAllTextStylesInSelections(selections)
+    this._textRepresentation.deleteAllTextStylesInSelections(selections)
   }
 
   deleteLinesInRange (rangeY: Range): void {
-    this._representation.deleteLines(rangeY)
+    this._textRepresentation.deleteLines(rangeY)
   }
 
   deleteConcreteTextCursorSelection (selectionIndex: number): void {
@@ -109,7 +109,7 @@ class TextEditor implements ITextEditor {
   }
 
   subscribeForTextRepresentation (subscriber: ITextRepresentationSubscriber): void {
-    this._representation.subscribe(subscriber)
+    this._textRepresentation.subscribe(subscriber)
   }
 
   subscribeForActiveStyles (subscriber: IActiveTextStylesSubscriber): void {
@@ -127,11 +127,11 @@ class TextEditor implements ITextEditor {
   updateTextRepresentation (): void {
     // maybe delegate observer functionality to this class instead of textRepresentation
     // same for textCursor
-    this._representation.notifySubscribers()
+    this._textRepresentation.notifySubscribers()
   }
 
   updateActiveStyles (): void {
-    const activeTextStyles: TextStyle[] = this._representation.getTextStylesInSelections(this._textCursor.selections)
+    const activeTextStyles: TextStyle[] = this._textRepresentation.getTextStylesInSelections(this._textCursor.selections)
     for (const subscriber of this._activeTextStylesSubscribers) {
       subscriber.updateActiveTextStyles(activeTextStyles)
     }
@@ -150,11 +150,11 @@ class TextEditor implements ITextEditor {
   }
 
   getLineSize (lineY: number): number {
-    return this._representation.getTextLengthInLine(lineY)
+    return this._textRepresentation.getTextLengthInLine(lineY)
   }
 
   getLinesCount (): number {
-    return this._representation.getLinesCount()
+    return this._textRepresentation.getLinesCount()
   }
 
   getTextCursorSelections (): Selection[] {
@@ -162,7 +162,7 @@ class TextEditor implements ITextEditor {
   }
 
   getContentInSelections (selections: Selection[]): ILineContent[] {
-    return this._representation.getContentInSelections(selections)
+    return this._textRepresentation.getContentInSelections(selections)
   }
 }
 

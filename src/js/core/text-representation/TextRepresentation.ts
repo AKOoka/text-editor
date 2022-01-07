@@ -2,14 +2,12 @@ import { Range } from '../../common/Range'
 import { ITextRepresentationSubscriber } from '../../common/ITextRepresentationSubscriber'
 import { Selection } from '../../common/Selection'
 import { Point } from '../../common/Point'
-import {
-  TextEditorRepresentationUpdateManager
-} from './TextEditorRepresentationUpdateManager'
-import { ITextEditorRepresentationLine } from './ITextEditorRepresentationLine'
+import { TextEditorRepresentationUpdateManager } from './TextRepresentationUpdateManager'
+import { ITextRepresentationLine } from './ITextRepresentationLine'
 import { TextStyle } from '../../common/TextStyle'
 import { ILineFactory } from './ILineFactory'
 import { ILineContent } from './ILineContent'
-import { ITextEditorRepresentationUpdate, TextEditorRepresentationUpdateType } from './ITextEditorRepresentationUpdate'
+import { ITextRepresentationUpdate, TextEditorRepresentationUpdateType } from './ITextRepresentationUpdate'
 import { LineWithNodesFactory } from './line-with-nodes/LineWithNodesFactory'
 
 type ChangeCallback = (payload: IChangeCallbackPayload) => void
@@ -21,19 +19,19 @@ interface ILineTextOffset {
 }
 
 interface IChangeCallbackPayload {
-  line: ITextEditorRepresentationLine
+  line: ITextRepresentationLine
   range: Range
 }
 
 interface IGetInfoCallbackPayload {
-  line: ITextEditorRepresentationLine
+  line: ITextRepresentationLine
   range: Range
 }
 
-class TextEditorRepresentation {
+export class TextRepresentation {
   private readonly _lineFactory: ILineFactory
   private readonly _subscribers: ITextRepresentationSubscriber[]
-  private _textLines: ITextEditorRepresentationLine[]
+  private _textLines: ITextRepresentationLine[]
   private _linePositionOffset: Map<number, number>
   private _lineTextOffset: Map<number, ILineTextOffset[]>
   private _updateManager: TextEditorRepresentationUpdateManager
@@ -136,7 +134,7 @@ class TextEditorRepresentation {
     const info: Info[] = []
 
     for (const { rangeX, rangeY } of selections) {
-      let line: ITextEditorRepresentationLine = this._textLines[rangeY.start + this._getOffsetY(rangeY.start)]
+      let line: ITextRepresentationLine = this._textLines[rangeY.start + this._getOffsetY(rangeY.start)]
 
       if (rangeY.width === 0) {
         info.push(...getInfoCallback({
@@ -176,7 +174,7 @@ class TextEditorRepresentation {
   }
 
   addNewLines (rangeY: Range): void {
-    const newLines: ITextEditorRepresentationLine[] = []
+    const newLines: ITextRepresentationLine[] = []
     const offsetY: number = this._getOffsetY(rangeY.start)
     const insertPosition: number = rangeY.start + offsetY
 
@@ -215,7 +213,7 @@ class TextEditorRepresentation {
   deleteTextInLine (y: number, rangeX: Range): void {
     const offsetY: number = this._getOffsetY(y)
     const lineY = y + offsetY
-    const line: ITextEditorRepresentationLine = this._textLines[lineY]
+    const line: ITextRepresentationLine = this._textLines[lineY]
 
     line.deleteText(
       this._lineFactory.createLineRange(
@@ -292,7 +290,7 @@ class TextEditorRepresentation {
   }
 
   notifySubscribers (): void {
-    const updates: ITextEditorRepresentationUpdate[] = []
+    const updates: ITextRepresentationUpdate[] = []
     for (const { y, type } of this._updateManager.getUpdates()) {
       switch (type) {
         case TextEditorRepresentationUpdateType.ADD:
@@ -312,5 +310,3 @@ class TextEditorRepresentation {
     this._clear()
   }
 }
-
-export { TextEditorRepresentation }

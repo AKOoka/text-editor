@@ -1,5 +1,5 @@
-import { ITextEditorRepresentationUpdate } from '../core/text-representation/ITextEditorRepresentationUpdate'
+import { ITextRepresentationUpdate } from '../core/text-representation/ITextRepresentationUpdate'
 
 export interface ITextRepresentationSubscriber {
-  updateTextRepresentation: (changes: ITextEditorRepresentationUpdate[]) => void
+  updateTextRepresentation: (changes: ITextRepresentationUpdate[]) => void
 }

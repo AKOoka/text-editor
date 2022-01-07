@@ -1,8 +1,8 @@
 import { Range } from '../../common/Range'
-import { ITextEditorRepresentationLine } from './ITextEditorRepresentationLine'
+import { ITextRepresentationLine } from './ITextRepresentationLine'
 
 export interface ILineFactory {
-  createLine: () => ITextEditorRepresentationLine
+  createLine: () => ITextRepresentationLine
   createLineRange: (start: number, end: number) => Range
   createLinePosition: (position: number) => unknown
 }

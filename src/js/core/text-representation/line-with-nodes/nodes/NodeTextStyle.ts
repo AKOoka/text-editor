@@ -1,5 +1,5 @@
 import { TextStyle } from '../../../../common/TextStyle'
-import { INodeTextStyle, NodeType } from './INode'
+import { INodeTextStyle, NodeType } from './Node'
 
 export class NodeTextStyle implements INodeTextStyle {
   private readonly _type: NodeType.TEXT_STYLE

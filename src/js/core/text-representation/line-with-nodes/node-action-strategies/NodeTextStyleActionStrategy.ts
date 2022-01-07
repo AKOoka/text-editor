@@ -1,13 +1,13 @@
 import { TextStyle } from '../../../../common/TextStyle'
 import { BaseNodeTextActionStrategy } from './BaseNodeTextActionStrategy'
-import { Node, INodeTextStyle, NodeType, INodeText } from '../nodes/INode'
-import { MergeResult } from '../util/NodeMerger'
+import { Node, INodeTextStyle, NodeType, INodeText } from '../nodes/Node'
+import { MergeResult } from '../util/merger/NodeMerger'
 import { RangeWithOffset } from '../util/RangeWithOffset'
-import { NodeLayer } from '../NodeLayer'
+import { NodeChildren } from '../nodes/NodeChildren'
 import { ILinkedNodeReadonly } from '../ILinkedNode'
 
 export class NodeTextStyleActionStrategy extends BaseNodeTextActionStrategy {
-  addTextStyle (nodeLayer: NodeLayer, linkedNode: ILinkedNodeReadonly, range: RangeWithOffset, textStyle: TextStyle): void {
+  addTextStyle (nodeChildren: NodeChildren, linkedNode: ILinkedNodeReadonly, range: RangeWithOffset, textStyle: TextStyle): void {
     const { node } = linkedNode as ILinkedNodeReadonly<INodeTextStyle>
 
     if (node.style.deepCompare(textStyle)) {
@@ -15,15 +15,17 @@ export class NodeTextStyleActionStrategy extends BaseNodeTextActionStrategy {
     }
 
     if (range.isNodeInsideRange(node.size)) {
-      linkedNode.node = this._nodeCreator.createNodeContainer(textStyle, [node])
+      linkedNode.node = this._nodeCreator.createNodeContainer(textStyle, new NodeChildren(node))
     } else if (range.isRangeInsideNode(node.size)) {
-      nodeLayer.splice(
-        nodeIndex,
-        0,
-        this._nodeCreator.createNodeTextStyle(node.text.slice(0, range.startWithOffset), node.style),
+      nodeChildren.addBefore(linkedNode, this._nodeCreator.createNodeTextStyle(node.text.slice(0, range.startWithOffset), node.style))
+      nodeChildren.addBefore(
+        linkedNode,
         this._nodeCreator.createNodeContainer(
           textStyle,
-          [this._nodeCreator.createNodeTextStyle(node.text.slice(range.startWithOffset, range.endWithOffset), node.style)]
+          new NodeChildren(this._nodeCreator.createNodeTextStyle(
+            node.text.slice(range.startWithOffset, range.endWithOffset),
+            node.style
+          ))
         )
       )
 
@@ -35,7 +37,7 @@ export class NodeTextStyleActionStrategy extends BaseNodeTextActionStrategy {
       node.text = nodeNewText
 
       if (leftNode !== undefined) {
-        const mergeResult: MergeResult = this._nodeMerger.mergeIfPossibleNodeWithTextStyle(
+        const mergeResult: MergeResult = this._nodeMerger.mergeIfPossibleNodeWithNodeTextStyleContent(
           leftNode,
           newNodeTextStyleText,
           textStyle,
@@ -43,12 +45,12 @@ export class NodeTextStyleActionStrategy extends BaseNodeTextActionStrategy {
         )
 
         if (mergeResult.success) {
-          nodeLayer.splice(nodeIndex - 1, 1, mergeResult.node)
+          nodeChildren.splice(nodeIndex - 1, 1, mergeResult.node)
           return
         }
       }
 
-      nodeLayer.splice(
+      nodeChildren.splice(
         nodeIndex,
         0,
         this._nodeCreator.createNodeTextStyle(newNodeTextStyleText, textStyle)
@@ -60,7 +62,7 @@ export class NodeTextStyleActionStrategy extends BaseNodeTextActionStrategy {
       node.text = nodeNewText
 
       if (rightNode !== undefined) {
-        const mergeResult: MergeResult = this._nodeMerger.mergeIfPossibleNodeWithTextStyle(
+        const mergeResult: MergeResult = this._nodeMerger.mergeIfPossibleNodeWithNodeTextStyleContent(
           rightNode,
           newNodeTextStyleText,
           textStyle,
@@ -68,12 +70,12 @@ export class NodeTextStyleActionStrategy extends BaseNodeTextActionStrategy {
         )
 
         if (mergeResult.success) {
-          nodeLayer.splice(nodeIndex + 1, 1, mergeResult.node)
+          nodeChildren.splice(nodeIndex + 1, 1, mergeResult.node)
           return
         }
       }
 
-      nodeLayer.splice(
+      nodeChildren.splice(
         nodeIndex + 1,
         0,
         this._nodeCreator.createNodeTextStyle(newNodeTextStyleText, textStyle)
@@ -81,14 +83,14 @@ export class NodeTextStyleActionStrategy extends BaseNodeTextActionStrategy {
     }
   }
 
-  deleteTextStyleAll (nodeLayer: NodeLayer, linkedNode: ILinkedNodeReadonly, range: RangeWithOffset,): void {
+  deleteTextStyleAll (nodeLayer: NodeChildren, linkedNode: ILinkedNodeReadonly, range: RangeWithOffset,): void {
     const node: INodeTextStyle = nodeLayer[nodeIndex] as INodeTextStyle
     const leftNode: Node | undefined = nodeLayer[nodeIndex - 1]
     const rightNode: Node | undefined = nodeLayer[nodeIndex + 1]
 
     if (range.isNodeInsideRange(node.size)) {
       if (leftNode !== undefined && leftNode.type === NodeType.TEXT) {
-        const newLeftNode: INodeText = this._nodeMerger.mergeNodeTextWithText(leftNode, node.text, true)
+        const newLeftNode: INodeText = this._nodeMerger.mergeNodeTextWithNodeTextContent(leftNode, node.text, true)
 
         if (rightNode !== undefined && rightNode.type === NodeType.TEXT) {
           const mergedNodes: INodeText = this._nodeMerger.mergeTwoNodeText(newLeftNode, rightNode)
@@ -112,7 +114,7 @@ export class NodeTextStyleActionStrategy extends BaseNodeTextActionStrategy {
         nodeLayer.splice(
           nodeIndex - 1,
           1,
-          this._nodeMerger.mergeNodeTextWithText(leftNode, node.text.slice(0, range.endWithOffset), true)
+          this._nodeMerger.mergeNodeTextWithNodeTextContent(leftNode, node.text.slice(0, range.endWithOffset), true)
         )
       } else {
         nodeLayer.splice(
@@ -128,7 +130,7 @@ export class NodeTextStyleActionStrategy extends BaseNodeTextActionStrategy {
         nodeLayer.splice(
           nodeIndex + 1,
           1,
-          this._nodeMerger.mergeNodeTextWithText(rightNode, node.text.slice(range.startWithOffset), false)
+          this._nodeMerger.mergeNodeTextWithNodeTextContent(rightNode, node.text.slice(range.startWithOffset), false)
         )
       } else {
         nodeLayer.splice(
@@ -142,7 +144,7 @@ export class NodeTextStyleActionStrategy extends BaseNodeTextActionStrategy {
     }
   }
 
-  deleteTextStyleConcrete (nodeLayer: NodeLayer, linkedNode: ILinkedNodeReadonly, range: RangeWithOffset, textStyle: TextStyle): void {
+  deleteTextStyle (nodeLayer: NodeChildren, linkedNode: ILinkedNodeReadonly, range: RangeWithOffset, textStyle: TextStyle): void {
     if ((linkedNode as ILinkedNodeReadonly<INodeTextStyle>).node.style.deepCompare(textStyle)) {
       this.deleteTextStyleAll(nodeLayer, linkedNode, range)
     }

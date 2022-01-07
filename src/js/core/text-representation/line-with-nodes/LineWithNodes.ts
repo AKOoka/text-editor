@@ -1,23 +1,23 @@
 import { PositionWithOffset } from './util/PositionWithOffset'
 import { TextStyle } from '../../../common/TextStyle'
-import { ITextEditorRepresentationLine } from '../ITextEditorRepresentationLine'
+import { ITextRepresentationLine } from '../ITextRepresentationLine'
 import { RangeWithOffset } from './util/RangeWithOffset'
-import { NodeType } from './nodes/INode'
+import { NodeType } from './nodes/Node'
 import { INodeActionStrategy } from './node-action-strategies/INodeActionStrategy'
 import { NodeTextActionStrategy } from './node-action-strategies/NodeTextActionStrategy'
 import { NodeTextStyleActionStrategy } from './node-action-strategies/NodeTextStyleActionStrategy'
 import { NodeContainerActionStrategy } from './node-action-strategies/NodeContainerActionStrategy'
 import { LineWithNodesContent } from './LineWithNodesContent'
-import { NodeLayerTool } from './util/NodeLayerTool'
+import { NodeChildrenTool } from './util/NodeChildrenTool'
 import { NodeCreator } from './util/NodeCreator'
-import { NodeMerger } from './util/NodeMerger'
-import { NodeLayer } from './NodeLayer'
+import { NodeMerger } from './util/merger/NodeMerger'
+import { NodeChildren } from './nodes/NodeChildren'
 
-export class LineWithNodes implements ITextEditorRepresentationLine {
+export class LineWithNodes implements ITextRepresentationLine {
   private _size: number
-  private readonly _childNodes: NodeLayer
+  private readonly _childNodes: NodeChildren
   private readonly _nodeAction: Record<NodeType, INodeActionStrategy>
-  private readonly _nodeLayerTool: NodeLayerTool
+  private readonly _nodeLayerTool: NodeChildrenTool
   private readonly _nodeCreator: NodeCreator
   private readonly _nodeMerger: NodeMerger
 
@@ -25,9 +25,8 @@ export class LineWithNodes implements ITextEditorRepresentationLine {
     this._size = 0
     this._nodeCreator = new NodeCreator()
     this._nodeMerger = new NodeMerger(this._nodeCreator)
-    this._nodeLayerTool = new NodeLayerTool(this._nodeMerger, this._nodeCreator)
-
-    this._childNodes = new NodeLayer(this._nodeCreator.createNodeText(''))
+    this._nodeLayerTool = new NodeChildrenTool(this._nodeMerger, this._nodeCreator)
+    this._childNodes = new NodeChildren(this._nodeCreator.createNodeText(''))
 
     const nodeTextActionStrategy = new NodeTextActionStrategy(this._nodeCreator, this._nodeMerger, this._nodeLayerTool)
     const nodeTextStyleActionStrategy = new NodeTextStyleActionStrategy(this._nodeCreator, this._nodeMerger, this._nodeLayerTool)
@@ -38,6 +37,7 @@ export class LineWithNodes implements ITextEditorRepresentationLine {
       [NodeType.CONTAINER]: new NodeContainerActionStrategy(
         this._nodeCreator,
         this._nodeMerger,
+        this._nodeLayerTool,
         nodeTextActionStrategy,
         nodeTextStyleActionStrategy
       )
@@ -150,7 +150,7 @@ export class LineWithNodes implements ITextEditorRepresentationLine {
     this._childNodes.updateNodesInRange(
       range,
       (linkedNode, offset) => {
-        this._nodeAction[linkedNode.node.type].deleteTextStyleConcrete(
+        this._nodeAction[linkedNode.node.type].deleteTextStyle(
           this._childNodes,
           linkedNode,
           range.copy().setOffset(offset),
