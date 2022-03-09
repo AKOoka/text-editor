@@ -56,7 +56,10 @@ class TextEditor implements ITextEditor {
     this._textRepresentation.addNewLines(rangeY)
   }
 
-  changeTextCursorSelection (selectionIndex: number, selection: Selection): void {
+  changeTextCursorSelection (
+    selectionIndex: number,
+    selection: Selection
+  ): void {
     this._textCursor.changeSelection(selectionIndex, selection)
   }
 
@@ -104,7 +107,9 @@ class TextEditor implements ITextEditor {
     this._textCursor.subscribeForPosition(subscriber)
   }
 
-  subscribeForTextCursorSelections (subscriber: ITextCursorSelectionsSubscriber): void {
+  subscribeForTextCursorSelections (
+    subscriber: ITextCursorSelectionsSubscriber
+  ): void {
     this._textCursor.subscribeForSelections(subscriber)
   }
 
