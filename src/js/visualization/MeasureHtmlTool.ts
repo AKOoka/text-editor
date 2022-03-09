@@ -210,7 +210,7 @@ export class MeasureHtmlTool {
   }
 
   convertRangeXToDisplayRangeX (lineParts: HTMLElement[], rangeX: Range): ITextAreaRangeX {
-    const { start: start, end: end } = rangeX
+    const { start, end } = rangeX
     const displayRangesX: Range[] = []
     let startLinePartY: number = 0
     let endLinePartY: number = 0

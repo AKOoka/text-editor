@@ -44,7 +44,10 @@ class TextEditor implements ITextEditor {
     this._representation.addContent(point, content)
   }
 
-  addTextStyleInSelections (selections: Selection[], textStyleType: TextStyle): void {
+  addTextStyleInSelections (
+    selections: Selection[],
+    textStyleType: TextStyle
+  ): void {
     this._representation.addTextStylesInSelections(selections, textStyleType)
   }
 
@@ -56,7 +59,10 @@ class TextEditor implements ITextEditor {
     this._representation.addNewLines(rangeY)
   }
 
-  changeTextCursorSelection (selectionIndex: number, selection: Selection): void {
+  changeTextCursorSelection (
+    selectionIndex: number,
+    selection: Selection
+  ): void {
     this._textCursor.changeSelection(selectionIndex, selection)
   }
 
@@ -68,8 +74,14 @@ class TextEditor implements ITextEditor {
     this._representation.deleteTextInSelections(selections)
   }
 
-  deleteConcreteTextStylesInSelections (selections: Selection[], textStyleType: TextStyle): void {
-    this._representation.deleteConcreteTextStyleInSelections(selections, textStyleType)
+  deleteConcreteTextStylesInSelections (
+    selections: Selection[],
+    textStyleType: TextStyle
+  ): void {
+    this._representation.deleteConcreteTextStyleInSelections(
+      selections,
+      textStyleType
+    )
   }
 
   deleteAllTextStylesInSelections (selections: Selection[]): void {
@@ -104,11 +116,15 @@ class TextEditor implements ITextEditor {
     this._textCursor.subscribeForPosition(subscriber)
   }
 
-  subscribeForTextCursorSelections (subscriber: ITextCursorSelectionsSubscriber): void {
+  subscribeForTextCursorSelections (
+    subscriber: ITextCursorSelectionsSubscriber
+  ): void {
     this._textCursor.subscribeForSelections(subscriber)
   }
 
-  subscribeForTextRepresentation (subscriber: ITextRepresentationSubscriber): void {
+  subscribeForTextRepresentation (
+    subscriber: ITextRepresentationSubscriber
+  ): void {
     this._representation.subscribe(subscriber)
   }
 
@@ -131,7 +147,10 @@ class TextEditor implements ITextEditor {
   }
 
   updateActiveStyles (): void {
-    const activeTextStyles: TextStyle[] = this._representation.getTextStylesInSelections(this._textCursor.selections)
+    const activeTextStyles: TextStyle[] =
+      this._representation.getTextStylesInSelections(
+        this._textCursor.selections
+      )
     for (const subscriber of this._activeTextStylesSubscribers) {
       subscriber.updateActiveTextStyles(activeTextStyles)
     }
